@@ -1,0 +1,65 @@
+cmake_minimum_required(VERSION 3.26)
+
+set(PROJECT_NAME SnailBox)
+set(CMAKE_CXX_STANDARD 20)
+
+if(WIN32)
+    if(MSVC)
+        # 디버거 옵션에 /Z7을 포함한다.(컴파일된 오브젝트 파일내에 디버그 정보를 포함시키도록 함)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Z7")
+    endif()
+endif()
+
+set(INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
+set(INCLUDE_DIR ${INSTALL_DIR}/include)
+set(LIB_DIR ${INSTALL_DIR}/lib)
+set(SOURCE_ROOT src)
+
+# Set variables.
+set(DEP_IMGUI imgui)
+set(DEP_LIST)
+
+set(DEP_LIBS)
+set(LIB_GLFW glfw3)
+set(LIB_IMGUI imgui)
+
+project(${PROJECT_NAME} LANGUAGES CXX)
+
+file(GLOB MAIN_SOURCE
+    "src/Core/*.h"
+    "src/Core/*.cpp"
+    "src/Render/OpenGL/*.h"
+    "src/Render/OpenGL/*.cpp"
+    "src/Render/*.h"
+    "src/Render/*.cpp"
+    "src/*.cpp"
+    "src/*.h"
+    "src/*.hpp"
+)
+add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# build_dependencies
+include(ExternalProjects.cmake)
+
+# imgui
+add_subdirectory(imgui)
+
+# external
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOURCE_ROOT})
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${LIB_IMGUI})
+target_link_directories(${PROJECT_NAME} PUBLIC ${LIB_DIR} PUBLIC ${INSTALL_DIR}/${LIB_IMGUI})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIB_GLFW} PUBLIC ${LIB_IMGUI})
+
+# thirdparty
+target_include_directories(${PROJECT_NAME} PUBLIC thirdparty)
+
+
+#get_property(include_dir TARGET ${PROJECT_NAME} PROPERTY INCLUDE_DIRECTORIES)
+
+# add_dependencies(${PROJECT_NAME} ${DEP_GLFW})
+# add_dependencies(${PROJECT_NAME} ${DEP_IMGUI})
+add_dependencies(${PROJECT_NAME} ${DEP_LIST})
