@@ -15,9 +15,6 @@ namespace sb
         OpenGLContext() {}
         OpenGLContext(GLFWwindow* arg_window_handle);
 
-        // Create는 GraphicsContext에서 해야하지만 임시로 우선 여기서 해준다.
-        static UPtr<OpenGLContext> Create();
-
         static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
         virtual void Init() override;

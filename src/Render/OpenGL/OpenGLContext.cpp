@@ -47,13 +47,13 @@ namespace sb
         // Assert 필요.
     }
 
-    UPtr<OpenGLContext> OpenGLContext::Create()
-    {
-        auto context = UPtr<OpenGLContext>(new OpenGLContext());
-        context->Init();
+    // UPtr<OpenGLContext> OpenGLContext::Create()
+    // {
+    //     auto context = UPtr<OpenGLContext>(new OpenGLContext());
+    //     context->Init();
 
-        return std::move(context);
-    }
+    //     return std::move(context);
+    // }
 
     SPtr<OpenGLShader> OpenGLContext::CreateFromFile(const std::string& in_filename, GLenum in_shaderType)
     {
