@@ -1,54 +1,17 @@
 #define GLFW_INCLUDE_NONE
 #include "WinWindow.h"
 
+#include <iostream> // TEMP:LOG추가하면 지울 것
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include "Render/OpenGL/OpenGLContext.h"
-
-// TEmp input callback
-void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
-void OnCursorPos(GLFWwindow* window, double x, double y)
-{
-    // auto context = (Context*)glfwGetWindowUserPointer(window);
-    // context->MouseMove(x, y);
-}
-
-void OnMouseButton(GLFWwindow* window, int button, int action, int modifier)
-{
-    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, modifier);
-
-    // auto context = (Context*)glfwGetWindowUserPointer(window);
-    double x, y;
-    glfwGetCursorPos(window, &x, &y);
-    // context->MouseButton(button, action, x, y);
-}
-
-void OnCharEvent(GLFWwindow* window, unsigned int ch)
-{
-    ImGui_ImplGlfw_CharCallback(window, ch);
-}
-
-void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
-{
-    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-}
+#include "Platform/Input.h"
 
 void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
     glViewport(0, 0, InWidth, InHeight);
 }
-
-// END
 
 namespace sb
 {
@@ -89,12 +52,64 @@ namespace sb
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
-        // input
-        glfwSetKeyCallback(glfw_window, OnKeyEvent);
-        glfwSetCursorPosCallback(glfw_window, OnCursorPos);
-        glfwSetMouseButtonCallback(glfw_window, OnMouseButton);
-        glfwSetCharCallback(glfw_window, OnCharEvent); // 문자가 입력됬을 때 호출되는 callback.
-        glfwSetScrollCallback(glfw_window, OnScroll);
+        // input callback binding은 init()에서 해준다.
+        // Key input
+        glfwSetKeyCallback(glfw_window,
+                           [](GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
+                           {
+                               ImGui_ImplGlfw_KeyCallback(in_window, in_key, in_scancode, in_action, in_modifier);
+
+                               // 원래 입력은 Queue에 모아서 처리해야 한다.
+                               // 지금은 여기서 바로 처리하도록 함.
+                               switch (in_action)
+                               {
+                                   case GLFW_PRESS:
+                                   {
+                                       if (in_key == GLFW_KEY_ESCAPE)
+                                       {
+                                           glfwSetWindowShouldClose(in_window, true);
+                                       }
+                                   }
+                               }
+                           });
+
+        // 문자가 입력됬을 때 호출되는 callback.
+        glfwSetCharCallback(glfw_window, [](GLFWwindow* in_window, unsigned int in_ch)
+                            { ImGui_ImplGlfw_CharCallback(in_window, in_ch); });
+
+        // Mouse input
+        glfwSetCursorPosCallback(glfw_window, [](GLFWwindow* in_window, double in_x, double y) 
+        {
+            // 여기서 MoveMouse() 처리.
+        });
+        glfwSetMouseButtonCallback(glfw_window,
+                                   [](GLFWwindow* in_window, int in_button, int in_action, int int_modifier)
+                                   {
+                                       // 마우스 입력을 처리할 때 대상 Window를 알아야 하기 떄문에
+                                       // glfwGetWindowUserPointer로 포인터를 가져와서 처리해줘야 하지만
+                                       // 지금은 여기서 모든걸 하도록 한다.
+                                       switch (in_action)
+                                       {
+                                           case GLFW_PRESS:
+                                           {
+                                               ImGui_ImplGlfw_MouseButtonCallback(in_window, in_button, in_action,
+                                                                                  int_modifier);
+
+                                               // log 대신..
+                                               std::cout << "GLFW_PRESS" << std::endl;
+                                               break;
+                                           }
+                                           case GLFW_RELEASE:
+                                           {
+                                               ImGui_ImplGlfw_MouseButtonCallback(in_window, in_button, in_action,
+                                                                                  int_modifier);
+                                               std::cout << "GLFW_RELEASE" << std::endl;
+                                               break;
+                                           }
+                                       }
+                                   });
+        glfwSetScrollCallback(glfw_window, [](GLFWwindow* in_window, double in_xoffset, double in_yoffset)
+                              { ImGui_ImplGlfw_ScrollCallback(in_window, in_xoffset, in_yoffset); });
 
         while (!glfwWindowShouldClose(glfw_window))
         {
