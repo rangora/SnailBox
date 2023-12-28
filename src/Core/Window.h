@@ -22,7 +22,8 @@ namespace sb
     {
     public:
         virtual ~Window() = default;
-
+        virtual void Update() = 0;
+        virtual void ShutDown() = 0;
         // static UPtr<Window> Create(const WindowContext& arg_context = WindowContext());
     };
 } // namespace sb

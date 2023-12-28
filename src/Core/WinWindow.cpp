@@ -7,6 +7,7 @@
 
 #include "Render/OpenGL/OpenGLContext.h"
 #include "Platform/Input.h"
+#include "Application.h"
 
 void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
@@ -20,8 +21,36 @@ namespace sb
         Init(arg_WindowContext);
     }
 
+    WinsWindow::WinsWindow(const WindowContext& arg_WindowContext, Application* in_app)
+    {
+        Init(arg_WindowContext);
+        m_app = in_app;
+    }
+
     WinsWindow::~WinsWindow()
     {
+        ShutDown();
+    }
+
+    void WinsWindow::Update()
+    {
+        if (!glfwWindowShouldClose(m_window))
+        {
+            glfwPollEvents();
+
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            m_graphicContext->Render();
+            ImGui::Render();
+
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            glfwSwapBuffers(m_window);
+        }
+        else
+        {
+            // TEMP
+            m_app->DestroyLayer();
+        }
     }
 
     void WinsWindow::Init(const WindowContext& arg_WindowContext)
@@ -37,24 +66,24 @@ namespace sb
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        GLFWwindow* glfw_window = glfwCreateWindow(arg_WindowContext.width, arg_WindowContext.height,
-                                                   arg_WindowContext.title.c_str(), nullptr, nullptr);
+        m_window = glfwCreateWindow(arg_WindowContext.width, arg_WindowContext.height, arg_WindowContext.title.c_str(),
+                                    nullptr, nullptr);
 
-        UPtr<GraphicsContext> render_context = GraphicsContext::Create(glfw_window);
-        render_context->Init();
+        m_graphicContext = GraphicsContext::Create(m_window);
+        m_graphicContext->Init();
 
-        glfwSetFramebufferSizeCallback(glfw_window, framebuffer_size_callback);
+        glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-        ImGuiContext* imgui_Context = ImGui::CreateContext();
-        ImGui::SetCurrentContext(imgui_Context);
-        ImGui_ImplGlfw_InitForOpenGL(glfw_window, false);
+        m_imguiContext = ImGui::CreateContext();
+        ImGui::SetCurrentContext(m_imguiContext);
+        ImGui_ImplGlfw_InitForOpenGL(m_window, false);
         ImGui_ImplOpenGL3_Init();
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
         // input callback binding은 init()에서 해준다.
         // Key input
-        glfwSetKeyCallback(glfw_window,
+        glfwSetKeyCallback(m_window,
                            [](GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
                            {
                                ImGui_ImplGlfw_KeyCallback(in_window, in_key, in_scancode, in_action, in_modifier);
@@ -74,15 +103,15 @@ namespace sb
                            });
 
         // 문자가 입력됬을 때 호출되는 callback.
-        glfwSetCharCallback(glfw_window, [](GLFWwindow* in_window, unsigned int in_ch)
+        glfwSetCharCallback(m_window, [](GLFWwindow* in_window, unsigned int in_ch)
                             { ImGui_ImplGlfw_CharCallback(in_window, in_ch); });
 
         // Mouse input
-        glfwSetCursorPosCallback(glfw_window, [](GLFWwindow* in_window, double in_x, double y) 
+        glfwSetCursorPosCallback(m_window, [](GLFWwindow* in_window, double in_x, double y) 
         {
             // 여기서 MoveMouse() 처리.
         });
-        glfwSetMouseButtonCallback(glfw_window,
+        glfwSetMouseButtonCallback(m_window,
                                    [](GLFWwindow* in_window, int in_button, int in_action, int int_modifier)
                                    {
                                        // 마우스 입력을 처리할 때 대상 Window를 알아야 하기 떄문에
@@ -108,27 +137,17 @@ namespace sb
                                            }
                                        }
                                    });
-        glfwSetScrollCallback(glfw_window, [](GLFWwindow* in_window, double in_xoffset, double in_yoffset)
+        glfwSetScrollCallback(m_window, [](GLFWwindow* in_window, double in_xoffset, double in_yoffset)
                               { ImGui_ImplGlfw_ScrollCallback(in_window, in_xoffset, in_yoffset); });
-
-        while (!glfwWindowShouldClose(glfw_window))
-        {
-            glfwPollEvents();
-
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-            render_context->Render();
-            ImGui::Render();
-
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            glfwSwapBuffers(glfw_window);
-        }
-
+    }
+    
+    void WinsWindow::ShutDown()
+    {
         ImGui_ImplOpenGL3_DestroyFontsTexture();
         ImGui_ImplOpenGL3_DestroyDeviceObjects();
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext(imgui_Context);
+        ImGui::DestroyContext(m_imguiContext);
 
         glfwTerminate();
     }

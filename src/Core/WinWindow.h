@@ -6,13 +6,17 @@
 #include <cstdint>
 #include <GLFW/glfw3.h>
 
+struct ImGuiContext;
+
 namespace sb
 {
     class WinsWindow : public Window 
     {
         public:
            WinsWindow(const WindowContext& arg_WindowContext);
+           WinsWindow(const WindowContext& arg_WindowContext, class Application* in_app);
            virtual ~WinsWindow();
+           void Update() final;
 
        private:
            struct WinWindowData
@@ -23,8 +27,13 @@ namespace sb
            };
 
         void Init(const WindowContext& arg_WindowContext);
+        void ShutDown() final;
 
-        GLFWwindow* m_window;
+        Application* m_app = nullptr; // TEMP
+
+        class GLFWwindow* m_window = nullptr;
+        ImGuiContext* m_imguiContext = nullptr;
+        UPtr<class GraphicsContext> m_graphicContext = nullptr;
 
         WinWindowData m_data;
     };
