@@ -38,12 +38,22 @@ namespace sb
         {
             glfwPollEvents();
 
+            ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             m_graphicContext->Render();
             ImGui::Render();
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+                glfwMakeContextCurrent(glfwGetCurrentContext());
+            }
+
             glfwSwapBuffers(m_window);
         }
         else
@@ -76,6 +86,13 @@ namespace sb
 
         m_imguiContext = ImGui::CreateContext();
         ImGui::SetCurrentContext(m_imguiContext);
+        
+        // config초기화는 Impl초기화 이전에 해줘야 한다.
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
         ImGui_ImplGlfw_InitForOpenGL(m_window, false);
         ImGui_ImplOpenGL3_Init();
         ImGui_ImplOpenGL3_CreateFontsTexture();
