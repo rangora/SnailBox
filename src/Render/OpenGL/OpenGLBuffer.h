@@ -4,6 +4,38 @@
 
 namespace sb
 {
+    /** OpenGLBuffer **/
+    OpenGLBuffer::~OpenGLBuffer()
+    {
+        if (m_buffer)
+        {
+            glDeleteBuffers(1, &m_buffer);
+        }
+    }
+
+    UPtr<OpenGLBuffer> OpenGLBuffer::CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
+                                                    size_t in_dataSize)
+    {
+        auto buffer = UPtr<OpenGLBuffer>(new OpenGLBuffer());
+        buffer->Init(in_bufferType, in_usage, in_data, in_dataSize) ? std::move(buffer) : nullptr;
+    }
+
+    void OpenGLBuffer::Bind() const
+    {
+        glBindBuffer(m_bufferType, m_buffer);
+    }
+
+    void OpenGLBuffer::Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize)
+    {
+        m_bufferType = in_bufferType;
+        m_usage = in_usage;
+        glGenBuffers(1, &m_buffer);
+        Bind();
+        glBufferData(in_bufferType, in_dataSize, in_data, in_usage);
+    }
+    /** ~OpenGLBuffer **/
+
+    /** OpenGLVertexBuffer **/
     inline OpenGLVertexBuffer::~OpenGLVertexBuffer()
     {
         if (m_vertexArrayObject)
@@ -36,4 +68,5 @@ namespace sb
         glGenVertexArrays(1, &m_vertexArrayObject);
         Bind();
     }
+    /** ~OpenGLVertexBuffer **/
 }
