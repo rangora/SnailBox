@@ -1,72 +1,45 @@
-﻿#include "OpenGLBuffer.h"
+﻿#pragma once
 
-#include <glad/glad.h>
+#include "Core/Common.h"
 
 namespace sb
 {
-    /** OpenGLBuffer **/
-    OpenGLBuffer::~OpenGLBuffer()
+    class OpenGLBuffer
     {
-        if (m_buffer)
-        {
-            glDeleteBuffers(1, &m_buffer);
-        }
-    }
+    public:
+        ~OpenGLBuffer();
+        static UPtr<OpenGLBuffer> CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
+                                                 size_t in_dataSize);
 
-    UPtr<OpenGLBuffer> OpenGLBuffer::CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
-                                                    size_t in_dataSize)
-    {
-        auto buffer = UPtr<OpenGLBuffer>(new OpenGLBuffer());
-        buffer->Init(in_bufferType, in_usage, in_data, in_dataSize) ? std::move(buffer) : nullptr;
-    }
+        void Bind() const;
 
-    void OpenGLBuffer::Bind() const
-    {
-        glBindBuffer(m_bufferType, m_buffer);
-    }
+        uint32 Get() const { return m_buffer; }
 
-    void OpenGLBuffer::Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize)
-    {
-        m_bufferType = in_bufferType;
-        m_usage = in_usage;
-        glGenBuffers(1, &m_buffer);
-        Bind();
-        glBufferData(in_bufferType, in_dataSize, in_data, in_usage);
-    }
-    /** ~OpenGLBuffer **/
+    private:
+        OpenGLBuffer() = default;
+        void Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize);
 
-    /** OpenGLVertexBuffer **/
-    inline OpenGLVertexBuffer::~OpenGLVertexBuffer()
-    {
-        if (m_vertexArrayObject)
-        {
-            glDeleteVertexArrays(1, &m_vertexArrayObject);
-        }
-    }
+        uint32 m_buffer = 0;
+        uint32 m_bufferType = 0;
+        uint32 m_usage = 0;
+    };
 
-    inline UPtr<OpenGLVertexBuffer> OpenGLVertexBuffer::Create()
+    class OpenGLVertexBuffer
     {
-        auto VertexBuffer = UPtr<OpenGLVertexBuffer>(new OpenGLVertexBuffer());
-        VertexBuffer->Init();
-        return std::move(VertexBuffer);
-    }
+    public:
+        static UPtr<OpenGLVertexBuffer> Create();
+        OpenGLVertexBuffer() = default;
+        ~OpenGLVertexBuffer();
 
-    void OpenGLVertexBuffer::Bind() const
-    {
-        glBindVertexArray(m_vertexArrayObject);
-    }
+        int32 Get() const { return m_vertexArrayObject; }
 
-    void OpenGLVertexBuffer::SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized,
-                                          size_t in_stride, uint64_t in_offset) const
-    {
-        glEnableVertexAttribArray(in_attribIndex);
-        glVertexAttribPointer(in_attribIndex, in_count, in_type, in_normalized, in_stride, (const void*)in_offset);
-    }
+        void Bind() const; // override?
+        void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
+                          uint64_t in_offset) const; // override?
 
-    void OpenGLVertexBuffer::Init()
-    {
-        glGenVertexArrays(1, &m_vertexArrayObject);
-        Bind();
-    }
-    /** ~OpenGLVertexBuffer **/
-}
+    private:
+        void Init();
+
+        uint32 m_vertexArrayObject = 0;
+    };
+} // namespace sb

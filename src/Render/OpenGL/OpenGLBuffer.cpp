@@ -1,45 +1,73 @@
-﻿#pragma once
+﻿#include "OpenGLBuffer.h"
 
-#include "Core/Common.h"
+#include <glad/glad.h>
 
 namespace sb
 {
-    class OpenGLBuffer
+    /** OpenGLBuffer **/
+    OpenGLBuffer::~OpenGLBuffer()
     {
-    public:
-        ~OpenGLBuffer();
-        static UPtr<OpenGLBuffer> CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
-                                                 size_t in_dataSize);
+        if (m_buffer)
+        {
+            glDeleteBuffers(1, &m_buffer);
+        }
+    }
 
-        void Bind() const;
-
-        uint32 Get() const { return m_buffer; }
-
-    private:
-        OpenGLBuffer() = default;
-        void Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize);
-
-        uint32 m_buffer = 0;
-        uint32 m_bufferType = 0;
-        uint32 m_usage = 0;
-    };
-
-    class OpenGLVertexBuffer
+    UPtr<OpenGLBuffer> OpenGLBuffer::CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
+                                                    size_t in_dataSize)
     {
-    public:
-        ~OpenGLVertexBuffer();
-        static UPtr<OpenGLVertexBuffer> Create();
+        auto buffer = UPtr<OpenGLBuffer>(new OpenGLBuffer());
+        buffer->Init(in_bufferType, in_usage, in_data, in_dataSize);
+        return std::move(buffer);
+    }
 
-        int32 Get() const { return m_vertexArrayObject; }
+    void OpenGLBuffer::Bind() const
+    {
+        glBindBuffer(m_bufferType, m_buffer);
+    }
 
-        void Bind() const; // override?
-        void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
-                          uint64_t in_offset) const; // override?
+    void OpenGLBuffer::Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize)
+    {
+        m_bufferType = in_bufferType;
+        m_usage = in_usage;
+        glGenBuffers(1, &m_buffer);
+        Bind();
+        glBufferData(in_bufferType, in_dataSize, in_data, in_usage);
+    }
+    /** ~OpenGLBuffer **/
 
-private:
-    OpenGLVertexBuffer() = default;
-    void Init();
+    /** OpenGLVertexBuffer **/
+    OpenGLVertexBuffer::~OpenGLVertexBuffer()
+    {
+        if (m_vertexArrayObject)
+        {
+            glDeleteVertexArrays(1, &m_vertexArrayObject);
+        }
+    }
 
-    int32 m_vertexArrayObject = 0;
-    };
-} // namespace sb
+    UPtr<OpenGLVertexBuffer> OpenGLVertexBuffer::Create()
+    {
+        auto VertexBuffer = CreateUPtr<OpenGLVertexBuffer>();
+        VertexBuffer->Init();
+        return std::move(VertexBuffer);
+    }
+
+    void OpenGLVertexBuffer::Bind() const
+    {
+        glBindVertexArray(m_vertexArrayObject);
+    }
+
+    void OpenGLVertexBuffer::SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized,
+                                          size_t in_stride, uint64_t in_offset) const
+    {
+        glEnableVertexAttribArray(in_attribIndex);
+        glVertexAttribPointer(in_attribIndex, in_count, in_type, in_normalized, in_stride, (const void*)in_offset);
+    }
+
+    void OpenGLVertexBuffer::Init()
+    {
+        glGenVertexArrays(1, &m_vertexArrayObject);
+        Bind();
+    }
+    /** ~OpenGLVertexBuffer **/
+}
