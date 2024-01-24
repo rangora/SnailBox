@@ -3,10 +3,6 @@ include (ExternalProject)
 # Dependency 관련 변수 설정
 set(DEP_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
 
-# 아래 필요한 셋팅인지 판단필요
-#set(DEP_INCLUDE_DIR ${DEP_INSTALL_DIR}/include)
-#set(DEP_LIB_DIR ${DEP_INSTALL_DIR}/lib)
-
 ExternalProject_Add(
     extern_glfw
     GIT_REPOSITORY "https://github.com/glfw/glfw.git"

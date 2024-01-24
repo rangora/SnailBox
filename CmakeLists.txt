@@ -10,20 +10,15 @@ if(WIN32)
     endif()
 endif()
 
+project(${PROJECT_NAME} LANGUAGES CXX)
+
+# Set variables.
 set(INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
 set(INCLUDE_DIR ${INSTALL_DIR}/include)
 set(LIB_DIR ${INSTALL_DIR}/lib)
 set(SOURCE_ROOT src)
-
-# Set variables.
-set(DEP_IMGUI imgui)
 set(DEP_LIST)
-
 set(DEP_LIBS)
-set(LIB_GLFW glfw3)
-set(LIB_IMGUI imgui)
-
-project(${PROJECT_NAME} LANGUAGES CXX)
 
 file(GLOB MAIN_SOURCE
     "src/Core/*.h"
@@ -38,28 +33,20 @@ file(GLOB MAIN_SOURCE
 )
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
 # build_dependencies
 include(ExternalProjects.cmake)
 
 # imgui
 add_subdirectory(imgui)
 
-# external
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS})
-
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOURCE_ROOT})
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${LIB_IMGUI})
-target_link_directories(${PROJECT_NAME} PUBLIC ${LIB_DIR} PUBLIC ${INSTALL_DIR}/${LIB_IMGUI})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LIB_GLFW} PUBLIC ${LIB_IMGUI})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC thirdparty) # thirdParties
 
-# thirdparty
-target_include_directories(${PROJECT_NAME} PUBLIC thirdparty)
+target_link_directories(${PROJECT_NAME} PUBLIC ${LIB_DIR})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS}) # ExternalProjects
+target_link_libraries(${PROJECT_NAME} PUBLIC imgui) # imgui
 
-
-#get_property(include_dir TARGET ${PROJECT_NAME} PROPERTY INCLUDE_DIRECTORIES)
-
-# add_dependencies(${PROJECT_NAME} ${DEP_GLFW})
-# add_dependencies(${PROJECT_NAME} ${DEP_IMGUI})
-add_dependencies(${PROJECT_NAME} ${DEP_LIST})
+add_dependencies(${PROJECT_NAME} imgui) # imgui dependency
+add_dependencies(${PROJECT_NAME} ${DEP_LIST}) # ExternalProjects dependencies

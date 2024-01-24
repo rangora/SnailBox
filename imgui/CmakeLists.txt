@@ -16,9 +16,8 @@ file(GLOB SOURCE
 
 add_library(imgui ${SOURCE})
 
-set(DEP_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
-set(DEP_INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
-set(DEP_INCLUDE_DIR ${INSTALL_DIR}/include)
-set(DEP_LIB_DIR ${INSTALL_DIR}/lib)
+set(BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+set(INSTALL_DIR ${BUILD_DIR}/install)
+set(INCLUDE_DIR ${INSTALL_DIR}/include)
 
-target_include_directories(imgui PRIVATE ${DEP_INCLUDE_DIR})
+target_include_directories(imgui PRIVATE ${INCLUDE_DIR})
