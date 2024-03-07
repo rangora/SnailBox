@@ -86,7 +86,7 @@ namespace sb
 
         m_imguiContext = ImGui::CreateContext();
         ImGui::SetCurrentContext(m_imguiContext);
-        
+
         // config초기화는 Impl초기화 이전에 해줘야 한다.
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -97,6 +97,11 @@ namespace sb
         ImGui_ImplOpenGL3_Init();
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
+
+        OpenGLContext* OpenGLContextPtr = static_cast<OpenGLContext*>(m_graphicContext.get());
+        OpenGLContextPtr->TestInit();
+        // shader bidning
+        OpenGLContextPtr->AttachShader(Application::s_staticShaderArchive);
 
         // input callback binding은 init()에서 해준다.
         // Key input
@@ -124,7 +129,7 @@ namespace sb
                             { ImGui_ImplGlfw_CharCallback(in_window, in_ch); });
 
         // Mouse input
-        glfwSetCursorPosCallback(m_window, [](GLFWwindow* in_window, double in_x, double y) 
+        glfwSetCursorPosCallback(m_window, [](GLFWwindow* in_window, double in_x, double y)
         {
             // 여기서 MoveMouse() 처리.
         });
@@ -157,7 +162,7 @@ namespace sb
         glfwSetScrollCallback(m_window, [](GLFWwindow* in_window, double in_xoffset, double in_yoffset)
                               { ImGui_ImplGlfw_ScrollCallback(in_window, in_xoffset, in_yoffset); });
     }
-    
+
     void WinsWindow::ShutDown()
     {
         ImGui_ImplOpenGL3_DestroyFontsTexture();

@@ -2,8 +2,10 @@
 
 #include <glad/glad.h>
 
+#include "Render/ShaderArchive.h"
 #include "src/Render/GraphicsContext.h"
 #include "OpenGLShader.h"
+#include "OpenGLBuffer.h"
 
 struct GLFWwindow;
 
@@ -20,6 +22,8 @@ namespace sb
         virtual void Init() override;
         virtual void SwapBuffers() override;
 
+        void AttachShader(const ShaderArchive& in_archive);
+        
         // TEMP?
         void Render() final;
 
@@ -30,10 +34,20 @@ namespace sb
         void MouseButton(int arg_button, int arg_action, double arg_x, double arg_y);
         // ~여기까지
 
+        void TestInit(); // TestCode
+
+        uint32 m_program = 0;
+
     private:
+        static UPtr<OpenGLShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);
+
         GLFWwindow* m_window_handle = nullptr;
 
         // Temp values
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
+
+        UPtr<OpenGLVertexBuffer> m_vertexBuffer = nullptr;
+        UPtr<OpenGLBuffer> m_buffer = nullptr;
+        UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
     };
 } // namespace sb

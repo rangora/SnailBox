@@ -3,6 +3,7 @@
 #include <vector>
 #include "Common.h"
 #include "Window.h"
+#include "Render/ShaderArchive.h"
 
 namespace sb
 {
@@ -19,6 +20,8 @@ namespace sb
 
         void CreateLayer();
         void DestroyLayer(); // TEMP
+
+        static ShaderArchive s_staticShaderArchive;
 
     private:
         UPtr<Window> m_window;

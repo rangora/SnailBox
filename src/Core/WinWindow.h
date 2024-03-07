@@ -10,7 +10,7 @@ struct ImGuiContext;
 
 namespace sb
 {
-    class WinsWindow : public Window 
+    class WinsWindow : public Window
     {
         public:
            WinsWindow(const WindowContext& arg_WindowContext);
@@ -33,7 +33,8 @@ namespace sb
 
         class GLFWwindow* m_window = nullptr;
         ImGuiContext* m_imguiContext = nullptr;
-        UPtr<class GraphicsContext> m_graphicContext = nullptr;
+
+        UPtr<class GraphicsContext> m_graphicContext = nullptr; // 필요 없을 듯
 
         WinWindowData m_data;
     };
