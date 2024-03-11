@@ -23,7 +23,7 @@ namespace sb
         virtual void SwapBuffers() override;
 
         void AttachShader(const ShaderArchive& in_archive);
-        
+
         // TEMP?
         void Render() final;
 
@@ -33,8 +33,6 @@ namespace sb
         void MouseMove(double arg_x, double arg_y);
         void MouseButton(int arg_button, int arg_action, double arg_x, double arg_y);
         // ~여기까지
-
-        void TestInit(); // TestCode
 
         uint32 m_program = 0;
 

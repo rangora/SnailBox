@@ -98,11 +98,6 @@ namespace sb
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
-        OpenGLContext* OpenGLContextPtr = static_cast<OpenGLContext*>(m_graphicContext.get());
-        OpenGLContextPtr->TestInit();
-        // shader bidning
-        OpenGLContextPtr->AttachShader(Application::s_staticShaderArchive);
-
         // input callback binding은 init()에서 해준다.
         // Key input
         glfwSetKeyCallback(m_window,
