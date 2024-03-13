@@ -54,7 +54,7 @@ namespace sb
                 glfwMakeContextCurrent(glfwGetCurrentContext());
             }
 
-            glfwSwapBuffers(m_window);
+            m_graphicContext->SwapBuffers();
         }
         else
         {
@@ -80,7 +80,7 @@ namespace sb
                                     nullptr, nullptr);
 
         m_graphicContext = GraphicsContext::Create(m_window);
-        m_graphicContext->Init();
+        m_graphicContext->Initialize();
 
         glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 

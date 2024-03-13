@@ -5,5 +5,5 @@ uniform mat4 tranform;
 
 void main()
 {
-    gl_Position = tranform * vec4(aPos, 1.0);
+    gl_Position = vec4(aPos, 1.0);
 }

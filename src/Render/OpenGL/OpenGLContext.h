@@ -6,6 +6,7 @@
 #include "src/Render/GraphicsContext.h"
 #include "OpenGLShader.h"
 #include "OpenGLBuffer.h"
+#include "OpenGLProgram.h"
 
 struct GLFWwindow;
 
@@ -19,10 +20,8 @@ namespace sb
 
         static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
-        virtual void Init() override;
+        virtual void Initialize() override;
         virtual void SwapBuffers() override;
-
-        void AttachShader(const ShaderArchive& in_archive);
 
         // TEMP?
         void Render() final;
@@ -45,7 +44,9 @@ namespace sb
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 
         UPtr<OpenGLVertexBuffer> m_vertexBuffer = nullptr;
-        UPtr<OpenGLBuffer> m_buffer = nullptr;
+        UPtr<OpenGLBuffer> m_vertexObjectBuffer = nullptr;
         UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
+
+        std::vector<UPtr<OpenGLProgram>> m_programs;
     };
 } // namespace sb
