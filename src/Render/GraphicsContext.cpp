@@ -4,9 +4,9 @@
 
 namespace sb
 {
-    UPtr<GraphicsContext> GraphicsContext::Create(void* arg_window)
+    UPtr<GraphicsContext> GraphicsContext::Create(void* in_glWindow, Window* in_window)
     {
         // Opengl
-        return CreateUPtr<OpenGLContext>(static_cast<GLFWwindow*>(arg_window));
+        return CreateUPtr<OpenGLContext>(static_cast<GLFWwindow*>(in_glWindow), in_window);
     }
 } // namespace sb

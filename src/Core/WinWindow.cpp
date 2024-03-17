@@ -1,4 +1,4 @@
-#define GLFW_INCLUDE_NONE
+﻿#define GLFW_INCLUDE_NONE
 #include "WinWindow.h"
 
 #include <iostream> // TEMP:LOG추가하면 지울 것
@@ -63,6 +63,60 @@ namespace sb
         }
     }
 
+    void WinsWindow::ProcessInput(GLFWwindow* in_window)
+    {
+        const float cameraSpeed = 0.05f;
+        if (glfwGetKey(in_window, GLFW_KEY_W) == GLFW_PRESS)
+            m_cameraPos += cameraSpeed * m_cameraFront;
+        if (glfwGetKey(in_window, GLFW_KEY_S) == GLFW_PRESS)
+            m_cameraPos -= cameraSpeed * m_cameraFront;
+
+        auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
+        if (glfwGetKey(in_window, GLFW_KEY_D) == GLFW_PRESS)
+            m_cameraPos += cameraSpeed * cameraRight;
+        if (glfwGetKey(in_window, GLFW_KEY_A) == GLFW_PRESS)
+            m_cameraPos -= cameraSpeed * cameraRight;
+
+        auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
+        if (glfwGetKey(in_window, GLFW_KEY_E) == GLFW_PRESS)
+            m_cameraPos += cameraSpeed * cameraUp;
+        if (glfwGetKey(in_window, GLFW_KEY_Q) == GLFW_PRESS)
+            m_cameraPos -= cameraSpeed * cameraUp;
+    }
+
+    void WinsWindow::MouseMove(double in_x, double in_y)
+    {
+        auto pos = glm::vec2((float)in_x, (float)in_y);
+        auto deltaPos = pos - m_preMousePos;
+
+        const float cameraRotSpeed = 0.8f;
+        m_cameraYaw -= deltaPos.x * cameraRotSpeed;
+        m_cameraPitch -= deltaPos.y * cameraRotSpeed;
+
+        if (m_cameraYaw < 0.0f)
+            m_cameraYaw += 360.0f;
+        if (m_cameraYaw > 360.0f)
+            m_cameraYaw -= 360.0f;
+
+        if (m_cameraPitch > 89.0f)
+            m_cameraPitch = 89.0f;
+        if (m_cameraPitch < -89.0f)
+            m_cameraPitch = -89.0f;
+
+        m_preMousePos = pos;
+    }
+
+    void WinsWindow::MouseButton(int32 in_button, int32 in_action, double in_x, double in_y)
+    {
+        if (in_button == GLFW_MOUSE_BUTTON_RIGHT)
+        {
+            if (in_action == GLFW_PRESS)
+            {
+                m_preMousePos = glm::vec2((float)in_x, (float)in_y);
+            }
+        }
+    }
+
     void WinsWindow::Init(const WindowContext& arg_WindowContext)
     {
         // glfw init
@@ -79,11 +133,11 @@ namespace sb
         m_window = glfwCreateWindow(arg_WindowContext.width, arg_WindowContext.height, arg_WindowContext.title.c_str(),
                                     nullptr, nullptr);
 
-        m_graphicContext = GraphicsContext::Create(m_window);
+        m_graphicContext = GraphicsContext::Create(m_window, this);
         m_graphicContext->Initialize();
 
         glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-
+        
         m_imguiContext = ImGui::CreateContext();
         ImGui::SetCurrentContext(m_imguiContext);
 
@@ -98,64 +152,19 @@ namespace sb
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
+        glfwSetWindowUserPointer(m_window, this);
+
         // input callback binding은 init()에서 해준다.
         // Key input
-        glfwSetKeyCallback(m_window,
-                           [](GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
-                           {
-                               ImGui_ImplGlfw_KeyCallback(in_window, in_key, in_scancode, in_action, in_modifier);
-
-                               // 원래 입력은 Queue에 모아서 처리해야 한다.
-                               // 지금은 여기서 바로 처리하도록 함.
-                               switch (in_action)
-                               {
-                                   case GLFW_PRESS:
-                                   {
-                                       if (in_key == GLFW_KEY_ESCAPE)
-                                       {
-                                           glfwSetWindowShouldClose(in_window, true);
-                                       }
-                                   }
-                               }
-                           });
+        glfwSetKeyCallback(m_window, OnKeyEvent);
 
         // 문자가 입력됬을 때 호출되는 callback.
-        glfwSetCharCallback(m_window, [](GLFWwindow* in_window, unsigned int in_ch)
-                            { ImGui_ImplGlfw_CharCallback(in_window, in_ch); });
+        glfwSetCharCallback(m_window, OnCharEvent);
 
         // Mouse input
-        glfwSetCursorPosCallback(m_window, [](GLFWwindow* in_window, double in_x, double y)
-        {
-            // 여기서 MoveMouse() 처리.
-        });
-        glfwSetMouseButtonCallback(m_window,
-                                   [](GLFWwindow* in_window, int in_button, int in_action, int int_modifier)
-                                   {
-                                       // 마우스 입력을 처리할 때 대상 Window를 알아야 하기 떄문에
-                                       // glfwGetWindowUserPointer로 포인터를 가져와서 처리해줘야 하지만
-                                       // 지금은 여기서 모든걸 하도록 한다.
-                                       switch (in_action)
-                                       {
-                                           case GLFW_PRESS:
-                                           {
-                                               ImGui_ImplGlfw_MouseButtonCallback(in_window, in_button, in_action,
-                                                                                  int_modifier);
-
-                                               // log 대신..
-                                               std::cout << "GLFW_PRESS" << std::endl;
-                                               break;
-                                           }
-                                           case GLFW_RELEASE:
-                                           {
-                                               ImGui_ImplGlfw_MouseButtonCallback(in_window, in_button, in_action,
-                                                                                  int_modifier);
-                                               std::cout << "GLFW_RELEASE" << std::endl;
-                                               break;
-                                           }
-                                       }
-                                   });
-        glfwSetScrollCallback(m_window, [](GLFWwindow* in_window, double in_xoffset, double in_yoffset)
-                              { ImGui_ImplGlfw_ScrollCallback(in_window, in_xoffset, in_yoffset); });
+        glfwSetCursorPosCallback(m_window, OnCursorPos);
+        glfwSetMouseButtonCallback(m_window, OnMouseButton);
+        glfwSetScrollCallback(m_window, OnScroll);
     }
 
     void WinsWindow::ShutDown()

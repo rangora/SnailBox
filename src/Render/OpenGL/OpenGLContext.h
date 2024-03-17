@@ -12,11 +12,13 @@ struct GLFWwindow;
 
 namespace sb
 {
+    class Window;
+
     class OpenGLContext : public GraphicsContext
     {
     public:
         OpenGLContext() {}
-        OpenGLContext(GLFWwindow* arg_window_handle);
+        OpenGLContext(GLFWwindow* in_window_handle, Window* in_window);
 
         static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
@@ -26,19 +28,13 @@ namespace sb
         // TEMP?
         void Render() final;
 
-        // WinWindowsInput으로 빠져야 함.
-        void ProcessInput(GLFWwindow* arg_window);
-        void Reshape(int arg_width, int arg_height);
-        void MouseMove(double arg_x, double arg_y);
-        void MouseButton(int arg_button, int arg_action, double arg_x, double arg_y);
-        // ~여기까지
-
         uint32 m_program = 0;
 
     private:
         static UPtr<OpenGLShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);
 
-        GLFWwindow* m_window_handle = nullptr;
+        GLFWwindow* m_glWindow_handle = nullptr;
+        Window* m_window_handle = nullptr;
 
         // Temp values
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
@@ -46,6 +42,10 @@ namespace sb
         UPtr<OpenGLVertexBuffer> m_vertexBuffer = nullptr;
         UPtr<OpenGLBuffer> m_vertexObjectBuffer = nullptr;
         UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
+
+        UPtr<OpenGLVertexBuffer> m_c_vertexBuffer = nullptr;
+        UPtr<OpenGLBuffer> m_c_vertexObjectBuffer = nullptr;
+        UPtr<OpenGLBuffer> m_c_indexBuffer = nullptr;
 
         std::vector<UPtr<OpenGLProgram>> m_programs;
     };
