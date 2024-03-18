@@ -29,11 +29,13 @@ namespace sb
            virtual ~WinsWindow();
            void Update() final;
 
+           void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
+
            void ProcessInput() final;
            void MouseMove(double in_x, double in_y) final;
            void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) final;
 
-           const WinWindowData& GetWindowData() { return m_data; }
+           const WinWindowData& GetWindowData() { return m_windowData; }
 
            // camera 애매.. 뺴야할거 같음
            bool m_cameraTranslation = false;
@@ -55,6 +57,6 @@ namespace sb
 
            UPtr<GraphicsContext> m_graphicContext = nullptr; // 필요 없을 듯
 
-           WinWindowData m_data;
+           WinWindowData m_windowData;
     };
 }

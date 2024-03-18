@@ -27,6 +27,8 @@ namespace sb
         virtual void ShutDown() = 0;
         // static UPtr<Window> Create(const WindowContext& arg_context = WindowContext());
 
+        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
+
         // Input 처리는 외부로 뺴야함..
         virtual void ProcessInput() = 0;
         virtual void MouseMove(double in_x, double in_y) = 0;
@@ -38,5 +40,7 @@ namespace sb
         static void OnMouseButton(GLFWwindow* in_window, int32 in_button, int32 in_action, int32 in_modifier);
         static void OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset);
         // ~Input
+
+        static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
     };
 } // namespace sb

@@ -64,6 +64,13 @@ namespace sb
         }
     }
 
+    void WinsWindow::OnWindowSizeChanged(int32 in_width, int32 in_height)
+    {
+        m_windowData.width = in_width;
+        m_windowData.height = in_height;
+        glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
+    }
+
     void WinsWindow::ProcessInput()
     {
         if(!m_cameraTranslation)
@@ -169,6 +176,8 @@ namespace sb
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
         glfwSetWindowUserPointer(m_window, this);
+
+        glfwSetFramebufferSizeCallback(m_window, OnFreamBufferSizeChanged);
 
         // input callback binding은 init()에서 해준다.
         // Key input

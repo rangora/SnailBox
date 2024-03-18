@@ -1,4 +1,4 @@
-#include "Window.h"
+﻿#include "Window.h"
 
 #include <GLFW/glfw3.h>
 #include <imgui_impl_glfw.h>
@@ -23,7 +23,7 @@ namespace sb
             }
         }
     }
-    
+
     void Window::OnCharEvent(GLFWwindow* in_window, uint32 in_ch)
     {
         ImGui_ImplGlfw_CharCallback(in_window, in_ch);
@@ -47,6 +47,12 @@ namespace sb
     void Window::OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset)
     {
         ImGui_ImplGlfw_ScrollCallback(in_window, in_x_offset, in_y_offset);
+    }
+
+    void Window::OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height)
+    {
+        Window* WindowPtr = (Window*)glfwGetWindowUserPointer(in_window);
+        WindowPtr->OnWindowSizeChanged(in_width, in_height);
     }
 
     // UPtr<Window> Window::Create(const WindowContext& arg_context)
