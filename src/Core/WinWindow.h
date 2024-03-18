@@ -29,14 +29,15 @@ namespace sb
            virtual ~WinsWindow();
            void Update() final;
 
-           void ProcessInput(GLFWwindow* in_window) final;
+           void ProcessInput() final;
            void MouseMove(double in_x, double in_y) final;
            void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) final;
 
            const WinWindowData& GetWindowData() { return m_data; }
 
-               // camera 애매.. 뺴야할거 같음
-               float m_cameraPitch = 0.f;
+           // camera 애매.. 뺴야할거 같음
+           bool m_cameraTranslation = false;
+           float m_cameraPitch = 0.f;
            float m_cameraYaw = 0.f;
            glm::vec2 m_preMousePos = glm::vec2(0.f);
            glm::vec3 m_cameraFront = glm::vec3(0.f, -1.f, 0.f);

@@ -19,7 +19,7 @@ namespace sb
     public:
         OpenGLContext() {}
         OpenGLContext(GLFWwindow* in_window_handle, Window* in_window);
-
+        
         static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
         virtual void Initialize() override;

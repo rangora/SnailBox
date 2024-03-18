@@ -41,6 +41,7 @@ namespace sb
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
+            ProcessInput();
             m_graphicContext->Render();
             ImGui::Render();
 
@@ -63,29 +64,39 @@ namespace sb
         }
     }
 
-    void WinsWindow::ProcessInput(GLFWwindow* in_window)
+    void WinsWindow::ProcessInput()
     {
+        if(!m_cameraTranslation)
+        {
+            return;
+        }
+
         const float cameraSpeed = 0.05f;
-        if (glfwGetKey(in_window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * m_cameraFront;
-        if (glfwGetKey(in_window, GLFW_KEY_S) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * m_cameraFront;
 
         auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
-        if (glfwGetKey(in_window, GLFW_KEY_D) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * cameraRight;
-        if (glfwGetKey(in_window, GLFW_KEY_A) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * cameraRight;
 
         auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
-        if (glfwGetKey(in_window, GLFW_KEY_E) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_E) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * cameraUp;
-        if (glfwGetKey(in_window, GLFW_KEY_Q) == GLFW_PRESS)
+        if (glfwGetKey(m_window, GLFW_KEY_Q) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * cameraUp;
     }
 
     void WinsWindow::MouseMove(double in_x, double in_y)
     {
+        if (!m_cameraTranslation)
+        {
+            return;
+        }
+
         auto pos = glm::vec2((float)in_x, (float)in_y);
         auto deltaPos = pos - m_preMousePos;
 
@@ -112,7 +123,12 @@ namespace sb
         {
             if (in_action == GLFW_PRESS)
             {
+                m_cameraTranslation = true;
                 m_preMousePos = glm::vec2((float)in_x, (float)in_y);
+            }
+            else if (in_action == GLFW_RELEASE)
+            {
+                m_cameraTranslation = false;
             }
         }
     }
@@ -137,7 +153,7 @@ namespace sb
         m_graphicContext->Initialize();
 
         glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-        
+
         m_imguiContext = ImGui::CreateContext();
         ImGui::SetCurrentContext(m_imguiContext);
 

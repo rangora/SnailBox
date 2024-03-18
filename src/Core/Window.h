@@ -28,10 +28,10 @@ namespace sb
         // static UPtr<Window> Create(const WindowContext& arg_context = WindowContext());
 
         // Input 처리는 외부로 뺴야함..
+        virtual void ProcessInput() = 0;
         virtual void MouseMove(double in_x, double in_y) = 0;
-        virtual void ProcessInput(GLFWwindow* in_window) = 0;
         virtual void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
-        
+
         static void OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier);
         static void OnCharEvent(GLFWwindow* in_window, uint32 in_ch);
         static void OnCursorPos(GLFWwindow* in_window, double in_x, double in_y);

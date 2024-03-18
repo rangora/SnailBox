@@ -1,4 +1,4 @@
-﻿#include "OpenGLContext.h"
+#include "OpenGLContext.h"
 
 #include "Core/Application.h"
 #include "Core/Common.h"
@@ -158,9 +158,9 @@ namespace sb
 
         const WinWindowData& WinData = window->GetWindowData();
 
-        auto projection =
+        const glm::mat4 projection =
             glm::perspective(glm::radians(45.0f), (float)WinData.width / (float)WinData.height, 0.01f, 20.0f);
-        auto view = glm::lookAt(window->m_cameraPos, window->m_cameraPos + window->m_cameraFront, window->m_cameraUp);
+        const glm::mat4 view = glm::lookAt(window->m_cameraPos, window->m_cameraPos + window->m_cameraFront, window->m_cameraUp);
         // ~camera
 
         for (size_t i = 0; i < cubePositions.size(); i++)
