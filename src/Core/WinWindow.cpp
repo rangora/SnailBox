@@ -50,9 +50,12 @@ namespace sb
             ImGuiIO& io = ImGui::GetIO();
             if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
             {
+                // in-statement 안됨! 꼭 뺴서 넣어야 됨
+                // 왜 인지는 모름
+                GLFWwindow* CurrentContext = glfwGetCurrentContext();
                 ImGui::UpdatePlatformWindows();
                 ImGui::RenderPlatformWindowsDefault();
-                glfwMakeContextCurrent(glfwGetCurrentContext());
+                glfwMakeContextCurrent(CurrentContext);
             }
 
             m_graphicContext->SwapBuffers();
@@ -156,6 +159,7 @@ namespace sb
         m_window = glfwCreateWindow(arg_WindowContext.width, arg_WindowContext.height, arg_WindowContext.title.c_str(),
                                     nullptr, nullptr);
 
+        glfwSwapInterval(1.f);
         m_graphicContext = GraphicsContext::Create(m_window, this);
         m_graphicContext->Initialize();
 
@@ -170,8 +174,9 @@ namespace sb
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+        const char* glsl_version = "#version 460";
         ImGui_ImplGlfw_InitForOpenGL(m_window, false);
-        ImGui_ImplOpenGL3_Init();
+        ImGui_ImplOpenGL3_Init(glsl_version);
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
