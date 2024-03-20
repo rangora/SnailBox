@@ -104,13 +104,16 @@ namespace sb
             m_programs.emplace_back((OpenGLProgram::Create("../../resources/shader/simple.vs",
                                                            "../../resources/shader/simple.fs")));
         }
-        glEnable(GL_DEPTH_TEST);
 
         // Use all programs.
         BOOST_FOREACH (const auto& program, m_programs)
         {
             program->Use();
         }
+
+        glEnable(GL_DEPTH_TEST);
+
+        glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
     }
 
     void OpenGLContext::SwapBuffers()
@@ -120,6 +123,8 @@ namespace sb
 
     void OpenGLContext::Render()
     {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         std::vector<glm::vec3> cubePositions = {
             glm::vec3(0.0f, 0.0f, 0.0f),     glm::vec3(2.0f, 5.0f, -15.0f), glm::vec3(-1.5f, -2.2f, -2.5f),
             glm::vec3(-3.8f, -2.0f, -12.3f), glm::vec3(2.4f, -0.4f, -3.5f), glm::vec3(-1.7f, 3.0f, -7.5f),
@@ -145,9 +150,6 @@ namespace sb
             ImGui::Separator();
         }
         ImGui::End();
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
 
         // camera
         WinsWindow* window = static_cast<WinsWindow*>(m_window_handle);
