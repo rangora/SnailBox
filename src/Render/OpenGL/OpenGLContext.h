@@ -40,12 +40,12 @@ namespace sb
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 
         UPtr<OpenglVertexBuffer> m_vertexBuffer = nullptr;
-        UPtr<OpenGLBuffer> m_vertexObjectBuffer = nullptr;
-        UPtr<OpenGLBuffer> m_colorBuffer = nullptr;
-        UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
+        UPtr<OpenglBuffer> m_vertexObjectBuffer = nullptr;
+        UPtr<OpenglBuffer> m_colorBuffer = nullptr;
+        UPtr<OpenglBuffer> m_indexBuffer = nullptr;
 
-        UPtr<OpenGLBuffer> m_c_vertexObjectBuffer = nullptr;
-        UPtr<OpenGLBuffer> m_c_indexBuffer = nullptr;
+        UPtr<OpenglBuffer> m_c_vertexObjectBuffer = nullptr;
+        UPtr<OpenglBuffer> m_c_indexBuffer = nullptr;
 
         std::vector<UPtr<OpenGLProgram>> m_programs;
     };

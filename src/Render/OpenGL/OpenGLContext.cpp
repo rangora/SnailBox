@@ -33,7 +33,7 @@ namespace sb
             m_vertexBuffer = CreateUPtr<OpenglVertexBuffer>();
 
             // geometry(VBO)
-            m_vertexObjectBuffer = CreateUPtr<OpenGLBuffer>();
+            m_vertexObjectBuffer = CreateUPtr<OpenglBuffer>();
             m_vertexObjectBuffer->CreateBuffer(OpenglBufferType::VBO);
             m_vertexObjectBuffer->BindBuffer(GL_ARRAY_BUFFER);
             m_vertexObjectBuffer->AddData(cubeVertices, 1);
@@ -42,7 +42,7 @@ namespace sb
             m_vertexBuffer->SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // color
-            m_colorBuffer = CreateUPtr<OpenGLBuffer>();
+            m_colorBuffer = CreateUPtr<OpenglBuffer>();
             m_colorBuffer->CreateBuffer(OpenglBufferType::VBO);
             m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
             m_colorBuffer->AddData(cubeFaceColors, 1);
@@ -51,7 +51,7 @@ namespace sb
             m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // EBO
-            m_indexBuffer = CreateUPtr<OpenGLBuffer>();
+            m_indexBuffer = CreateUPtr<OpenglBuffer>();
             m_indexBuffer->CreateBuffer(OpenglBufferType::EBO);
             m_indexBuffer->BindBuffer(GL_ELEMENT_ARRAY_BUFFER);
             m_indexBuffer->AddData(cubeVertexIndex, 1);

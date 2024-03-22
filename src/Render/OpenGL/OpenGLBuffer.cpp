@@ -5,8 +5,8 @@
 
 namespace sb
 {
-    /** OpenGLBuffer **/
-    OpenGLBuffer::~OpenGLBuffer()
+    /** OpenglBuffer **/
+    OpenglBuffer::~OpenglBuffer()
     {
         if (m_bufferId)
         {
@@ -14,7 +14,7 @@ namespace sb
         }
     }
 
-    void OpenGLBuffer::CreateBuffer(const OpenglBufferType in_type)
+    void OpenglBuffer::CreateBuffer(const OpenglBufferType in_type)
     {
         if (IsBufferCreated())
         {
@@ -45,13 +45,13 @@ namespace sb
         }
     }
 
-    void OpenGLBuffer::CreateVBO(const int32 in_ByteSize)
+    void OpenglBuffer::CreateVBO(const int32 in_ByteSize)
     {
         glGenBuffers(1, &m_bufferId);
         m_byteBuffer.reserve(in_ByteSize > 0 ? in_ByteSize : 512);
     }
 
-    void OpenGLBuffer::BindBuffer(const GLenum in_bufferType)
+    void OpenglBuffer::BindBuffer(const GLenum in_bufferType)
     {
         if (!IsBufferCreated())
         {
@@ -63,7 +63,7 @@ namespace sb
         m_targetBufferType = in_bufferType;
     }
 
-    void OpenGLBuffer::CommitData(const GLenum in_usage)
+    void OpenglBuffer::CommitData(const GLenum in_usage)
     {
         if (!IsBufferCreated())
         {
@@ -84,7 +84,7 @@ namespace sb
         }
     }
 
-    void OpenGLBuffer::AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat)
+    void OpenglBuffer::AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat)
     {
         const uint32 bytesToAdd = in_byteSize * in_repeat;
         const uint32 ReqCapacity = m_byteSize + bytesToAdd;

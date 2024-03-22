@@ -7,11 +7,11 @@
 
 namespace sb
 {
-    class OpenGLBuffer
+    class OpenglBuffer
     {
     public:
-        OpenGLBuffer() = default;
-        ~OpenGLBuffer();
+        OpenglBuffer() = default;
+        ~OpenglBuffer();
 
         void CreateBuffer(const OpenglBufferType in_type);
         void CreateVBO(const int32 in_ByteSize);
@@ -40,7 +40,7 @@ namespace sb
         OpenglBufferType m_bufferType = OpenglBufferType::None;
     };
 
-    class OpenglVertexBuffer : public OpenGLBuffer
+    class OpenglVertexBuffer : public OpenglBuffer
     {
     public:
         OpenglVertexBuffer();

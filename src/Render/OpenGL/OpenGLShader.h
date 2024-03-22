@@ -40,8 +40,8 @@ namespace sb
         uint32_t m_shader = 0;
 
         GLenum m_shaderType;
-        UPtr<OpenGLBuffer> m_buffer = nullptr;
-        UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
+        UPtr<OpenglBuffer> m_buffer = nullptr;
+        UPtr<OpenglBuffer> m_indexBuffer = nullptr;
 
     private:
         std::vector<GLuint> m_openGLShaderIds;
