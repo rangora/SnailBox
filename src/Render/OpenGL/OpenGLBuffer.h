@@ -26,7 +26,7 @@ namespace sb
 
         uint32 Get() const { return m_bufferId; }
 
-    private:
+    protected:
         bool IsBufferCreated() const { return m_bufferId != 0; }
         void AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat);
 
@@ -40,22 +40,13 @@ namespace sb
         OpenglBufferType m_bufferType = OpenglBufferType::None;
     };
 
-    class OpenGLVertexBuffer
+    class OpenglVertexBuffer : public OpenGLBuffer
     {
     public:
-        static UPtr<OpenGLVertexBuffer> Create();
-        OpenGLVertexBuffer() = default;
-        ~OpenGLVertexBuffer();
+        OpenglVertexBuffer();
+        ~OpenglVertexBuffer();
 
-        int32 Get() const { return m_vertexArrayObject; }
-
-        void Bind() const; // override?
         void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
-                          uint64_t in_offset) const; // override?
-
-    private:
-        void Init();
-
-        uint32 m_vertexArrayObject = 0;
+                          uint64_t in_offset) const;
     };
 } // namespace sb

@@ -40,7 +40,6 @@ namespace sb
         uint32_t m_shader = 0;
 
         GLenum m_shaderType;
-        UPtr<OpenGLVertexBuffer> m_vertexBuffer = nullptr;
         UPtr<OpenGLBuffer> m_buffer = nullptr;
         UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
 
