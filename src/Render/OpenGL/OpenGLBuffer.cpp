@@ -59,7 +59,7 @@ namespace sb
             return;
         }
 
-        glBindBuffer(m_targetBufferType, m_bufferId);
+        glBindBuffer(in_bufferType, m_bufferId);
         m_targetBufferType = in_bufferType;
     }
 
