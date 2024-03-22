@@ -1,8 +1,9 @@
 ﻿#pragma once
 
 #include "Core/Common.h"
-#include <vector>
+#include <Enums.h>
 #include <glad/glad.h>
+#include <vector>
 
 namespace sb
 {
@@ -11,11 +12,10 @@ namespace sb
     public:
         OpenGLBuffer() = default;
         ~OpenGLBuffer();
-        static UPtr<OpenGLBuffer> CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
-                                                 size_t in_dataSize);
 
+        void CreateBuffer(const OpenglBufferType in_type);
         void CreateVBO(const int32 in_ByteSize);
-        void BindVBO(const GLenum in_bufferType);
+        void BindBuffer(const GLenum in_bufferType);
         void CommitData(const GLenum in_usage);
 
         template<typename T>
@@ -24,21 +24,20 @@ namespace sb
             AddData_Internal(in_ptrObj, static_cast<uint32>(sizeof(T)), in_repeat);
         }
 
-        void Bind() const;
-
-        uint32 Get() const { return m_buffer; }
+        uint32 Get() const { return m_bufferId; }
 
     private:
-        void Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize);
-        bool IsBufferCreated() const { return m_buffer != 0; }
+        bool IsBufferCreated() const { return m_bufferId != 0; }
         void AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat);
 
         std::vector<unsigned char> m_byteBuffer;
-        GLuint m_buffer = 0;
-        GLenum m_bufferType = 0;
+        GLuint m_bufferId = 0;
+        GLenum m_targetBufferType = 0;
         uint32 m_usage = 0;
         uint32 m_byteSize = 0;
         uint32 m_uploadedByteSize = 0;
+
+        OpenglBufferType m_bufferType = OpenglBufferType::None;
     };
 
     class OpenGLVertexBuffer

@@ -8,21 +8,13 @@ namespace sb
     /** OpenGLBuffer **/
     OpenGLBuffer::~OpenGLBuffer()
     {
-        if (m_buffer)
+        if (m_bufferId)
         {
-            glDeleteBuffers(1, &m_buffer);
+            glDeleteBuffers(1, &m_bufferId);
         }
     }
 
-    UPtr<OpenGLBuffer> OpenGLBuffer::CreateWithData(uint32 in_bufferType, uint32 in_usage, const void* in_data,
-                                                    size_t in_dataSize)
-    {
-        auto buffer = UPtr<OpenGLBuffer>(new OpenGLBuffer());
-        buffer->Init(in_bufferType, in_usage, in_data, in_dataSize);
-        return std::move(buffer);
-    }
-
-    void OpenGLBuffer::CreateVBO(const int32 in_ByteSize)
+    void OpenGLBuffer::CreateBuffer(const OpenglBufferType in_type)
     {
         if (IsBufferCreated())
         {
@@ -30,11 +22,36 @@ namespace sb
             return;
         }
 
-        glGenBuffers(1, &m_buffer);
+        switch (in_type)
+        {
+            case OpenglBufferType::VAO:
+                break;
+
+            case OpenglBufferType::VBO:
+            {
+                CreateVBO(512);
+                break;
+            }
+            case OpenglBufferType::EBO:
+            {
+                glGenBuffers(1, &m_bufferId);
+                m_byteBuffer.reserve(512);
+                break;
+            }
+            case OpenglBufferType::None:
+            default:
+                // TODO : Assert & log
+                break;
+        }
+    }
+
+    void OpenGLBuffer::CreateVBO(const int32 in_ByteSize)
+    {
+        glGenBuffers(1, &m_bufferId);
         m_byteBuffer.reserve(in_ByteSize > 0 ? in_ByteSize : 512);
     }
 
-    void OpenGLBuffer::BindVBO(const GLenum in_bufferType)
+    void OpenGLBuffer::BindBuffer(const GLenum in_bufferType)
     {
         if (!IsBufferCreated())
         {
@@ -42,10 +59,10 @@ namespace sb
             return;
         }
 
-        m_bufferType = in_bufferType;
-        glBindBuffer(m_bufferType, m_buffer);
+        glBindBuffer(m_targetBufferType, m_bufferId);
+        m_targetBufferType = in_bufferType;
     }
-    
+
     void OpenGLBuffer::CommitData(const GLenum in_usage)
     {
         if (!IsBufferCreated())
@@ -54,7 +71,8 @@ namespace sb
             return;
         }
 
-        glBufferData(m_bufferType, m_byteSize, m_byteBuffer.data(), in_usage);
+        glBufferData(m_targetBufferType, m_byteSize, m_byteBuffer.data(), in_usage);
+        m_usage = in_usage;
         m_uploadedByteSize = m_byteSize;
         m_byteSize = 0;
 
@@ -66,20 +84,6 @@ namespace sb
         }
     }
 
-    void OpenGLBuffer::Bind() const
-    {
-        glBindBuffer(m_bufferType, m_buffer);
-    }
-
-    void OpenGLBuffer::Init(uint32 in_bufferType, uint32 in_usage, const void* in_data, size_t in_dataSize)
-    {
-        m_bufferType = in_bufferType;
-        m_usage = in_usage;
-        glGenBuffers(1, &m_buffer);
-        Bind();
-        glBufferData(in_bufferType, in_dataSize, in_data, in_usage);
-    }
-    
     void OpenGLBuffer::AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat)
     {
         const uint32 bytesToAdd = in_byteSize * in_repeat;

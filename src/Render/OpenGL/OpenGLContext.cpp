@@ -91,8 +91,8 @@ namespace sb
 
             // geometry(VBO)
             m_vertexObjectBuffer = CreateUPtr<OpenGLBuffer>();
-            m_vertexObjectBuffer->CreateVBO(512);
-            m_vertexObjectBuffer->BindVBO(GL_ARRAY_BUFFER);
+            m_vertexObjectBuffer->CreateBuffer(OpenglBufferType::VBO);
+            m_vertexObjectBuffer->BindBuffer(GL_ARRAY_BUFFER);
             m_vertexObjectBuffer->AddData(cubeVertices, 1);
             m_vertexObjectBuffer->CommitData(GL_STATIC_DRAW);
 
@@ -100,16 +100,19 @@ namespace sb
 
             // color
             m_colorBuffer = CreateUPtr<OpenGLBuffer>();
-            m_colorBuffer->CreateVBO(512);
-            m_colorBuffer->BindVBO(GL_ARRAY_BUFFER);
+            m_colorBuffer->CreateBuffer(OpenglBufferType::VBO);
+            m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
             m_colorBuffer->AddData(cubeFaceColors, 1);
             m_colorBuffer->CommitData(GL_STATIC_DRAW);
 
             m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // EBO
-            m_indexBuffer =
-                OpenGLBuffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32) * 36);
+            m_indexBuffer = CreateUPtr<OpenGLBuffer>();
+            m_indexBuffer->CreateBuffer(OpenglBufferType::EBO);
+            m_indexBuffer->BindBuffer(GL_ELEMENT_ARRAY_BUFFER);
+            m_indexBuffer->AddData(cubeVertexIndex, 1);
+            m_indexBuffer->CommitData(GL_STATIC_DRAW);
 
             // Create programs.
             m_programs.emplace_back((OpenGLProgram::Create("../../resources/shader/simple.vs",
