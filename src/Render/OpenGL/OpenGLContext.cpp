@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <imgui/imgui.h>
 #include "Core/WinWindow.h"
+#include "Render/BasicGeometry.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
@@ -88,13 +89,23 @@ namespace sb
             // VAO
             m_vertexBuffer = OpenGLVertexBuffer::Create();
 
-            // VBO
-            m_vertexObjectBuffer =
-                OpenGLBuffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices, sizeof(uint32) * 144);
+            // geometry(VBO)
+            m_vertexObjectBuffer = CreateUPtr<OpenGLBuffer>();
+            m_vertexObjectBuffer->CreateVBO(512);
+            m_vertexObjectBuffer->BindVBO(GL_ARRAY_BUFFER);
+            m_vertexObjectBuffer->AddData(cubeVertices, 1);
+            m_vertexObjectBuffer->CommitData(GL_STATIC_DRAW);
 
-            // Set VAO desc
-            m_vertexBuffer->SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
-            m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, sizeof(float) * 3);
+            m_vertexBuffer->SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+
+            // color
+            m_colorBuffer = CreateUPtr<OpenGLBuffer>();
+            m_colorBuffer->CreateVBO(512);
+            m_colorBuffer->BindVBO(GL_ARRAY_BUFFER);
+            m_colorBuffer->AddData(cubeFaceColors, 1);
+            m_colorBuffer->CommitData(GL_STATIC_DRAW);
+
+            m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // EBO
             m_indexBuffer =
@@ -111,9 +122,9 @@ namespace sb
             program->Use();
         }
 
-        glEnable(GL_DEPTH_TEST);
+       glEnable(GL_DEPTH_TEST);
 
-        glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
+       glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
     }
 
     void OpenGLContext::SwapBuffers()

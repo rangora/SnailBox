@@ -19,7 +19,7 @@ namespace sb
     public:
         OpenGLContext() {}
         OpenGLContext(GLFWwindow* in_window_handle, Window* in_window);
-        
+
         static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
         virtual void Initialize() override;
@@ -41,6 +41,7 @@ namespace sb
 
         UPtr<OpenGLVertexBuffer> m_vertexBuffer = nullptr;
         UPtr<OpenGLBuffer> m_vertexObjectBuffer = nullptr;
+        UPtr<OpenGLBuffer> m_colorBuffer = nullptr;
         UPtr<OpenGLBuffer> m_indexBuffer = nullptr;
 
         UPtr<OpenGLVertexBuffer> m_c_vertexBuffer = nullptr;
