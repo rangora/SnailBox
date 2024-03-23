@@ -43,7 +43,7 @@ namespace sb::ShaderCompiler
         {
             for (auto& [filename, shader] : in_archive.m_shaders)
             {
-                OpenGLShader* openglShader = static_cast<OpenGLShader*>(shader.get());
+                OpenglShader* openglShader = static_cast<OpenglShader*>(shader.get());
 
                 auto text = LoadTextFile(filename);
                 if (!text.has_value())

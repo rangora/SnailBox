@@ -12,12 +12,12 @@ struct GLFWwindow;
 
 namespace sb
 {
-    class OpenGLShader : public Shader
+    class OpenglShader : public Shader
     {
     public:
-        static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
-        OpenGLShader() = default;
-        ~OpenGLShader();
+        static SPtr<OpenglShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
+        OpenglShader() = default;
+        ~OpenglShader();
 
         void Render() final;
         int32 GetShaderId() final { return m_shader; }

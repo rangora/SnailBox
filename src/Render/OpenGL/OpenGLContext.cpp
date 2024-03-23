@@ -1,4 +1,4 @@
-﻿#include "OpenGLContext.h"
+﻿#include "OpenglContext.h"
 
 #include "Core/Application.h"
 #include "Core/Common.h"
@@ -16,13 +16,13 @@
 
 namespace sb
 {
-    OpenGLContext::OpenGLContext(GLFWwindow* arg_window_handle, Window* in_window)
+    OpenglContext::OpenglContext(GLFWwindow* arg_window_handle, Window* in_window)
         : m_glWindow_handle(arg_window_handle), m_window_handle(in_window)
     {
         // Assert 필요.
     }
 
-    void OpenGLContext::Initialize()
+    void OpenglContext::Initialize()
     {
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -58,7 +58,7 @@ namespace sb
             m_indexBuffer->CommitData(GL_STATIC_DRAW);
 
             // Create programs.
-            m_programs.emplace_back((OpenGLProgram::Create("../../resources/shader/simple.vs",
+            m_programs.emplace_back((OpenglProgram::Create("../../resources/shader/simple.vs",
                                                            "../../resources/shader/simple.fs")));
         }
 
@@ -73,12 +73,12 @@ namespace sb
        glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
     }
 
-    void OpenGLContext::SwapBuffers()
+    void OpenglContext::SwapBuffers()
     {
         glfwSwapBuffers(m_glWindow_handle);
     }
 
-    void OpenGLContext::Render()
+    void OpenglContext::Render()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -95,11 +95,11 @@ namespace sb
         }
 
         // imgui render
-        if (ImGui::Begin("ui window"))
+        if (ImGui::Begin("opengl setting"))
         {
-            ImGui::Text("This is first text...");
+            ImGui::Text("This is smaple text...");
 
-            if (ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
+            if (ImGui::ColorEdit4("clearColor", glm::value_ptr(m_clearColor)))
             {
                 glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
             }
@@ -135,9 +135,9 @@ namespace sb
         }
     }
 
-    UPtr<OpenGLShader> OpenGLContext::CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename)
+    UPtr<OpenglShader> OpenglContext::CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename)
     {
-        auto Shader = UPtr<OpenGLShader>(new OpenGLShader());
+        auto Shader = UPtr<OpenglShader>(new OpenglShader());
         Shader->LoadFile(in_vsFilename, GL_VERTEX_SHADER);
         Shader->LoadFile(in_fsFilename, GL_FRAGMENT_SHADER);
         Shader->CreateProgram();

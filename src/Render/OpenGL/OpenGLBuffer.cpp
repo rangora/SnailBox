@@ -1,4 +1,4 @@
-﻿#include "OpenGLBuffer.h"
+﻿#include "OpenglBuffer.h"
 
 #include <assert.h>
 #include <glad/glad.h>

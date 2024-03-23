@@ -4,14 +4,14 @@
 
 namespace sb
 {
-    class OpenGLTexture
+    class OpenglTexture
     {
     public:
-        static UPtr<OpenGLTexture> CreateTextureFromImage(const Image* in_image);
+        static UPtr<OpenglTexture> CreateTextureFromImage(const Image* in_image);
 
-        OpenGLTexture() = default;
-        ~OpenGLTexture();
-        
+        OpenglTexture() = default;
+        ~OpenglTexture();
+
         void Bind() const; // override?
         void SetFilter(int32 in_minFilter, int32 in_magFilter) const;
         void SetWrap(uint32 in_sWarp, uint32 in_tWrap);

@@ -7,13 +7,13 @@
 
 namespace sb
 {
-    class OpenGLProgram
+    class OpenglProgram
     {
     public:
-        static UPtr<OpenGLProgram> CreateInternal(const std::vector<SPtr<Shader>>& in_shaders);
-        static UPtr<OpenGLProgram> Create(const std::string& in_vertexFilename, const std::string& in_fragFilename);
+        static UPtr<OpenglProgram> CreateInternal(const std::vector<SPtr<Shader>>& in_shaders);
+        static UPtr<OpenglProgram> Create(const std::string& in_vertexFilename, const std::string& in_fragFilename);
 
-    ~OpenGLProgram();
+    ~OpenglProgram();
 
     void Use();
 
@@ -27,7 +27,7 @@ namespace sb
     void SetUniform(const std::string& in_name, const glm::mat4& in_value) const;
 
 private:
-    OpenGLProgram() {}
+    OpenglProgram() {}
     bool LinkProgram(const std::vector<SPtr<Shader>>& in_shaders);
 
     int32 m_program = 0;

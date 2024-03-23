@@ -14,13 +14,13 @@ namespace sb
 {
     class Window;
 
-    class OpenGLContext : public GraphicsContext
+    class OpenglContext : public GraphicsContext
     {
     public:
-        OpenGLContext() {}
-        OpenGLContext(GLFWwindow* in_window_handle, Window* in_window);
+        OpenglContext() {}
+        OpenglContext(GLFWwindow* in_window_handle, Window* in_window);
 
-        static SPtr<OpenGLShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
+        static SPtr<OpenglShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
         virtual void Initialize() override;
         virtual void SwapBuffers() override;
@@ -31,7 +31,7 @@ namespace sb
         uint32 m_program = 0;
 
     private:
-        static UPtr<OpenGLShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);
+        static UPtr<OpenglShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);
 
         GLFWwindow* m_glWindow_handle = nullptr;
         Window* m_window_handle = nullptr;
@@ -47,6 +47,6 @@ namespace sb
         UPtr<OpenglBuffer> m_c_vertexObjectBuffer = nullptr;
         UPtr<OpenglBuffer> m_c_indexBuffer = nullptr;
 
-        std::vector<UPtr<OpenGLProgram>> m_programs;
+        std::vector<UPtr<OpenglProgram>> m_programs;
     };
 } // namespace sb

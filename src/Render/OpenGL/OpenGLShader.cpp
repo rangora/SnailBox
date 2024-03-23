@@ -1,4 +1,4 @@
-#include "OpenGLShader.h"
+#include "OpenglShader.h"
 
 #include <memory>
 
@@ -9,9 +9,9 @@
 
 namespace sb
 {
-    SPtr<OpenGLShader> OpenGLShader::CreateFromFile(const std::string& in_filename, GLenum in_shaderType)
+    SPtr<OpenglShader> OpenglShader::CreateFromFile(const std::string& in_filename, GLenum in_shaderType)
     {
-        auto shader = std::unique_ptr<OpenGLShader>(new OpenGLShader());
+        auto shader = std::unique_ptr<OpenglShader>(new OpenglShader());
 
         if (!shader->LoadFile(in_filename, in_shaderType))
         {
@@ -22,7 +22,7 @@ namespace sb
         return std::move(shader);
     }
 
-    OpenGLShader::~OpenGLShader()
+    OpenglShader::~OpenglShader()
     {
         if (m_shader)
         {
@@ -30,11 +30,11 @@ namespace sb
         }
     }
 
-    void OpenGLShader::Render()
+    void OpenglShader::Render()
     {
     }
 
-    bool OpenGLShader::LoadFile(const std::string& filename, GLenum shaderType)
+    bool OpenglShader::LoadFile(const std::string& filename, GLenum shaderType)
     {
         auto result = LoadTextFile(filename);
         if (!result.has_value())
@@ -69,7 +69,7 @@ namespace sb
         return true;
     }
 
-    bool OpenGLShader::CreateProgram()
+    bool OpenglShader::CreateProgram()
     {
         m_shader = glCreateProgram();
         for (auto id : m_openGLShaderIds)

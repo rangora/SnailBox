@@ -1,51 +1,51 @@
-﻿#include "OpenGLTexture.h"
+﻿#include "OpenglTexture.h"
 
 #include <glad/glad.h>
 
 namespace sb
 {
-    UPtr<OpenGLTexture> OpenGLTexture::CreateTextureFromImage(const Image* in_image)
+    UPtr<OpenglTexture> OpenglTexture::CreateTextureFromImage(const Image* in_image)
     {
-        auto texture = UPtr<OpenGLTexture>(new OpenGLTexture());
+        auto texture = UPtr<OpenglTexture>(new OpenglTexture());
         texture->CreateTexture();
         texture->SetTextureFromImage(in_image);
         return std::move(texture);
     }
 
-    OpenGLTexture::~OpenGLTexture()
+    OpenglTexture::~OpenglTexture()
     {
         if (m_texture)
         {
             glDeleteTextures(1, &m_texture);
         }
     }
-    
-    void OpenGLTexture::Bind() const
+
+    void OpenglTexture::Bind() const
     {
         glBindTexture(GL_TEXTURE_2D, m_texture);
     }
-    
-    void OpenGLTexture::SetFilter(int32 in_minFilter, int32 in_magFilter) const
+
+    void OpenglTexture::SetFilter(int32 in_minFilter, int32 in_magFilter) const
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, in_minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, in_magFilter);
     }
-    
-    void OpenGLTexture::SetWrap(uint32 in_sWarp, uint32 in_tWrap)
+
+    void OpenglTexture::SetWrap(uint32 in_sWarp, uint32 in_tWrap)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, in_sWarp);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, in_tWrap);
     }
-    
-    void OpenGLTexture::CreateTexture()
+
+    void OpenglTexture::CreateTexture()
     {
         glGenTextures(1, &m_texture);
         Bind();
         SetFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
         SetWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     }
-    
-    void OpenGLTexture::SetTextureFromImage(const Image* in_image)
+
+    void OpenglTexture::SetTextureFromImage(const Image* in_image)
     {
         GLenum format = GL_RGBA;
         switch (in_image->GetChannelCount())

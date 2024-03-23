@@ -24,15 +24,15 @@ namespace sb
         ShaderCompiler::Compile(s_staticShaderArchive);
 
         // 2) program에 attach(link)
-        
-        
+
+
         // 프로그램을 실행하면 기본으로 레이어(window)를 하나 만든다.(MainLayer)
         CreateLayer();
     }
 
     void Application::CreateLayer()
     {
-        m_window = CreateUPtr<WinsWindow>(WindowContext("Custom_Window"), this);
+        m_window = CreateUPtr<WinsWindow>(WindowContext("OpenGL Window"), this);
         m_windows.emplace_back(std::move(m_window));
         m_runningWindowCount++;
     }

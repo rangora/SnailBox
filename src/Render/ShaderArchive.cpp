@@ -9,6 +9,6 @@ namespace sb
 
     void ShaderArchive::Add(std::string in_path)
     {
-        m_shaders.emplace(in_path, SPtr<OpenGLShader>(new OpenGLShader()));
+        m_shaders.emplace(in_path, SPtr<OpenglShader>(new OpenglShader()));
     }
 }; // namespace sb
