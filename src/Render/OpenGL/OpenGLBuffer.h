@@ -11,10 +11,9 @@ namespace sb
     {
     public:
         OpenglBuffer() = default;
-        ~OpenglBuffer();
+        virtual ~OpenglBuffer();
 
-        void CreateBuffer(const OpenglBufferType in_type);
-        void CreateVBO(const int32 in_ByteSize);
+        virtual void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) = 0;
         void BindBuffer(const GLenum in_bufferType);
         void CommitData(const GLenum in_usage);
 
@@ -46,7 +45,17 @@ namespace sb
         OpenglVertexBuffer();
         ~OpenglVertexBuffer();
 
+        void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) final {}
         void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
                           uint64_t in_offset) const;
+    };
+
+    class OpenglObjectBuffer : public OpenglBuffer
+    {
+    public:
+        OpenglObjectBuffer() = default;
+        ~OpenglObjectBuffer();
+
+        void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) final;
     };
 } // namespace sb

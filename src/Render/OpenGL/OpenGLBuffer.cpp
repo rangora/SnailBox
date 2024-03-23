@@ -1,7 +1,8 @@
 ﻿#include "OpenGLBuffer.h"
 
-#include <iostream>
+#include <assert.h>
 #include <glad/glad.h>
+#include <iostream>
 
 namespace sb
 {
@@ -14,43 +15,6 @@ namespace sb
         }
     }
 
-    void OpenglBuffer::CreateBuffer(const OpenglBufferType in_type)
-    {
-        if (IsBufferCreated())
-        {
-            // TODO : Log
-            return;
-        }
-
-        switch (in_type)
-        {
-            case OpenglBufferType::VAO:
-                break;
-
-            case OpenglBufferType::VBO:
-            {
-                CreateVBO(512);
-                break;
-            }
-            case OpenglBufferType::EBO:
-            {
-                glGenBuffers(1, &m_bufferId);
-                m_byteBuffer.reserve(512);
-                break;
-            }
-            case OpenglBufferType::None:
-            default:
-                // TODO : Assert & log
-                break;
-        }
-    }
-
-    void OpenglBuffer::CreateVBO(const int32 in_ByteSize)
-    {
-        glGenBuffers(1, &m_bufferId);
-        m_byteBuffer.reserve(in_ByteSize > 0 ? in_ByteSize : 512);
-    }
-
     void OpenglBuffer::BindBuffer(const GLenum in_bufferType)
     {
         if (!IsBufferCreated())
@@ -59,7 +23,13 @@ namespace sb
             return;
         }
 
-        glBindBuffer(in_bufferType, m_bufferId);
+        if (m_bufferType == OpenglBufferType::VAO)
+        {
+            // TODO : Log, vao는 생성자에서 바인딩 됨
+            return;
+        }
+
+            glBindBuffer(in_bufferType, m_bufferId);
         m_targetBufferType = in_bufferType;
     }
 
@@ -112,6 +82,7 @@ namespace sb
     /** OpenglVertexBuffer **/
     OpenglVertexBuffer::OpenglVertexBuffer()
     {
+        m_bufferType = OpenglBufferType::VAO;
         glGenVertexArrays(1, &m_bufferId);
         glBindVertexArray(m_bufferId);
     }
@@ -119,11 +90,25 @@ namespace sb
     OpenglVertexBuffer::~OpenglVertexBuffer()
     {
     }
+    /** ~OpenglVertexBuffer **/
+
+    /** OpenglObjectBuffer **/
     void OpenglVertexBuffer::SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized,
                                           size_t in_stride, uint64_t in_offset) const
     {
         glEnableVertexAttribArray(in_attribIndex);
         glVertexAttribPointer(in_attribIndex, in_count, in_type, in_normalized, in_stride, (const void*)in_offset);
     }
-    /** ~OpenglVertexBuffer **/
+
+    OpenglObjectBuffer::~OpenglObjectBuffer()
+    {
+    }
+
+    void OpenglObjectBuffer::CreateBuffer(const OpenglBufferType in_type, const uint32 in_size)
+    {
+        m_bufferType = in_type;
+        glGenBuffers(1, &m_bufferId);
+        m_byteBuffer.reserve(in_size);
+    }
+    /** ~OpenglObjectBuffer **/
 }
