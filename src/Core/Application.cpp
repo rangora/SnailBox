@@ -2,8 +2,9 @@
 #include "Application.h"
 
 #include "Enums.h"
-#include "WinWindow.h"
 #include "Render/ShaderCompiler.h"
+#include "WinWindow.h"
+#include "spdlog/spdlog.h"
 
 namespace sb
 {
@@ -32,6 +33,7 @@ namespace sb
 
     void Application::CreateLayer()
     {
+        spdlog::info("Add new layer");
         m_window = CreateUPtr<WinsWindow>(WindowContext("OpenGL Window"), this);
         m_windows.emplace_back(std::move(m_window));
         m_runningWindowCount++;

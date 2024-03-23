@@ -44,10 +44,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/imgui)
 target_include_directories(${PROJECT_NAME} PUBLIC thirdparty) # thirdParties
+target_include_directories(${PROJECT_NAME} PUBLIC thirdparty/include) # thirdParties
 
 target_link_directories(${PROJECT_NAME} PUBLIC ${LIB_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS}) # ExternalProjects
 target_link_libraries(${PROJECT_NAME} PUBLIC imgui) # imgui
+
+target_link_directories(${PROJECT_NAME} PUBLIC thirdparty/lib)
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog) # spdlog
 
 add_dependencies(${PROJECT_NAME} imgui) # imgui dependency
 add_dependencies(${PROJECT_NAME} ${DEP_LIST}) # ExternalProjects dependencies
