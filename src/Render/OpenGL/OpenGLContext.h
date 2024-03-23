@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 
 #include "Render/ShaderArchive.h"
-#include "src/Render/GraphicsContext.h"
+#include "Render/GraphicsContext.h"
 #include "OpenGLShader.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLProgram.h"

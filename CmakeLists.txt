@@ -7,6 +7,7 @@ if(WIN32)
     if(MSVC)
         # 디버거 옵션에 /Z7을 포함한다.(컴파일된 오브젝트 파일내에 디버그 정보를 포함시키도록 함)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Z7")
+        set(CMAKE_DEBUG_POSTFIX "d")
     endif()
 endif()
 
@@ -33,25 +34,24 @@ file(GLOB MAIN_SOURCE
 )
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
-# build_dependencies
-include(ExternalProjects.cmake)
+# build_dependencies 사용 안함
+# include(ExternalProjects.cmake)
+
 
 # imgui
 add_subdirectory(imgui)
+target_include_directories(imgui PRIVATE thirdparty/include) # 모두 포함?
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOURCE_ROOT})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/imgui)
-target_include_directories(${PROJECT_NAME} PUBLIC thirdparty) # thirdParties
 target_include_directories(${PROJECT_NAME} PUBLIC thirdparty/include) # thirdParties
 
-target_link_directories(${PROJECT_NAME} PUBLIC ${LIB_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_LIBS}) # ExternalProjects
 target_link_libraries(${PROJECT_NAME} PUBLIC imgui) # imgui
 
 target_link_directories(${PROJECT_NAME} PUBLIC thirdparty/lib)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog) # spdlog
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
+target_link_libraries(${PROJECT_NAME} PUBLIC glad)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw3)
 
 add_dependencies(${PROJECT_NAME} imgui) # imgui dependency
-add_dependencies(${PROJECT_NAME} ${DEP_LIST}) # ExternalProjects dependencies
