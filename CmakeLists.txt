@@ -30,13 +30,13 @@ file(GLOB MAIN_SOURCE
     "src/Render/*.cpp"
     "src/*.cpp"
     "src/*.h"
-    "src/*.hpp"
+    "src/*.hpp",
+    "src/glad.c"
 )
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
 # build_dependencies 사용 안함
 # include(ExternalProjects.cmake)
-
 
 # imgui
 add_subdirectory(imgui)
@@ -51,7 +51,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC imgui) # imgui
 
 target_link_directories(${PROJECT_NAME} PUBLIC thirdparty/lib)
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)
-target_link_libraries(${PROJECT_NAME} PUBLIC glad)
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw3)
 
 add_dependencies(${PROJECT_NAME} imgui) # imgui dependency
