@@ -2,16 +2,16 @@
 
 #include "Core/Application.h"
 #include "Core/Common.h"
+#include "Core/WinWindow.h"
+#include "Render/BasicGeometry.h"
 #include "Render/Shader.h"
 #include <GLFW/glfw3.h>
 #include <boost/foreach.hpp>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <imgui/imgui.h>
-#include "Core/WinWindow.h"
-#include "Render/BasicGeometry.h"
-
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui/imgui.h>
+#include <spdlog/spdlog.h>
 #include <string>
 
 namespace sb
@@ -57,15 +57,37 @@ namespace sb
             m_indexBuffer->AddData(cubeVertexIndex, 1);
             m_indexBuffer->CommitData(GL_STATIC_DRAW);
 
+            // Texture Coord
+            m_TexCoordBuffer = CreateUPtr<OpenglObjectBuffer>();
+            m_TexCoordBuffer->CreateBuffer(OpenglBufferType::VBO);
+            m_TexCoordBuffer->BindBuffer(GL_ARRAY_BUFFER);
+            m_TexCoordBuffer->AddData(cubeUVs, 1);
+            m_TexCoordBuffer->CommitData(GL_STATIC_DRAW);
+
+            m_vertexBuffer->SetAttribute(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+
+            // texture
+            UPtr<Image> image1 = Image::Load("../../resources/texture/container.jpg");
+            if (!image1)
+            {
+                SPDLOG_INFO("Image load failed");
+                return;
+            }
+
             // Create programs.
-            m_programs.emplace_back((OpenglProgram::Create("../../resources/shader/simple.vs",
-                                                           "../../resources/shader/simple.fs")));
+            m_programs.emplace_back(
+                (OpenglProgram::Create("../../resources/shader/simple.vs", "../../resources/shader/simple.fs")));
+
+            m_texture = OpenglTexture::CreateTextureFromImage(image1.get());
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, m_texture->Get());
         }
 
         // Use all programs.
         BOOST_FOREACH (const auto& program, m_programs)
         {
             program->Use();
+            program->SetUniform("tex", 0);
         }
 
        glEnable(GL_DEPTH_TEST);
@@ -121,6 +143,9 @@ namespace sb
             glm::perspective(glm::radians(45.0f), (float)WinData.width / (float)WinData.height, 0.01f, 20.0f);
         const glm::mat4 view = glm::lookAt(window->m_cameraPos, window->m_cameraPos + window->m_cameraFront, window->m_cameraUp);
         // ~camera
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
         for (size_t i = 0; i < cubePositions.size(); i++)
         {

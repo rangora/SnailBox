@@ -2,11 +2,12 @@
 
 #include <glad/glad.h>
 
-#include "Render/ShaderArchive.h"
-#include "Render/GraphicsContext.h"
-#include "OpenGLShader.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLProgram.h"
+#include "OpenGLShader.h"
+#include "OpenglTexture.h"
+#include "Render/GraphicsContext.h"
+#include "Render/ShaderArchive.h"
 
 struct GLFWwindow;
 
@@ -36,13 +37,16 @@ namespace sb
         GLFWwindow* m_glWindow_handle = nullptr;
         Window* m_window_handle = nullptr;
 
-        // Temp values
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 
+        // Mesh proerties
         UPtr<OpenglVertexBuffer> m_vertexBuffer = nullptr;
         UPtr<OpenglBuffer> m_vertexObjectBuffer = nullptr;
         UPtr<OpenglBuffer> m_colorBuffer = nullptr;
         UPtr<OpenglBuffer> m_indexBuffer = nullptr;
+        UPtr<OpenglBuffer> m_TexCoordBuffer = nullptr;
+        UPtr<OpenglTexture> m_texture = nullptr;
+        // ~mesh properties
 
         UPtr<OpenglBuffer> m_c_vertexObjectBuffer = nullptr;
         UPtr<OpenglBuffer> m_c_indexBuffer = nullptr;

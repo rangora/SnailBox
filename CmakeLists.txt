@@ -24,8 +24,8 @@ set(DEP_LIBS)
 file(GLOB MAIN_SOURCE
     "src/Core/*.h"
     "src/Core/*.cpp"
-    "src/Render/OpenGL/*.h"
-    "src/Render/OpenGL/*.cpp"
+    "src/Render/Opengl/*.h"
+    "src/Render/Opengl/*.cpp"
     "src/Render/*.h"
     "src/Render/*.cpp"
     "src/*.cpp"

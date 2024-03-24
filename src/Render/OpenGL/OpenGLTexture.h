@@ -1,4 +1,4 @@
-﻿#define pragma once
+﻿#pragma once
 
 #include "Render/Image.h"
 
@@ -15,6 +15,8 @@ namespace sb
         void Bind() const; // override?
         void SetFilter(int32 in_minFilter, int32 in_magFilter) const;
         void SetWrap(uint32 in_sWarp, uint32 in_tWrap);
+
+        uint32 Get() const { return m_texture; }
 
     private:
         void CreateTexture();
