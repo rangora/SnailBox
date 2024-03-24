@@ -3,10 +3,17 @@
 #include <assert.h>
 #include <glad/glad.h>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace sb
 {
     /** OpenglBuffer **/
+    OpenglBuffer::OpenglBuffer(const uint32 in_bufferSize)
+    {
+        glGenBuffers(1, &m_bufferId);
+        m_byteBuffer.reserve(in_bufferSize);
+    }
+
     OpenglBuffer::~OpenglBuffer()
     {
         if (m_bufferId)
@@ -19,17 +26,11 @@ namespace sb
     {
         if (!IsBufferCreated())
         {
-            // TODO : Log
+            spdlog::warn("OpenglBuffer already created.");
             return;
         }
 
-        if (m_bufferType == OpenglBufferType::VAO)
-        {
-            // TODO : Log, vao는 생성자에서 바인딩 됨
-            return;
-        }
-
-            glBindBuffer(in_bufferType, m_bufferId);
+        glBindBuffer(in_bufferType, m_bufferId);
         m_targetBufferType = in_bufferType;
     }
 
@@ -37,7 +38,7 @@ namespace sb
     {
         if (!IsBufferCreated())
         {
-            // TODO : Log
+            spdlog::warn("OpenglBuffer already created.");
             return;
         }
 
@@ -45,13 +46,6 @@ namespace sb
         m_usage = in_usage;
         m_uploadedByteSize = m_byteSize;
         m_byteSize = 0;
-
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            // 에러 처리
-            std::cerr << "OpenGL error: " << err << std::endl;
-        }
     }
 
     void OpenglBuffer::AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat)
@@ -76,13 +70,11 @@ namespace sb
             m_byteSize += in_byteSize;
         }
     }
-
     /** ~OpenGLBuffer **/
 
     /** OpenglVertexBuffer **/
     OpenglVertexBuffer::OpenglVertexBuffer()
     {
-        m_bufferType = OpenglBufferType::VAO;
         glGenVertexArrays(1, &m_bufferId);
         glBindVertexArray(m_bufferId);
     }
@@ -100,15 +92,13 @@ namespace sb
         glVertexAttribPointer(in_attribIndex, in_count, in_type, in_normalized, in_stride, (const void*)in_offset);
     }
 
-    OpenglObjectBuffer::~OpenglObjectBuffer()
+    OpenglObjectBuffer::OpenglObjectBuffer(const uint32 in_bufferSize)
+    : OpenglBuffer(in_bufferSize)
     {
     }
 
-    void OpenglObjectBuffer::CreateBuffer(const OpenglBufferType in_type, const uint32 in_size)
+    OpenglObjectBuffer::~OpenglObjectBuffer()
     {
-        m_bufferType = in_type;
-        glGenBuffers(1, &m_bufferId);
-        m_byteBuffer.reserve(in_size);
     }
     /** ~OpenglObjectBuffer **/
 }

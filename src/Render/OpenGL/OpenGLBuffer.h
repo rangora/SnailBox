@@ -10,15 +10,13 @@ namespace sb
     class OpenglBuffer
     {
     public:
-        OpenglBuffer() = default;
         virtual ~OpenglBuffer();
 
-        virtual void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) = 0;
         void BindBuffer(const GLenum in_bufferType);
         void CommitData(const GLenum in_usage);
 
         template<typename T>
-        void AddData(const T& in_ptrObj, uint32 in_repeat)
+        void AddData(const T& in_ptrObj, uint32 in_repeat = 1)
         {
             AddData_Internal(in_ptrObj, static_cast<uint32>(sizeof(T)), in_repeat);
         }
@@ -26,6 +24,8 @@ namespace sb
         uint32 Get() const { return m_bufferId; }
 
     protected:
+        OpenglBuffer() = default;
+        OpenglBuffer(const uint32 in_bufferSize);
         bool IsBufferCreated() const { return m_bufferId != 0; }
         void AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat);
 
@@ -35,8 +35,6 @@ namespace sb
         uint32 m_usage = 0;
         uint32 m_byteSize = 0;
         uint32 m_uploadedByteSize = 0;
-
-        OpenglBufferType m_bufferType = OpenglBufferType::None;
     };
 
     class OpenglVertexBuffer : public OpenglBuffer
@@ -45,7 +43,6 @@ namespace sb
         OpenglVertexBuffer();
         ~OpenglVertexBuffer();
 
-        void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) final {}
         void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
                           uint64_t in_offset) const;
     };
@@ -53,9 +50,7 @@ namespace sb
     class OpenglObjectBuffer : public OpenglBuffer
     {
     public:
-        OpenglObjectBuffer() = default;
+        OpenglObjectBuffer(const uint32 in_bufferSize = 512);
         ~OpenglObjectBuffer();
-
-        void CreateBuffer(const OpenglBufferType in_type, const uint32 in_size = 512) final;
     };
 } // namespace sb
