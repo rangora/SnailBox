@@ -16,6 +16,12 @@
 
 namespace sb
 {
+    namespace OpenglContextConstants
+    {
+        constexpr float zNear = 0.1f;
+        constexpr float zFar = 100.f;
+    }
+
     OpenglContext::OpenglContext(GLFWwindow* arg_window_handle, Window* in_window)
         : m_glWindow_handle(arg_window_handle), m_window_handle(in_window)
     {
@@ -135,8 +141,8 @@ namespace sb
 
         const WinWindowData& WinData = window->GetWindowData();
 
-        const glm::mat4 projection =
-            glm::perspective(glm::radians(45.0f), (float)WinData.width / (float)WinData.height, 0.01f, 20.0f);
+        const glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WinData.width / (float)WinData.height,
+                                                      OpenglContextConstants::zNear, OpenglContextConstants::zFar);
         const glm::mat4 view = glm::lookAt(window->m_cameraPos, window->m_cameraPos + window->m_cameraFront, window->m_cameraUp);
         // ~camera
 
