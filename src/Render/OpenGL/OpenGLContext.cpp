@@ -30,6 +30,7 @@ namespace sb
 
     void OpenglContext::Initialize()
     {
+
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
@@ -95,9 +96,22 @@ namespace sb
             // glActiveTexture(GL_TEXTURE0);
             // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
-            // 2.light
+            // 2.light[UBO]
             m_programs.emplace(
-                "Light", OpenglProgram::Create("../../resources/shader/simple2.vs", "../../resources/shader/simple2.fs"));
+                "Light", OpenglProgram::Create("../../resources/shader/simple3.vert", "../../resources/shader/simple3.frag"));
+
+            auto& targetShader = m_programs["Light"]->m_shaders[0];
+            GLuint shaderId = targetShader->GetShaderId();
+            GLuint UBOIndex = glGetUniformBlockIndex(shaderId, "MatrixBlock");
+
+            glUniformBlockBinding(shaderId, UBOIndex, 0);
+
+            m_UniformBlockBuffer = CreateUPtr<OpenglObjectBuffer>();
+            m_UniformBlockBuffer->BindBuffer(GL_UNIFORM_BUFFER);
+            glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UniformBlockBuffer->Get(), 0, 2 * sizeof(glm::mat4));
+            // ~UBO
         }
 
         for (const auto& [name, program] : m_programs)
@@ -194,9 +208,11 @@ namespace sb
                                 glm::vec3(1.0f, 0.5f, 0.0f));
             auto transform = projection * view * model;
 
-            m_programs["Light"].get()->SetUniform("transform", transform);
-            m_programs["Light"].get()->SetUniform("modelTransform", model);
-            // m_programs["Cube"].get()->SetUniform("transform", transform);
+            // UBO
+            GLuint UBOId = m_UniformBlockBuffer->Get();
+            glBindBuffer(GL_UNIFORM_BUFFER, UBOId);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(transform));
+            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(model));
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }

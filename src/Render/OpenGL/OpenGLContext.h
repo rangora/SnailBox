@@ -47,6 +47,7 @@ namespace sb
         UPtr<OpenglBuffer> m_colorBuffer = nullptr;
         UPtr<OpenglBuffer> m_indexBuffer = nullptr;
         UPtr<OpenglBuffer> m_TexCoordBuffer = nullptr;
+        UPtr<OpenglBuffer> m_UniformBlockBuffer = nullptr;
         UPtr<OpenglTexture> m_texture = nullptr;
         std::vector<UPtr<Material>> m_materials; // 애매??
         // ~mesh properties

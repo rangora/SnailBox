@@ -99,6 +99,8 @@ namespace sb
             return false;
         }
 
+        m_shaders.insert(m_shaders.end(), in_shaders.begin(), in_shaders.end());
+
         return true;
     }
 } // namespace sb

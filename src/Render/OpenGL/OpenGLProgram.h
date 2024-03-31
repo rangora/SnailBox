@@ -26,6 +26,8 @@ namespace sb
     void SetUniform(const std::string& in_name, const glm::vec4& in_value) const;
     void SetUniform(const std::string& in_name, const glm::mat4& in_value) const;
 
+    std::vector<SPtr<Shader>> m_shaders;
+
 private:
     OpenglProgram() {}
     bool LinkProgram(const std::vector<SPtr<Shader>>& in_shaders);
