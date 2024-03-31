@@ -7,6 +7,8 @@
 #include "OpenGLShader.h"
 #include "OpenglTexture.h"
 #include "Render/GraphicsContext.h"
+#include "Render/Light.h"
+#include "Render/Material.h"
 #include "Render/ShaderArchive.h"
 
 struct GLFWwindow;
@@ -46,11 +48,14 @@ namespace sb
         UPtr<OpenglBuffer> m_indexBuffer = nullptr;
         UPtr<OpenglBuffer> m_TexCoordBuffer = nullptr;
         UPtr<OpenglTexture> m_texture = nullptr;
+        std::vector<UPtr<Material>> m_materials; // 애매??
         // ~mesh properties
 
         UPtr<OpenglBuffer> m_c_vertexObjectBuffer = nullptr;
         UPtr<OpenglBuffer> m_c_indexBuffer = nullptr;
 
-        std::vector<UPtr<OpenglProgram>> m_programs;
+        std::vector<UPtr<Light>> m_lights;
+
+        std::map<std::string, UPtr<OpenglProgram>> m_programs;
     };
 } // namespace sb

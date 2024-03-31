@@ -17,7 +17,7 @@ namespace sb
         void SetWrap(uint32 in_sWarp, uint32 in_tWrap);
 
         uint32 Get() const { return m_texture; }
-
+    
     private:
         void CreateTexture();
         void SetTextureFromImage(const Image* in_image);

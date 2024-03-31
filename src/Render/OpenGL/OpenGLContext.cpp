@@ -49,7 +49,8 @@ namespace sb
             // color
             m_colorBuffer = CreateUPtr<OpenglObjectBuffer>();
             m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
-            m_colorBuffer->AddData(cubeFaceColors);
+            // m_colorBuffer->AddData(cubeFaceColors);
+            m_colorBuffer->AddData(cubeNormals);
             m_colorBuffer->CommitData(GL_STATIC_DRAW);
 
             m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
@@ -76,20 +77,38 @@ namespace sb
                 return;
             }
 
-            // Create programs.
-            m_programs.emplace_back(
-                (OpenglProgram::Create("../../resources/shader/simple.vs", "../../resources/shader/simple.fs")));
+            // materials
+            UPtr<Material> newMaterial = CreateUPtr<Material>();
+            newMaterial->m_diffuse =
+                OpenglTexture::CreateTextureFromImage(Image::Load("../../resources/texture/container2.png").get());
+            newMaterial->m_specular =
+                OpenglTexture::CreateTextureFromImage(Image::Load("../../resources/texture/container2_specular.png").get());
 
-            m_texture = OpenglTexture::CreateTextureFromImage(image1.get());
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+            m_materials.emplace_back(std::move(newMaterial));
+
+            // Create programs.
+            // 1.cube
+            // m_programs.emplace(
+            //     "Cube", OpenglProgram::Create("../../resources/shader/simple.vs", "../../resources/shader/simple.fs"));
+
+            // m_texture = OpenglTexture::CreateTextureFromImage(image1.get());
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+
+            // 2.light
+            m_programs.emplace(
+                "Light", OpenglProgram::Create("../../resources/shader/simple2.vs", "../../resources/shader/simple2.fs"));
         }
 
-        // Use all programs.
-        BOOST_FOREACH (const auto& program, m_programs)
+        for (const auto& [name, program] : m_programs)
         {
             program->Use();
-            program->SetUniform("tex", 0);
+            if (name == "Light")
+            {
+                program->SetUniform("material.diffuse", 0.5f);
+                program->SetUniform("material.specular", 1.f);
+            }
+            // program->SetUniform("tex", 0);
         }
 
        glEnable(GL_DEPTH_TEST);
@@ -146,8 +165,26 @@ namespace sb
         const glm::mat4 view = glm::lookAt(window->m_cameraPos, window->m_cameraPos + window->m_cameraFront, window->m_cameraUp);
         // ~camera
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texture->Get());
+        // lights
+        m_programs["Light"]->Use();
+        m_programs["Light"]->SetUniform("viewPos", window->m_cameraPos);
+        m_programs["Light"]->SetUniform("directionalLight.direction", glm::vec3(-0.2f, -1.f, -0.3f));
+        m_programs["Light"]->SetUniform("directionalLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+        m_programs["Light"]->SetUniform("directionalLight.specular", glm::vec3(1.f, 0.6f, 0.6f));
+
+        // materials
+        m_programs["Light"]->SetUniform("material.diffuse", glm::vec3(1.f, 1.f, 1.f));
+        m_programs["Light"]->SetUniform("material.specular", glm::vec3(1.f, 1.f, 1.f));
+        m_programs["Light"]->SetUniform("material.shiniess", m_materials[0]->shininess);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_materials[0]->m_diffuse->Get());
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, m_materials[0]->m_specular->Get());
+
+        // cubes
+        // m_programs["Cube"]->Use();
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
         for (size_t i = 0; i < cubePositions.size(); i++)
         {
@@ -157,7 +194,10 @@ namespace sb
                                 glm::vec3(1.0f, 0.5f, 0.0f));
             auto transform = projection * view * model;
 
-            m_programs[0].get()->SetUniform("transform", transform);
+            m_programs["Light"].get()->SetUniform("transform", transform);
+            m_programs["Light"].get()->SetUniform("modelTransform", model);
+            // m_programs["Cube"].get()->SetUniform("transform", transform);
+
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
     }
