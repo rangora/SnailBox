@@ -1,9 +1,9 @@
 ﻿#include "OpenglProgram.h"
 
 #include "OpenGLShader.h"
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/spdlog.h>
 
 namespace sb
 {
@@ -49,9 +49,10 @@ namespace sb
         auto loc = glGetUniformLocation(m_program, in_name.c_str());
         glUniform1i(loc, in_value);
     }
-
+    
     void OpenglProgram::SetUniform(const std::string& in_name, float in_value) const
     {
+        // auto loc = glad_glGetUniformLocation(m_program, in_name.c_str());
         auto loc = glGetUniformLocation(m_program, in_name.c_str());
         glUniform1f(loc, in_value);
     }

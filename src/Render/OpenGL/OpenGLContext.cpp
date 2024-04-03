@@ -1,13 +1,15 @@
 ﻿#include "OpenglContext.h"
 
+#include <windows.h> // supress warning C4005 : 'APIENTRY' 매크로 재정의
+#include <glad/gl.h> // glfw3 앞에 위치 해야 함
+#include <GLFW/glfw3.h>
+
 #include "Core/Application.h"
 #include "Core/Common.h"
 #include "Core/WinWindow.h"
 #include "Render/BasicGeometry.h"
 #include "Render/Shader.h"
-#include <GLFW/glfw3.h>
 #include <boost/foreach.hpp>
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui.h>
@@ -32,7 +34,8 @@ namespace sb
     {
 
         glfwMakeContextCurrent(m_glWindow_handle);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        // int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        int status = gladLoadGL(glfwGetProcAddress);
 
         // Assert 및 버전 체크, 정보 로그 출력 필요.
         {
@@ -101,10 +104,10 @@ namespace sb
                 "Light", OpenglProgram::Create("../../resources/shader/simple3.vert", "../../resources/shader/simple3.frag"));
 
             auto& targetShader = m_programs["Light"]->m_shaders[0];
-            GLuint shaderId = targetShader->GetShaderId();
-            GLuint UBOIndex = glGetUniformBlockIndex(shaderId, "MatrixBlock");
+            GLuint programId = m_programs["Light"]->Get();
+            GLuint UBOIndex = glGetUniformBlockIndex(programId, "MatrixBlock");
 
-            glUniformBlockBinding(shaderId, UBOIndex, 0);
+            glUniformBlockBinding(programId, UBOIndex, 0);
 
             m_UniformBlockBuffer = CreateUPtr<OpenglObjectBuffer>();
             m_UniformBlockBuffer->BindBuffer(GL_UNIFORM_BUFFER);
@@ -117,12 +120,6 @@ namespace sb
         for (const auto& [name, program] : m_programs)
         {
             program->Use();
-            if (name == "Light")
-            {
-                program->SetUniform("material.diffuse", 0.5f);
-                program->SetUniform("material.specular", 1.f);
-            }
-            // program->SetUniform("tex", 0);
         }
 
        glEnable(GL_DEPTH_TEST);
@@ -187,8 +184,6 @@ namespace sb
         m_programs["Light"]->SetUniform("directionalLight.specular", glm::vec3(1.f, 0.6f, 0.6f));
 
         // materials
-        m_programs["Light"]->SetUniform("material.diffuse", glm::vec3(1.f, 1.f, 1.f));
-        m_programs["Light"]->SetUniform("material.specular", glm::vec3(1.f, 1.f, 1.f));
         m_programs["Light"]->SetUniform("material.shiniess", m_materials[0]->shininess);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, m_materials[0]->m_diffuse->Get());

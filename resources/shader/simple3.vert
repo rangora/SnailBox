@@ -4,7 +4,7 @@ layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNomral;
 layout(location = 2) in vec2 aTexCoord;
 
-layout(std140) uniform MatrixBlock
+layout(std140, binding = 0) uniform MatrixBlock
 {
     mat4 _transform;
     mat4 _modelTransform;

@@ -31,7 +31,7 @@ file(GLOB MAIN_SOURCE
     "src/*.cpp"
     "src/*.h"
     "src/*.hpp",
-    "src/glad.c"
+    "src/gl.c"
 )
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 

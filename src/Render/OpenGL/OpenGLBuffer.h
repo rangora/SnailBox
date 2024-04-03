@@ -1,8 +1,8 @@
 ﻿#pragma once
 
+#include <glad/gl.h>
 #include "Core/Common.h"
 #include <Enums.h>
-#include <glad/glad.h>
 #include <vector>
 
 namespace sb

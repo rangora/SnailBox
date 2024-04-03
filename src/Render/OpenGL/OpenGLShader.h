@@ -1,12 +1,12 @@
 ﻿#pragma once
 
+#include <glad/gl.h>
 #include "Core/Common.h"
 #include "OpenGLBuffer.h"
 #include "Render/Shader.h"
 
 #include <vector>
 #include <glm/glm.hpp>
-#include <glad/glad.h>
 
 struct GLFWwindow;
 

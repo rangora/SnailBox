@@ -1,8 +1,8 @@
 ﻿#pragma once
 
+#include <glad/gl.h>
 #include "ShaderArchive.h"
 
-#include <glad/glad.h>
 
 namespace sb::ShaderCompiler
 {

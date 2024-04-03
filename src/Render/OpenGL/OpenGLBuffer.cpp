@@ -1,7 +1,7 @@
 ﻿#include "OpenglBuffer.h"
 
+#include <glad/gl.h>
 #include <assert.h>
-#include <glad/glad.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 
