@@ -82,6 +82,11 @@ namespace sb
     OpenglVertexBuffer::~OpenglVertexBuffer()
     {
     }
+
+    void OpenglVertexBuffer::BindBuffer(const GLenum in_bufferType)
+    {
+        OpenglBuffer::BindBuffer(in_bufferType);
+    }
     /** ~OpenglVertexBuffer **/
 
     /** OpenglObjectBuffer **/
@@ -100,5 +105,46 @@ namespace sb
     OpenglObjectBuffer::~OpenglObjectBuffer()
     {
     }
+
+    void OpenglObjectBuffer::BindBuffer(const GLenum in_bufferType)
+    {
+        OpenglBuffer::BindBuffer(in_bufferType);
+    }
     /** ~OpenglObjectBuffer **/
+
+
+    /** OpenglUniformBuffer **/
+    OpenglUniformBuffer::OpenglUniformBuffer(const uint32 in_bufferSize)
+    : OpenglBuffer(in_bufferSize)
+    {
+    }
+
+    OpenglUniformBuffer::~OpenglUniformBuffer()
+    {
+    }
+
+    void OpenglUniformBuffer::BindBuffer(const GLenum in_bufferType)
+    {
+        if (!IsBufferCreated())
+        {
+            spdlog::warn("OpengUniformlBuffer already created.");
+            return;
+        }
+
+        m_targetBufferType = in_bufferType;
+        glBindBuffer(in_bufferType, m_bufferId);
+        glBufferData(GL_UNIFORM_BUFFER, m_byteSize, nullptr, GL_STATIC_DRAW);
+    }
+
+void OpenglUniformBuffer::BindToBindingPoint(const GLuint in_bindingPoint)
+    {
+        if (!IsBufferCreated())
+        {
+            spdlog::warn("OpenglUniformBuffer doesn't created.");
+            return;
+        }
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, in_bindingPoint, m_bufferId);
+    }
+    /** ~OpenglUniformBuffer **/
 }

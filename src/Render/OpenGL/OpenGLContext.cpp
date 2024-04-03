@@ -100,13 +100,13 @@ namespace sb
             // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
             // 2.light[UBO]
-            m_programs.emplace(
-                "Light", OpenglProgram::Create("../../resources/shader/simple3.vert", "../../resources/shader/simple3.frag"));
+            m_programs.emplace("Light", OpenglProgram::Create("../../resources/shader/simple3.vert",
+                                                              "../../resources/shader/simple3.frag"));
 
             auto& targetShader = m_programs["Light"]->m_shaders[0];
             GLuint programId = m_programs["Light"]->Get();
             GLuint UBOIndex = glGetUniformBlockIndex(programId, "MatrixBlock");
-
+            
             glUniformBlockBinding(programId, UBOIndex, 0);
 
             m_UniformBlockBuffer = CreateUPtr<OpenglObjectBuffer>();

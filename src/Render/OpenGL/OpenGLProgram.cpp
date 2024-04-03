@@ -1,4 +1,4 @@
-﻿#include "OpenglProgram.h"
+#include "OpenglProgram.h"
 
 #include "OpenGLShader.h"
 #include <glm/glm.hpp>
@@ -79,6 +79,19 @@ namespace sb
     {
         auto loc = glGetUniformLocation(m_program, in_name.c_str());
         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(in_value));
+    }
+
+    void OpenglProgram::BindUniformToBindingPoint(const std::string& in_uniformBlockName,
+                                                  const GLuint in_bindingPoint) const
+    {
+        const GLuint blockIndex = glGetUniformBlockIndex(m_program, in_uniformBlockName.c_str());
+        if (blockIndex == GL_INVALID_INDEX)
+        {
+            spdlog::error("Invalid blockIndex.");
+            return;
+        }
+
+        glUniformBlockBinding(m_program, blockIndex, in_bindingPoint);
     }
 
     bool OpenglProgram::LinkProgram(const std::vector<SPtr<Shader>>& in_shaders)

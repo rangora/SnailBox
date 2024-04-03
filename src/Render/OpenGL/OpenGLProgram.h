@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <glad/gl.h>
 #include "Core/Common.h"
@@ -26,6 +26,8 @@ namespace sb
     void SetUniform(const std::string& in_name, const glm::vec3& in_value) const;
     void SetUniform(const std::string& in_name, const glm::vec4& in_value) const;
     void SetUniform(const std::string& in_name, const glm::mat4& in_value) const;
+
+    void BindUniformToBindingPoint(const std::string& in_uniformBlockName, const GLuint in_bindingPoint) const;
 
     std::vector<SPtr<Shader>> m_shaders;
 
