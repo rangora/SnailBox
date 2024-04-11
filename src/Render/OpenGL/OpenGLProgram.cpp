@@ -1,4 +1,4 @@
-#include "OpenglProgram.h"
+﻿#include "OpenglProgram.h"
 
 #include "OpenGLShader.h"
 #include <glm/glm.hpp>
@@ -56,7 +56,7 @@ namespace sb
         auto loc = glGetUniformLocation(m_program, in_name.c_str());
         glUniform1f(loc, in_value);
     }
-
+    
     void OpenglProgram::SetUniform(const std::string& in_name, const glm::vec2& in_value) const
     {
         auto loc = glGetUniformLocation(m_program, in_name.c_str());

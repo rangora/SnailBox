@@ -131,12 +131,13 @@ namespace sb
             return;
         }
 
-        m_targetBufferType = in_bufferType;
-        glBindBuffer(in_bufferType, m_bufferId);
-        glBufferData(GL_UNIFORM_BUFFER, m_byteSize, nullptr, GL_STATIC_DRAW);
+        OpenglBuffer::BindBuffer(in_bufferType);
+
+        glBufferData(in_bufferType, m_byteBuffer.capacity(), NULL, GL_STATIC_DRAW);
+        glBindBuffer(in_bufferType, 0);
     }
 
-void OpenglUniformBuffer::BindToBindingPoint(const GLuint in_bindingPoint)
+    void OpenglUniformBuffer::BindToBindingPoint(const GLuint in_bindingPoint)
     {
         if (!IsBufferCreated())
         {

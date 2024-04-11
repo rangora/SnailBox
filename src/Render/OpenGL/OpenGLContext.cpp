@@ -32,9 +32,7 @@ namespace sb
 
     void OpenglContext::Initialize()
     {
-
         glfwMakeContextCurrent(m_glWindow_handle);
-        // int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         int status = gladLoadGL(glfwGetProcAddress);
 
         // Assert 및 버전 체크, 정보 로그 출력 필요.
@@ -99,21 +97,19 @@ namespace sb
             // glActiveTexture(GL_TEXTURE0);
             // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
-            // 2.light[UBO]
+            // 2.cube - light[UBO]
             m_programs.emplace("Light", OpenglProgram::Create("../../resources/shader/simple3.vert",
                                                               "../../resources/shader/simple3.frag"));
 
             auto& targetShader = m_programs["Light"]->m_shaders[0];
             GLuint programId = m_programs["Light"]->Get();
             GLuint UBOIndex = glGetUniformBlockIndex(programId, "MatrixBlock");
-            
+
             glUniformBlockBinding(programId, UBOIndex, 0);
 
-            m_UniformBlockBuffer = CreateUPtr<OpenglObjectBuffer>();
+            m_UniformBlockBuffer = CreateUPtr<OpenglUniformBuffer>(static_cast<uint32>(2 * sizeof(glm::mat4)));
             m_UniformBlockBuffer->BindBuffer(GL_UNIFORM_BUFFER);
-            glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_UniformBlockBuffer->Get(), 0, 2 * sizeof(glm::mat4));
+            m_UniformBlockBuffer->BindToBindingPoint(0);
             // ~UBO
         }
 
