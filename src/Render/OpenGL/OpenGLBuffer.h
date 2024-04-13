@@ -7,14 +7,20 @@
 
 namespace sb
 {
+    // 임시
+    struct OpenglBufferParams
+    {
+        int32 item = 0;
+    };
+
     class OpenglBuffer
     {
     public:
         virtual ~OpenglBuffer();
-        
+
         virtual void BindBuffer(const GLenum in_bufferType);
-        void CommitData(const GLenum in_usage);
-        
+        virtual void CommitData(const GLenum in_usage);
+
         template<typename T>
         void AddData(const T& in_ptrObj, uint32 in_repeat = 1)
         {
@@ -23,13 +29,17 @@ namespace sb
 
         uint32 Get() const { return m_bufferId; }
 
+
     protected:
         OpenglBuffer() = default;
         OpenglBuffer(const uint32 in_bufferSize);
 
+        virtual void PostCommitData() {}
+
         bool IsBufferCreated() const { return m_bufferId != 0; }
         void AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat);
 
+        OpenglBufferParams m_bufferParams;
         std::vector<unsigned char> m_byteBuffer;
         GLuint m_bufferId = 0;
         GLenum m_targetBufferType = 0;
@@ -45,6 +55,7 @@ namespace sb
         ~OpenglVertexBuffer() final;
 
         void BindBuffer(const GLenum in_bufferType) final;
+        void CommitData(const GLenum in_usage) final;
 
         void SetAttribute(int32 in_attribIndex, int in_count, int32 in_type, bool in_normalized, size_t in_stride,
                           uint64_t in_offset) const;
@@ -57,6 +68,7 @@ namespace sb
         ~OpenglObjectBuffer() final;
 
         void BindBuffer(const GLenum in_bufferType) final;
+        void CommitData(const GLenum in_usage) final;
     };
 
     class OpenglUniformBuffer : public OpenglBuffer
@@ -66,6 +78,9 @@ namespace sb
         ~OpenglUniformBuffer() final;
 
         void BindBuffer(const GLenum in_bufferType) final;
-        void BindToBindingPoint(const GLuint in_bindingPoint);
+        void CommitData(const GLenum in_usage) final;
+
+    private:
+        void PostCommitData() final;
     };
 } // namespace sb

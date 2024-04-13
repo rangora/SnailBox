@@ -109,7 +109,7 @@ namespace sb
 
             m_UniformBlockBuffer = CreateUPtr<OpenglUniformBuffer>(static_cast<uint32>(2 * sizeof(glm::mat4)));
             m_UniformBlockBuffer->BindBuffer(GL_UNIFORM_BUFFER);
-            m_UniformBlockBuffer->BindToBindingPoint(0);
+            m_UniformBlockBuffer->CommitData(GL_STATIC_DRAW);
             // ~UBO
         }
 

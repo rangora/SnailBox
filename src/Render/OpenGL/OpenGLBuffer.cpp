@@ -46,6 +46,8 @@ namespace sb
         m_usage = in_usage;
         m_uploadedByteSize = m_byteSize;
         m_byteSize = 0;
+
+        PostCommitData();
     }
 
     void OpenglBuffer::AddData_Internal(const void* in_ptrData, uint32 in_byteSize, uint32 in_repeat)
@@ -87,6 +89,11 @@ namespace sb
     {
         OpenglBuffer::BindBuffer(in_bufferType);
     }
+
+    void OpenglVertexBuffer::CommitData(const GLenum in_usage)
+    {
+        OpenglBuffer::CommitData(in_usage);
+    }
     /** ~OpenglVertexBuffer **/
 
     /** OpenglObjectBuffer **/
@@ -100,6 +107,7 @@ namespace sb
     OpenglObjectBuffer::OpenglObjectBuffer(const uint32 in_bufferSize)
     : OpenglBuffer(in_bufferSize)
     {
+        m_bufferParams.item = 0;
     }
 
     OpenglObjectBuffer::~OpenglObjectBuffer()
@@ -109,6 +117,11 @@ namespace sb
     void OpenglObjectBuffer::BindBuffer(const GLenum in_bufferType)
     {
         OpenglBuffer::BindBuffer(in_bufferType);
+    }
+
+    void OpenglObjectBuffer::CommitData(const GLenum in_usage)
+    {
+        OpenglBuffer::CommitData(in_usage);
     }
     /** ~OpenglObjectBuffer **/
 
@@ -127,17 +140,27 @@ namespace sb
     {
         if (!IsBufferCreated())
         {
-            spdlog::warn("OpengUniformlBuffer already created.");
+            spdlog::warn("OpengUniformlBuffer doesn't created.");
             return;
         }
 
         OpenglBuffer::BindBuffer(in_bufferType);
-
-        glBufferData(in_bufferType, m_byteBuffer.capacity(), NULL, GL_STATIC_DRAW);
-        glBindBuffer(in_bufferType, 0);
     }
 
-    void OpenglUniformBuffer::BindToBindingPoint(const GLuint in_bindingPoint)
+    void OpenglUniformBuffer::CommitData(const GLenum in_usage)
+    {
+        if (!IsBufferCreated())
+        {
+            spdlog::warn("OpengUniformlBuffer doesn't created.");
+            return;
+        }
+
+        glBufferData(GL_UNIFORM_BUFFER, m_byteBuffer.capacity(), NULL, in_usage);
+
+        PostCommitData();
+    }
+
+    void OpenglUniformBuffer::PostCommitData()
     {
         if (!IsBufferCreated())
         {
@@ -145,7 +168,7 @@ namespace sb
             return;
         }
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, in_bindingPoint, m_bufferId);
+        glBindBufferBase(GL_UNIFORM_BUFFER, m_bufferParams.item, m_bufferId);
     }
     /** ~OpenglUniformBuffer **/
 }
