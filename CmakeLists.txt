@@ -21,22 +21,13 @@ set(SOURCE_ROOT src)
 set(DEP_LIST)
 set(DEP_LIBS)
 
-file(GLOB MAIN_SOURCE
-    "src/Core/*.h"
-    "src/Core/*.cpp"
-    "src/Core/Math/*.h"
-    "src/Core/Math/*.cpp"
-    "src/Render/Opengl/*.h"
-    "src/Render/Opengl/*.cpp"
-    "src/Render/*.h"
-    "src/Render/*.cpp"
-    "src/*.cpp"
+file(GLOB_RECURSE MAIN_SOURCE
+    "src/*.c"
     "src/*.h"
+    "src/*.cpp"
     "src/*.hpp"
-    "src/Actor/*.h"
-    "src/Actor/*.cpp"
-    "src/gl.c"
 )
+
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
 # build_dependencies 사용 안함
