@@ -36,6 +36,7 @@ namespace sb
         spdlog::info("Add new layer");
         m_window = CreateUPtr<WinsWindow>(WindowContext("OpenGL Window"), this);
         m_windows.emplace_back(std::move(m_window));
+        m_windows.back()->InitRenderer();
         m_runningWindowCount++;
     }
 

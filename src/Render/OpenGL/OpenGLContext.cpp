@@ -15,6 +15,9 @@
 #include <imgui/imgui.h>
 #include <spdlog/spdlog.h>
 #include <string>
+#include "Render/RenderResource.h"
+
+#include "Actor/CubeActor.h"
 
 namespace sb
 {
@@ -28,6 +31,7 @@ namespace sb
         : m_glWindow_handle(arg_window_handle), m_window_handle(in_window)
     {
         // Assert 필요.
+        m_graphicsFramework = GraphicsLibrary::OpenGL;
     }
 
     void OpenglContext::Initialize()
@@ -35,8 +39,16 @@ namespace sb
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGL(glfwGetProcAddress);
 
+        m_window_handle->m_actors.emplace_back(SPtr<CubeActor>(new CubeActor));
+
+        for (auto& actor : m_window_handle->m_actors)
+        {
+            actor->DrawActor();
+        }
+
         // Assert 및 버전 체크, 정보 로그 출력 필요.
         {
+            /*
             // VAO
             m_vertexBuffer = CreateUPtr<OpenglVertexBuffer>();
 
@@ -49,13 +61,12 @@ namespace sb
             m_vertexBuffer->SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // color
-            m_colorBuffer = CreateUPtr<OpenglObjectBuffer>();
-            m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
+            // m_colorBuffer = CreateUPtr<OpenglObjectBuffer>();
+            // m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
             // m_colorBuffer->AddData(cubeFaceColors);
-            m_colorBuffer->AddData(cubeNormals);
-            m_colorBuffer->CommitData(GL_STATIC_DRAW);
+            // m_colorBuffer->AddData(cubeNormals);
+            // m_colorBuffer->CommitData(GL_STATIC_DRAW);
 
-            m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
             // EBO
             m_indexBuffer = CreateUPtr<OpenglObjectBuffer>();
@@ -69,7 +80,16 @@ namespace sb
             m_TexCoordBuffer->AddData(cubeUVs);
             m_TexCoordBuffer->CommitData(GL_STATIC_DRAW);
 
+            m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
             m_vertexBuffer->SetAttribute(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
+            */
+
+            for (RenderResource* RenderResource : m_targetRenderResources)
+            {
+                RenderResource->RenderProcess(this);
+            }
+
+            this->m_staticMeshData;
 
             // texture
             UPtr<Image> image1 = Image::Load("../../resources/texture/container.jpg");
@@ -126,6 +146,32 @@ namespace sb
     void OpenglContext::SwapBuffers()
     {
         glfwSwapBuffers(m_glWindow_handle);
+    }
+
+    void OpenglContext::CreateBuffer()
+    {
+    }
+
+    void OpenglContext::BindBuffer()
+    {
+    }
+
+    void OpenglContext::AddData(const void * in_data)
+    {
+    }
+
+    void OpenglContext::CommitData()
+    {
+    }
+
+    void OpenglContext::VertexProcess(SPtr<VertexRenderResource>& in_vertexResource)
+    {
+        // ??
+    }
+
+    void OpenglContext::StaticMeshProcess(SPtr<StaticMeshRenderResource>& in_staticMeshResource)
+    {
+        // ??
     }
 
     void OpenglContext::Render()

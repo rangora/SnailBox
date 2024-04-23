@@ -2,6 +2,7 @@
 
 #include <glad/gl.h>
 #include "Core/Common.h"
+#include "Render/RenderBuffer.h"
 #include <Enums.h>
 #include <vector>
 
@@ -13,7 +14,7 @@ namespace sb
         int32 item = 0;
     };
 
-    class OpenglBuffer
+    class OpenglBuffer : public RenderBuffer
     {
     public:
         virtual ~OpenglBuffer();
@@ -29,7 +30,7 @@ namespace sb
 
         uint32 Get() const { return m_bufferId; }
 
-
+    
     protected:
         OpenglBuffer() = default;
         OpenglBuffer(const uint32 in_bufferSize);

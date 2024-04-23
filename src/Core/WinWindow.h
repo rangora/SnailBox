@@ -24,9 +24,11 @@ namespace sb
     class WinsWindow : public Window
     {
         public:
-           WinsWindow(const WindowContext& arg_WindowContext);
-           WinsWindow(const WindowContext& arg_WindowContext, class Application* in_app);
+           WinsWindow(const WindowContext& in_windowContext);
+           WinsWindow(const WindowContext& in_windowContext, class Application* in_app);
            virtual ~WinsWindow();
+
+           void InitRenderer() final;
            void Update() final;
 
            void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
@@ -48,14 +50,11 @@ namespace sb
            // ~camera
 
        private:
-           void Init(const WindowContext& arg_WindowContext);
            void ShutDown() final;
 
            Application* m_app = nullptr; // TEMP
            GLFWwindow* m_window = nullptr;
            ImGuiContext* m_imguiContext = nullptr;
-
-           UPtr<GraphicsContext> m_graphicContext = nullptr; // 필요 없을 듯
 
            WinWindowData m_windowData;
     };

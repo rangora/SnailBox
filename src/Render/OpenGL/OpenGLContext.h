@@ -16,6 +16,19 @@ namespace sb
 {
     class Window;
 
+    struct OpenglStaticMeshData
+    {
+        GLuint m_vertexDeclationId = 0;
+        GLuint m_geometryBufferId = 0;
+        GLuint m_indexBufferId = 0;
+
+        OpenglVertexBuffer* m_vertexDeclaration = nullptr;
+        OpenglBuffer* m_vertexObjectBuffer = nullptr;
+        OpenglBuffer* m_colorBuffer = nullptr;
+        OpenglBuffer* m_indexBuffer = nullptr;
+        OpenglBuffer* m_TexCoordBuffer = nullptr;
+    };
+
     class OpenglContext : public GraphicsContext
     {
     public:
@@ -27,10 +40,19 @@ namespace sb
         virtual void Initialize() override;
         virtual void SwapBuffers() override;
 
+        void CreateBuffer() final;
+        void BindBuffer() final;
+        void AddData(const void* in_data) final;
+        void CommitData() final;
+
+        void VertexProcess(SPtr<class VertexRenderResource>& in_vertexResource) final;
+        void StaticMeshProcess(SPtr<class StaticMeshRenderResource>& in_staticMeshResource) final;
+
         // TEMP?
         void Render() final;
 
         uint32 m_program = 0;
+        std::map<std::string, OpenglStaticMeshData> m_staticMeshData;
 
     private:
         static UPtr<OpenglShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);

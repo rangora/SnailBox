@@ -16,14 +16,19 @@ void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 
 namespace sb
 {
-    WinsWindow::WinsWindow(const WindowContext& arg_WindowContext)
+    WinsWindow::WinsWindow(const WindowContext& in_windowContext)
     {
-        Init(arg_WindowContext);
+        m_windowData.height = in_windowContext.height;
+        m_windowData.width = in_windowContext.width;
+        m_windowData.title = in_windowContext.title;
     }
 
-    WinsWindow::WinsWindow(const WindowContext& arg_WindowContext, Application* in_app)
+    WinsWindow::WinsWindow(const WindowContext& in_windowContext, Application* in_app)
     {
-        Init(arg_WindowContext);
+        // InitRenderer(arg_WindowContext);
+        m_windowData.height = in_windowContext.height;
+        m_windowData.width = in_windowContext.width;
+        m_windowData.title = in_windowContext.title;
         m_app = in_app;
     }
 
@@ -143,7 +148,7 @@ namespace sb
         }
     }
 
-    void WinsWindow::Init(const WindowContext& arg_WindowContext)
+    void WinsWindow::InitRenderer()
     {
         // glfw init
         int success = glfwInit();
@@ -156,8 +161,8 @@ namespace sb
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        m_window = glfwCreateWindow(arg_WindowContext.width, arg_WindowContext.height, arg_WindowContext.title.c_str(),
-                                    nullptr, nullptr);
+        m_window =
+            glfwCreateWindow(m_windowData.width, m_windowData.height, m_windowData.title.c_str(), nullptr, nullptr);
 
         glfwSwapInterval(1.f);
         m_graphicContext = GraphicsContext::Create(m_window, this);

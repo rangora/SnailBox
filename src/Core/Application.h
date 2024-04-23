@@ -11,11 +11,14 @@ namespace sb
     {
     public:
         Application();
+        Application(const Application&) = delete;
+        Application& operator=(const Application&) = delete;
         virtual ~Application(){};
 
         void Run();
 
         Window& GetWindow() { return *m_window; }
+        Window& GetOpenglWindow() { return *(m_windows[0]); }
         static Application& Get() { return *s_instance; }
 
         void CreateLayer();

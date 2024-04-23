@@ -1,12 +1,15 @@
 ﻿#pragma once
 
 #include <sstream>
+#include <vector>
 #include "Common.h"
 
 struct GLFWwindow;
 
 namespace sb
 {
+    class GraphicsContext;
+
     struct WindowContext
     {
         std::string title;
@@ -25,6 +28,7 @@ namespace sb
         virtual ~Window() = default;
         virtual void Update() = 0;
         virtual void ShutDown() = 0;
+        virtual void InitRenderer() = 0;
         // static UPtr<Window> Create(const WindowContext& arg_context = WindowContext());
 
         virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
@@ -42,5 +46,9 @@ namespace sb
         // ~Input
 
         static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
+
+        UPtr<GraphicsContext> m_graphicContext = nullptr;
+
+        std::vector<SPtr<class Actor>> m_actors;
     };
 } // namespace sb
