@@ -3,11 +3,13 @@
 #include <sstream>
 #include <vector>
 #include "Common.h"
+#include "Actor/Actor.h"
 
 struct GLFWwindow;
 
 namespace sb
 {
+    class Actor;
     class GraphicsContext;
 
     struct WindowContext
@@ -49,6 +51,6 @@ namespace sb
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
 
-        std::vector<SPtr<class Actor>> m_actors;
+        std::vector<UPtr<Actor>> m_actors;
     };
 } // namespace sb

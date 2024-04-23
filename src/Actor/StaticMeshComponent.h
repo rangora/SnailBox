@@ -10,8 +10,9 @@ namespace sb
     class StaticMeshComponent : public BaseComponent
     {
     public:
-        StaticMeshComponent() = delete;
+        StaticMeshComponent() = default;
         StaticMeshComponent(Actor* in_parentActor);
+        ~StaticMeshComponent(){}
 
         void Draw() override;
 

@@ -39,7 +39,7 @@ namespace sb
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGL(glfwGetProcAddress);
 
-        m_window_handle->m_actors.emplace_back(SPtr<CubeActor>(new CubeActor));
+        m_window_handle->m_actors.emplace_back(CreateUPtr<CubeActor>(CubeActor()));
 
         for (auto& actor : m_window_handle->m_actors)
         {
@@ -48,42 +48,6 @@ namespace sb
 
         // Assert 및 버전 체크, 정보 로그 출력 필요.
         {
-            /*
-            // VAO
-            m_vertexBuffer = CreateUPtr<OpenglVertexBuffer>();
-
-            // geometry(VBO)
-            m_vertexObjectBuffer = CreateUPtr<OpenglObjectBuffer>();
-            m_vertexObjectBuffer->BindBuffer(GL_ARRAY_BUFFER);
-            m_vertexObjectBuffer->AddData(cubeVertices);
-            m_vertexObjectBuffer->CommitData(GL_STATIC_DRAW);
-
-            m_vertexBuffer->SetAttribute(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-
-            // color
-            // m_colorBuffer = CreateUPtr<OpenglObjectBuffer>();
-            // m_colorBuffer->BindBuffer(GL_ARRAY_BUFFER);
-            // m_colorBuffer->AddData(cubeFaceColors);
-            // m_colorBuffer->AddData(cubeNormals);
-            // m_colorBuffer->CommitData(GL_STATIC_DRAW);
-
-
-            // EBO
-            m_indexBuffer = CreateUPtr<OpenglObjectBuffer>();
-            m_indexBuffer->BindBuffer(GL_ELEMENT_ARRAY_BUFFER);
-            m_indexBuffer->AddData(cubeVertexIndex);
-            m_indexBuffer->CommitData(GL_STATIC_DRAW);
-
-            // Texture Coord
-            m_TexCoordBuffer = CreateUPtr<OpenglObjectBuffer>();
-            m_TexCoordBuffer->BindBuffer(GL_ARRAY_BUFFER);
-            m_TexCoordBuffer->AddData(cubeUVs);
-            m_TexCoordBuffer->CommitData(GL_STATIC_DRAW);
-
-            m_vertexBuffer->SetAttribute(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-            m_vertexBuffer->SetAttribute(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-            */
-
             for (RenderResource* RenderResource : m_targetRenderResources)
             {
                 RenderResource->RenderProcess(this);

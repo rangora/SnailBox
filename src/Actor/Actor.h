@@ -21,6 +21,6 @@ namespace sb
 
         Vector3d m_position = Vector3d::zeroVector;
 
-        std::vector<SPtr<BaseComponent>> m_components;
+        std::vector<BaseComponent*> m_components;
     };
 } // namespace sb

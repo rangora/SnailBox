@@ -10,13 +10,14 @@ namespace sb
     class BaseComponent
     {
     public:
-        BaseComponent() = delete;
+        BaseComponent() = default;
         BaseComponent(Actor* in_parentActor);
+        ~BaseComponent() {}
 
-        virtual void Draw() = 0;
+        virtual void Draw() {};
 
         Vector3d m_position = Vector3d::zeroVector;
 
-        SPtr<Actor> ParentActor = nullptr;
+        Actor* ParentActor = nullptr;
     };
 } // namespace sb
