@@ -12,9 +12,11 @@ namespace sb
     public:
         BaseComponent() = default;
         BaseComponent(Actor* in_parentActor);
-        ~BaseComponent() {}
+        BaseComponent(const BaseComponent&) = delete;
+        BaseComponent& operator=(const BaseComponent&) = delete;
+        virtual ~BaseComponent();
 
-        virtual void Draw() {};
+        virtual void Draw();
 
         Vector3d m_position = Vector3d::zeroVector;
 

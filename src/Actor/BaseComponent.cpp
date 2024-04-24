@@ -6,4 +6,12 @@ namespace sb
     : ParentActor(in_parentActor)
     {
     }
+
+    BaseComponent::~BaseComponent()
+    {
+    }
+    
+    void BaseComponent::Draw()
+    {
+    }
 } // namespace sb

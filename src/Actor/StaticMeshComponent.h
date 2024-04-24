@@ -12,7 +12,7 @@ namespace sb
     public:
         StaticMeshComponent() = default;
         StaticMeshComponent(Actor* in_parentActor);
-        ~StaticMeshComponent(){}
+        virtual ~StaticMeshComponent() = default;
 
         void Draw() override;
 

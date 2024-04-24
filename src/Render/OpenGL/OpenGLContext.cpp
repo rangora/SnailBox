@@ -39,7 +39,7 @@ namespace sb
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGL(glfwGetProcAddress);
 
-        m_window_handle->m_actors.emplace_back(CreateUPtr<CubeActor>(CubeActor()));
+        m_window_handle->m_actors.emplace_back(CreateUPtr<CubeActor>());
 
         for (auto& actor : m_window_handle->m_actors)
         {

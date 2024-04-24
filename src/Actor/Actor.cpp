@@ -9,9 +9,9 @@ namespace sb
     {
     }
 
-    void Actor::RegisterComponent(BaseComponent* in_BaseComp)
+    void Actor::RegisterComponent(UPtr<BaseComponent> in_BaseComp)
     {
-        m_components.emplace_back(in_BaseComp);
+        m_components.emplace_back(std::move(in_BaseComp));
     }
 
     void Actor::DrawActor()

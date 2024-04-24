@@ -4,11 +4,14 @@
 
 namespace sb
 {
+    class StaticMeshComponent;
+
     class CubeActor : public Actor
     {
     public:
         CubeActor();
-        
-        class StaticMeshComponent* StaticMeshComp = nullptr;
+        ~CubeActor() = default;
+
+        StaticMeshComponent* StaticMeshComp = nullptr;
     };
 } // namespace sb
