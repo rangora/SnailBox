@@ -57,6 +57,8 @@ namespace sb
     private:
         static UPtr<OpenglShader> CreateShader(const std::string& in_vsFilename, const std::string& in_fsFilename);
 
+        void UpdateFPS();
+
         GLFWwindow* m_glWindow_handle = nullptr;
         Window* m_window_handle = nullptr;
 
@@ -79,5 +81,8 @@ namespace sb
         std::vector<UPtr<Light>> m_lights;
 
         std::map<std::string, UPtr<OpenglProgram>> m_programs;
+
+        double m_elapsedTime = 0.0;
+        double m_fps = 0.0;
     };
 } // namespace sb

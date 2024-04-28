@@ -13,4 +13,11 @@ namespace sb
         auto uniqueComponentPtr = CreateUPtr<StaticMeshComponent>(this);
         RegisterComponent(std::move(uniqueComponentPtr));
     }
-}
+
+    void CubeActor::Tick(float in_delta)
+    {
+        Actor::Tick(in_delta);
+
+    
+    }
+} // namespace sb

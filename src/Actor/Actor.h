@@ -16,6 +16,8 @@ namespace sb
         Actor(const Vector3d in_position);
         virtual ~Actor();
 
+        virtual void Tick(float in_delta);
+
         void RegisterComponent(UPtr<BaseComponent> in_BaseComp);
         void DrawActor();
 

@@ -140,6 +140,10 @@ namespace sb
 
     void OpenglContext::Render()
     {
+        UpdateFPS();
+
+        const float deltaTick = m_elapsedTime * 0.001;
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         std::vector<glm::vec3> cubePositions = {
@@ -203,6 +207,14 @@ namespace sb
 
         for (size_t i = 0; i < cubePositions.size(); i++)
         {
+            for (const auto& actor : m_window_handle->m_actors)
+            {
+                if (actor.get())
+                {
+                    actor->Tick(deltaTick);
+                }
+            }
+
             auto& pos = cubePositions[i];
             auto model = glm::translate(glm::mat4(1.0f), pos);
             model = glm::rotate(model, glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i),
@@ -227,5 +239,27 @@ namespace sb
         Shader->CreateProgram();
 
         return std::move(Shader);
+    }
+
+    void OpenglContext::UpdateFPS()
+    {
+        static int32 m_frameCount = 0;
+        static double m_accTime = 0;
+        static double m_lastTime = 0.0;
+        static double m_currentTime = 0.0;
+
+        m_currentTime = GetSystemTime();
+        m_elapsedTime = m_currentTime - m_lastTime;
+        m_accTime += m_elapsedTime;
+        m_frameCount++;
+
+        if ((m_accTime * 0.001) > 1.0)
+        {
+            m_fps = m_frameCount;
+            m_frameCount = 0;
+            m_accTime = 0.0;
+        }
+
+        m_lastTime = m_currentTime;
     }
 } // namespace sb

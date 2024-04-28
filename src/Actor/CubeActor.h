@@ -12,6 +12,8 @@ namespace sb
         CubeActor();
         ~CubeActor() = default;
 
+        void Tick(float in_delta) final;
+
         StaticMeshComponent* StaticMeshComp = nullptr;
     };
 } // namespace sb

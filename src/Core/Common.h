@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <optional>
+#include "platform.h"
 
 using int8 = __int8;
 using int16 = __int16;
@@ -17,6 +18,8 @@ using uint64 = unsigned __int64;
 
 namespace sb
 {
+    double GetSystemTime();
+
     template <typename T>
     using UPtr = std::unique_ptr<T>;
 

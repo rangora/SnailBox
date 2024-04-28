@@ -1,4 +1,5 @@
 ﻿#include "Actor.h"
+#include "spdlog/spdlog.h"
 
 namespace sb
 {
@@ -7,6 +8,11 @@ namespace sb
 
     Actor::~Actor()
     {
+    }
+
+    void Actor::Tick(float in_delta)
+    {
+        spdlog::info("tickDelta:{}", in_delta);
     }
 
     void Actor::RegisterComponent(UPtr<BaseComponent> in_BaseComp)
