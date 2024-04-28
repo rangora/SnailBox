@@ -43,25 +43,25 @@ namespace sb
     template <typename T>
     FORCEINLINE Vector<T> Vector<T>::operator+(const Vector<T>& U) const
     {
-        return TVector<T>(X + U.X, Y + U.Y, Z + U.Z);
+        return Vector<T>(X + U.X, Y + U.Y, Z + U.Z);
     }
 
     template <typename T>
     FORCEINLINE Vector<T> Vector<T>::operator-(const Vector<T>& U) const
     {
-        return TVector<T>(X - U.X, Y - U.Y, Z - U.Z);
+        return Vector<T>(X - U.X, Y - U.Y, Z - U.Z);
     }
 
     template <typename T>
     FORCEINLINE Vector<T> Vector<T>::operator*(const Vector<T>& U) const
     {
-        return TVector<T>(X * U.X, Y * U.Y, Z * U.Z);
+        return Vector<T>(X * U.X, Y * U.Y, Z * U.Z);
     }
 
     template <typename T>
     FORCEINLINE Vector<T> Vector<T>::operator/(const Vector<T>& U) const
     {
-        return TVector<T>(X / U.X, Y / U.Y, Z / U.Z);
+        return Vector<T>(X / U.X, Y / U.Y, Z / U.Z);
     }
 
     template <typename T>
@@ -128,29 +128,29 @@ namespace sb
 
     template <typename T> FORCEINLINE Vector2<T> Vector2<T>::operator+(const Vector2<T>& U) const
     {
-        return TVector<T>(X + U.X, Y + U.Y);
+        return Vector<T>(X + U.X, Y + U.Y);
     }
 
     template <typename T> FORCEINLINE Vector2<T> Vector2<T>::operator-(const Vector2<T>& U) const
     {
-        return TVector<T>(X - U.X, Y - U.Y);
+        return Vector<T>(X - U.X, Y - U.Y);
     }
 
     template <typename T> FORCEINLINE Vector2<T> Vector2<T>::operator*(const Vector2<T>& U) const
     {
-        return TVector<T>(X * U.X, Y * U.Y);
+        return Vector<T>(X * U.X, Y * U.Y);
     }
 
     template <typename T> FORCEINLINE Vector2<T> Vector2<T>::operator/(const Vector2<T>& U) const
     {
-        return TVector<T>(X / U.X, Y / U.Y);
+        return Vector<T>(X / U.X, Y / U.Y);
     }
 
     template <typename T> FORCEINLINE bool Vector2<T>::operator==(const Vector2<T>& U) const
     {
         return X == U.X && Y == U.Y;
     }
-    
+
     template <typename T> template <typename U> FORCEINLINE Vector2<T>& Vector2<T>::operator=(const Vector2<U>& in_other)
     {
         X = static_cast<T>(in_other.X);
