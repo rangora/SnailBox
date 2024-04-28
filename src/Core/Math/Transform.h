@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Core/Platform.h"
 #include "Vector.h"
@@ -10,7 +10,7 @@ namespace sb
     {
         T m_translation;
         T m_rotation;
-        T m_scale;
+        T m_scale = T(1.0, 1.0, 1.0);
 
         FORCEINLINE AlignTransform();
         FORCEINLINE AlignTransform(T in_translation);
@@ -81,5 +81,5 @@ namespace sb
         return *this;
     }
 
-    using Transform = AlignTransform<Vector3f>;
+    using Transform = AlignTransform<Vector3d>;
 };
