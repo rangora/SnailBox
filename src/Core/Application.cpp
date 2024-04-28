@@ -1,4 +1,4 @@
-#define GLFW_INCLUDE_NONE
+﻿#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
 #include "Enums.h"
@@ -27,20 +27,28 @@ namespace sb
         // 2) program에 attach(link)
 
 
-        // 프로그램을 실행하면 기본으로 레이어(window)를 하나 만든다.(MainLayer)
-        CreateLayer();
+        // 프로그램을 실행하면 기본으로 window를 하나 만든다.
+        WindowContext openglWindowContext;
+        openglWindowContext.title = openglWindowTitle;
+        CreateAppWindow(openglWindowContext);
     }
 
-    void Application::CreateLayer()
+    void Application::CreateAppWindow(const WindowContext& in_windowContext)
     {
-        spdlog::info("Add new layer");
-        m_window = CreateUPtr<WinsWindow>(WindowContext("OpenGL Window"), this);
-        m_windows.emplace_back(std::move(m_window));
-        m_windows.back()->InitRenderer();
+        if (in_windowContext.title.empty())
+        {
+            spdlog::error("WindowContextTitle can't be empty for creating window.");
+        }
+
+        spdlog::info("Add new window:{}, height:{}, width:{}", in_windowContext.title, in_windowContext.height,
+                     in_windowContext.width);
+        auto newWindow = CreateUPtr<WinsWindow>(in_windowContext, this);
+        m_windows.insert({in_windowContext.title, std::move(newWindow)});
+        m_windows[in_windowContext.title]->InitRenderer();
         m_runningWindowCount++;
     }
 
-    void Application::DestroyLayer()
+    void Application::DestroyAppWindow()
     {
         m_windows.clear();
         m_runningWindowCount = 0;
@@ -50,7 +58,7 @@ namespace sb
     {
         while (m_runningWindowCount)
         {
-            for (auto& window : m_windows)
+            for (auto& [_, window] : m_windows)
             {
                 window->Update();
             }

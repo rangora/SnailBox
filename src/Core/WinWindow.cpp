@@ -68,7 +68,7 @@ namespace sb
         else
         {
             // TEMP
-            m_app->DestroyLayer();
+            m_app->DestroyAppWindow();
         }
     }
 

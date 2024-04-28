@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "Common.h"
-#include "Window.h"
 #include "Render/ShaderArchive.h"
+#include "Window.h"
+#include <boost/container/flat_map.hpp>
+#include <vector>
 
 namespace sb
 {
@@ -17,18 +18,16 @@ namespace sb
 
         void Run();
 
-        Window& GetWindow() { return *m_window; }
-        Window& GetOpenglWindow() { return *(m_windows[0]); }
+        Window& GetOpenglWindow() { return *(m_windows[openglWindowTitle]); }
         static Application& Get() { return *s_instance; }
 
-        void CreateLayer();
-        void DestroyLayer(); // TEMP
+        void CreateAppWindow(const WindowContext& in_windowContext);
+        void DestroyAppWindow(); // TEMP
 
         static ShaderArchive s_staticShaderArchive;
 
     private:
-        UPtr<Window> m_window;
-        std::vector<UPtr<Window>> m_windows;
+        boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;
         static Application* s_instance;
