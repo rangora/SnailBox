@@ -18,6 +18,9 @@ namespace sb
     {
         Actor::Tick(in_delta);
 
-    
+        Vector3d currentRot = GetActorRotation();
+        currentRot.X += in_delta * 45.f;
+        currentRot.X = std::fmod(currentRot.X, 360.0);
+        SetActorRotation(currentRot);
     }
 } // namespace sb

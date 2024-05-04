@@ -3,9 +3,10 @@
 #include <windows.h> // supress warning C4005 : 'APIENTRY' 매크로 재정의
 #include <glad/gl.h> // glfw3 앞에 위치 해야 함
 #include <GLFW/glfw3.h>
-
+#include <algorithm>
 #include "Core/Application.h"
 #include "Core/Common.h"
+#include "Core/Math/Matrix.h"
 #include "Core/WinWindow.h"
 #include "Render/BasicGeometry.h"
 #include "Render/Shader.h"
@@ -41,8 +42,10 @@ namespace sb
 
         m_window_handle->m_actors.emplace_back(CreateUPtr<CubeActor>());
 
+        Vector3d actorLocation(-1.5, -2.2, -2.5);
         for (auto& actor : m_window_handle->m_actors)
         {
+            actor->SetActorLocation(actorLocation);
             actor->DrawActor();
         }
 
@@ -146,13 +149,6 @@ namespace sb
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        std::vector<glm::vec3> cubePositions = {
-            glm::vec3(0.0f, 0.0f, 0.0f),     glm::vec3(2.0f, 5.0f, -15.0f), glm::vec3(-1.5f, -2.2f, -2.5f),
-            glm::vec3(-3.8f, -2.0f, -12.3f), glm::vec3(2.4f, -0.4f, -3.5f), glm::vec3(-1.7f, 3.0f, -7.5f),
-            glm::vec3(1.3f, -2.0f, -2.5f),   glm::vec3(1.5f, 2.0f, -2.5f),  glm::vec3(1.5f, 0.2f, -1.5f),
-            glm::vec3(-1.3f, 1.0f, -1.5f),
-        };
-
         if (!m_window_handle)
         {
             return;
@@ -205,29 +201,38 @@ namespace sb
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
-        for (size_t i = 0; i < cubePositions.size(); i++)
+        for (const auto& actor : m_window_handle->m_actors)
         {
-            for (const auto& actor : m_window_handle->m_actors)
+            if (actor.get())
             {
-                if (actor.get())
-                {
-                    actor->Tick(deltaTick);
-                }
+                actor->Tick(deltaTick);
+
+                const Transform& actorTransform = actor->GetTransform();
+
+                // position
+                glm::mat4 actorPosition(1.f);
+                actorPosition[3][0] = actorTransform.m_translation.X;
+                actorPosition[3][1] = actorTransform.m_translation.Y;
+                actorPosition[3][2] = actorTransform.m_translation.Z;
+
+                // rotation
+                const Quat actorQuat = actorTransform.m_rotation.ToQuat();
+                const float radian = std::acos(actorQuat.W) * 2.f;
+                glm::vec3 axis(actorQuat.X, actorQuat.Y, actorQuat.Z);
+
+                // To openl matrix
+                actorPosition = glm::rotate(actorPosition, radian, axis);
+                glm::mat4 sceneTransform = projection * view * actorPosition;
+
+                // UBO
+                GLuint UBOId = m_UniformBlockBuffer->Get();
+                glBindBuffer(GL_UNIFORM_BUFFER, UBOId);
+                glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(sceneTransform));
+                glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
+                                glm::value_ptr(actorPosition));
+
+                glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
             }
-
-            auto& pos = cubePositions[i];
-            auto model = glm::translate(glm::mat4(1.0f), pos);
-            model = glm::rotate(model, glm::radians((float)glfwGetTime() * 120.0f + 20.0f * (float)i),
-                                glm::vec3(1.0f, 0.5f, 0.0f));
-            auto transform = projection * view * model;
-
-            // UBO
-            GLuint UBOId = m_UniformBlockBuffer->Get();
-            glBindBuffer(GL_UNIFORM_BUFFER, UBOId);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(transform));
-            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(model));
-
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
     }
 
