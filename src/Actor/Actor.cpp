@@ -12,7 +12,8 @@ namespace sb
 
     void Actor::Tick(float in_delta)
     {
-        spdlog::info("tickDelta:{}", in_delta);
+    
+
     }
 
     void Actor::RegisterComponent(UPtr<BaseComponent> in_BaseComp)
@@ -26,6 +27,22 @@ namespace sb
         {
             Comp->Draw();
         }
+    }
+
+    void Actor::SetActorLocation(const Vector3d in_location)
+    {
+        m_transform.m_translation = in_location;
+    }
+
+    void Actor::SetActorRotation(const Vector3d in_rotation)
+    {
+        m_transform.m_rotation = in_rotation;
+    }
+
+    void Actor::SetActorLocationAndRotation(const Vector3d in_location, const Vector3d in_rotation)
+    {
+        m_transform.m_translation = in_location;
+        m_transform.m_rotation = in_rotation;
     }
 
 } // namespace sb

@@ -3,6 +3,7 @@
 #include "BaseComponent.h"
 #include "Core/Common.h"
 #include "Core/Math/Vector.h"
+#include "Core/Math/Transform.h"
 #include "Render/Opengl/OpenGLBuffer.h"
 #include "Render/RenderResource.h"
 #include <vector>
@@ -21,8 +22,18 @@ namespace sb
         void RegisterComponent(UPtr<BaseComponent> in_BaseComp);
         void DrawActor();
 
-        Vector3d m_position = Vector3d::zeroVector;
+        void SetActorLocation(const Vector3d in_location);
+        void SetActorRotation(const Vector3d in_rotation);
+        void SetActorLocationAndRotation(const Vector3d in_location, const Vector3d in_rotation);
+        Vector3d GetActorLocation() const { return m_transform.m_translation; }
+        Vector3d GetActorRotation() const { return m_transform.m_rotation; }
+        const Transform& GetTransform() const { return m_transform; }
+
+            Vector3d m_position = Vector3d::zeroVector;
 
         std::vector<UPtr<BaseComponent>> m_components;
+
+    private:
+        Transform m_transform;
     };
 } // namespace sb
