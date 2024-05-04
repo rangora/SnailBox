@@ -31,6 +31,6 @@ namespace sb
         std::vector<class RenderResource*> m_targetRenderResources;
         std::vector<SPtr<RenderBuffer>> m_renderbuffers;
 
-        GraphicsLibrary m_graphicsFramework = GraphicsLibrary::None;
+        GraphicsDevice m_graphicsFramework = GraphicsDevice::None;
     };
 } // namespace sb

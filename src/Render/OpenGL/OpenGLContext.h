@@ -51,6 +51,7 @@ namespace sb
         // TEMP?
         void Render() final;
 
+
         uint32 m_program = 0;
         std::map<std::string, OpenglStaticMeshData> m_staticMeshData;
 

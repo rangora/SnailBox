@@ -11,15 +11,15 @@ namespace sb
     struct ShaderArchive
     {
         ShaderArchive() = delete;
-        ShaderArchive(GraphicsLibrary in_type);
+        ShaderArchive(GraphicsDevice in_type);
 
         void Add(std::string in_path);
 
-        GraphicsLibrary GetGraphcisLibType() const { return GraphicsLib; }
+        GraphicsDevice GetGraphcisLibType() const { return GraphicsLib; }
 
         std::map<std::string, SPtr<class Shader>> m_shaders;
     
     private:
-        GraphicsLibrary GraphicsLib = GraphicsLibrary::None;
+        GraphicsDevice GraphicsLib = GraphicsDevice::None;
     };
 }; // namespace sb

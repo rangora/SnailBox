@@ -5,7 +5,7 @@
 
 namespace sb
 {
-    ShaderArchive::ShaderArchive(GraphicsLibrary in_type) : GraphicsLib(in_type) {}
+    ShaderArchive::ShaderArchive(GraphicsDevice in_type) : GraphicsLib(in_type) {}
 
     void ShaderArchive::Add(std::string in_path)
     {

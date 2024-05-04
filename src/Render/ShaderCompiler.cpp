@@ -39,7 +39,7 @@ namespace sb::ShaderCompiler
 
     void ShaderCompileTool::Compile(ShaderArchive& in_archive)
     {
-        if (in_archive.GetGraphcisLibType() == GraphicsLibrary::OpenGL)
+        if (in_archive.GetGraphcisLibType() == GraphicsDevice::OpenGL)
         {
             for (auto& [filename, shader] : in_archive.m_shaders)
             {

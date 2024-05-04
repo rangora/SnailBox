@@ -4,7 +4,7 @@
 
 namespace sb
 {
-    enum class GraphicsLibrary : uint8
+    enum class GraphicsDevice : uint8
     {
         None,
         OpenGL,
