@@ -3,8 +3,10 @@
 
 namespace sb
 {
-    Actor::Actor(const Vector3d in_position) : m_position(in_position)
-    {}
+    Actor::Actor(const Vector3d in_position)
+    {
+        m_transform.m_translation = in_position;
+    }
 
     Actor::~Actor()
     {
@@ -12,7 +14,7 @@ namespace sb
 
     void Actor::Tick(float in_delta)
     {
-    
+
 
     }
 

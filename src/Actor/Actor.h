@@ -29,8 +29,6 @@ namespace sb
         Vector3d GetActorRotation() const { return m_transform.m_rotation; }
         const Transform& GetTransform() const { return m_transform; }
 
-            Vector3d m_position = Vector3d::zeroVector;
-
         std::vector<UPtr<BaseComponent>> m_components;
 
     private:
