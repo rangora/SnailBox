@@ -1,4 +1,4 @@
-﻿#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
 #include "Enums.h"
@@ -10,7 +10,7 @@ namespace sb
 {
     int32_t Application::m_runningWindowCount = 0;
     Application* Application::s_instance = nullptr;
-    ShaderArchive Application::s_staticShaderArchive(GraphicsLibrary::OpenGL);
+    ShaderArchive Application::s_staticShaderArchive(GraphicsDevice::OpenGL);
 
     Application::Application()
     {
