@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "Core/Platform.h"
+#include "Quat.h"
+#include <cstdlib>
 
 namespace sb
 {
@@ -29,6 +31,8 @@ namespace sb
 
         template<typename U>
         FORCEINLINE Vector<T>& operator=(const Vector<U>& in_other);
+
+        Quat ToQuat() const;
     };
 
     template <typename T>
@@ -79,6 +83,35 @@ namespace sb
         Z = static_cast<T>(in_other.Z);
 
         return *this;
+    }
+
+    template <typename T>
+    Quat Vector<T>::ToQuat() const
+    {
+        Quat ReturnQuat;
+
+        const double DEG_TO_RAD = 3.14 / (180.0);
+        const double RADS_DIVIDED_BY_2 = DEG_TO_RAD / 2.0;
+        double SP, SY, SR;
+        double CP, CY, CR;
+
+        const double RollNoWinding = std::fmod(X, 360.0);
+        const double PitchNoWinding = std::fmod(Y, 360.0);
+        const double YawNoWinding = std::fmod(Z, 360.0);
+
+        SP = std::sin(PitchNoWinding * RADS_DIVIDED_BY_2);
+        CP = std::cos(PitchNoWinding * RADS_DIVIDED_BY_2);
+        SY = std::sin(YawNoWinding * RADS_DIVIDED_BY_2);
+        CY = std::cos(YawNoWinding * RADS_DIVIDED_BY_2);
+        SR = std::sin(RollNoWinding * RADS_DIVIDED_BY_2);
+        CR = std::cos(RollNoWinding * RADS_DIVIDED_BY_2);
+
+        ReturnQuat.X = CR * SP * SY - SR * CP * CY;
+        ReturnQuat.Y = -CR * SP * CY - SR * CP * SY;
+        ReturnQuat.Z = CR * CP * SY - SR * SP * CY;
+        ReturnQuat.W = CR * CP * CY + SR * SP * SY;
+
+        return ReturnQuat;
     }
 
     template<> const Vector<float> Vector<float>::zeroVector(0.f, 0.f, 0.f);

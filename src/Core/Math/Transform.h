@@ -8,8 +8,8 @@ namespace sb
     template <typename T>
     struct AlignTransform
     {
-        T m_translation;
-        T m_rotation;
+        T m_translation = T(0.0, 0.0, 0.0);
+        T m_rotation = T(0.0, 0.0, 0.0);
         T m_scale = T(1.0, 1.0, 1.0);
 
         FORCEINLINE AlignTransform();
