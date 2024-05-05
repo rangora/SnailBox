@@ -54,9 +54,4 @@ namespace sb
         Window* WindowPtr = (Window*)glfwGetWindowUserPointer(in_window);
         WindowPtr->OnWindowSizeChanged(in_width, in_height);
     }
-
-    // UPtr<Window> Window::Create(const WindowContext& arg_context)
-    // {
-    //     return UPtr<Window>();
-    // }
 }

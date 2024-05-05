@@ -26,8 +26,6 @@ namespace sb
         }
 
         OpenglStaticMeshData& staticMeshData = result.first->second;
-        // glGenVertexArrays(1, &staticMeshData.m_vertexDeclationId);
-        // glBindVertexArray(staticMeshData.m_vertexDeclationId);
 
         // vao
         staticMeshData.m_vertexDeclaration = new OpenglVertexBuffer();

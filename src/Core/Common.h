@@ -39,6 +39,7 @@ namespace sb
     }
 
     const std::string openglWindowTitle = "opengl";
+    const std::string directXWindowTitle = "directX";
 
     // 나중에 FileSystem으로 빠져야 함
     // 템플릿 함수만 있도록 구성할 것..

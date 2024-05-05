@@ -9,7 +9,8 @@
 namespace sb
 {
     class Window;
-    
+    class Canvas;
+
     class GraphicsContext
     {
     public:
@@ -26,11 +27,13 @@ namespace sb
         virtual void AddData(const void* in_data) = 0;
         virtual void CommitData() = 0;
 
-        static UPtr<GraphicsContext> Create(void* in_glWindow, Window* in_window);
+        static UPtr<GraphicsContext> Create(void* in_glWindow, Canvas* in_canvas);
 
         std::vector<class RenderResource*> m_targetRenderResources;
         std::vector<SPtr<RenderBuffer>> m_renderbuffers;
 
         GraphicsDevice m_graphicsFramework = GraphicsDevice::None;
+
+        Window* m_window_handle = nullptr;
     };
 } // namespace sb

@@ -1,4 +1,4 @@
-#define GLFW_INCLUDE_NONE
+﻿#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
 #include "Enums.h"
@@ -27,10 +27,17 @@ namespace sb
         // 2) program에 attach(link)
 
 
-        // 프로그램을 실행하면 기본으로 window를 하나 만든다.
+        // opengl window
         WindowContext openglWindowContext;
         openglWindowContext.title = openglWindowTitle;
+        openglWindowContext.graphicsDevice = GraphicsDevice::OpenGL;
         CreateAppWindow(openglWindowContext);
+
+        // dirctX window
+        // WindowContext directXWindowContext;
+        // directXWindowContext.title = directXWindowTitle;
+        // openglWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
+        // CreateAppWindow(directXWindowContext);
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -44,7 +51,16 @@ namespace sb
                      in_windowContext.width);
         auto newWindow = CreateUPtr<WinsWindow>(in_windowContext, this);
         m_windows.insert({in_windowContext.title, std::move(newWindow)});
-        m_windows[in_windowContext.title]->InitRenderer();
+
+        if (in_windowContext.graphicsDevice == GraphicsDevice::OpenGL)
+        {
+            if (!m_windows[in_windowContext.title]->InitializeWithOpenglDevice())
+            {
+                spdlog::error("Failed to createWindow during initOpenglDevice.");
+                return;
+            }
+        }
+
         m_runningWindowCount++;
     }
 

@@ -1,13 +1,12 @@
 ﻿#define GLFW_INCLUDE_NONE
 #include "WinWindow.h"
-
-#include <iostream> // TEMP:LOG추가하면 지울 것
+#include "Application.h"
+#include "OpenglCanvas.h"
+#include "Platform/Input.h"
+#include "Render/OpenGL/OpenGLContext.h"
+#include "spdlog/spdlog.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#include "Render/OpenGL/OpenGLContext.h"
-#include "Platform/Input.h"
-#include "Application.h"
 
 void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
@@ -39,7 +38,7 @@ namespace sb
 
     void WinsWindow::Update()
     {
-        if (!glfwWindowShouldClose(m_window))
+        if (!glfwWindowShouldClose(m_nativeWindow))
         {
             glfwPollEvents();
 
@@ -47,7 +46,7 @@ namespace sb
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             ProcessInput();
-            m_graphicContext->Render();
+            m_canvas->Update();
             ImGui::Render();
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -63,13 +62,69 @@ namespace sb
                 glfwMakeContextCurrent(CurrentContext);
             }
 
-            m_graphicContext->SwapBuffers();
+            m_canvas->SwapBuffers();
         }
         else
         {
             // TEMP
             m_app->DestroyAppWindow();
         }
+    }
+
+    bool WinsWindow::InitializeWithOpenglDevice()
+    {
+        m_canvas = CreateUPtr<OpenglCanvas>(this);
+        if (!m_canvas->InitCanvas(&m_windowData))
+        {
+            spdlog::error("Failed init openglCanvas.");
+            return false;
+        }
+
+        m_nativeWindow = static_cast<GLFWwindow*>(m_canvas->GetNativeWindow());
+        if (m_nativeWindow == nullptr)
+        {
+            return false;
+        }
+
+        m_imguiContext = ImGui::CreateContext();
+        ImGui::SetCurrentContext(m_imguiContext);
+
+        // config초기화는 Impl초기화 이전에 해줘야 한다.
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+        const char* glsl_version = "#version 460";
+        ImGui_ImplGlfw_InitForOpenGL(m_nativeWindow, false);
+        ImGui_ImplOpenGL3_Init(glsl_version);
+        ImGui_ImplOpenGL3_CreateFontsTexture();
+        ImGui_ImplOpenGL3_CreateDeviceObjects();
+
+        glfwSetFramebufferSizeCallback(m_nativeWindow, framebuffer_size_callback);
+
+        glfwSetWindowUserPointer(m_nativeWindow, this);
+
+        glfwSetFramebufferSizeCallback(m_nativeWindow, OnFreamBufferSizeChanged);
+
+        // input callback binding은 init()에서 해준다.
+        // Key input
+        glfwSetKeyCallback(m_nativeWindow, OnKeyEvent);
+
+        // 문자가 입력됬을 때 호출되는 callback.
+        glfwSetCharCallback(m_nativeWindow, OnCharEvent);
+
+        // Mouse input
+        glfwSetCursorPosCallback(m_nativeWindow, OnCursorPos);
+        glfwSetMouseButtonCallback(m_nativeWindow, OnMouseButton);
+        glfwSetScrollCallback(m_nativeWindow, OnScroll);
+
+        return true;
+    }
+
+    bool WinsWindow::InitializeCanvas()
+    {
+        return false;
     }
 
     void WinsWindow::OnWindowSizeChanged(int32 in_width, int32 in_height)
@@ -87,21 +142,21 @@ namespace sb
         }
 
         const float cameraSpeed = 0.05f;
-        if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_W) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * m_cameraFront;
-        if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_S) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * m_cameraFront;
 
         auto cameraRight = glm::normalize(glm::cross(m_cameraUp, -m_cameraFront));
-        if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_D) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * cameraRight;
-        if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_A) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * cameraRight;
 
         auto cameraUp = glm::normalize(glm::cross(-m_cameraFront, cameraRight));
-        if (glfwGetKey(m_window, GLFW_KEY_E) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_E) == GLFW_PRESS)
             m_cameraPos += cameraSpeed * cameraUp;
-        if (glfwGetKey(m_window, GLFW_KEY_Q) == GLFW_PRESS)
+        if (glfwGetKey(m_nativeWindow, GLFW_KEY_Q) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * cameraUp;
     }
 
@@ -146,60 +201,6 @@ namespace sb
                 m_cameraTranslation = false;
             }
         }
-    }
-
-    void WinsWindow::InitRenderer()
-    {
-        // glfw init
-        int success = glfwInit();
-        if (!success)
-        {
-            return;
-        }
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        m_window =
-            glfwCreateWindow(m_windowData.width, m_windowData.height, m_windowData.title.c_str(), nullptr, nullptr);
-
-        glfwSwapInterval(1.f);
-        m_graphicContext = GraphicsContext::Create(m_window, this);
-        m_graphicContext->Initialize();
-
-        glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-
-        m_imguiContext = ImGui::CreateContext();
-        ImGui::SetCurrentContext(m_imguiContext);
-
-        // config초기화는 Impl초기화 이전에 해줘야 한다.
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-        const char* glsl_version = "#version 460";
-        ImGui_ImplGlfw_InitForOpenGL(m_window, false);
-        ImGui_ImplOpenGL3_Init(glsl_version);
-        ImGui_ImplOpenGL3_CreateFontsTexture();
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
-
-        glfwSetWindowUserPointer(m_window, this);
-
-        glfwSetFramebufferSizeCallback(m_window, OnFreamBufferSizeChanged);
-
-        // input callback binding은 init()에서 해준다.
-        // Key input
-        glfwSetKeyCallback(m_window, OnKeyEvent);
-
-        // 문자가 입력됬을 때 호출되는 callback.
-        glfwSetCharCallback(m_window, OnCharEvent);
-
-        // Mouse input
-        glfwSetCursorPosCallback(m_window, OnCursorPos);
-        glfwSetMouseButtonCallback(m_window, OnMouseButton);
-        glfwSetScrollCallback(m_window, OnScroll);
     }
 
     void WinsWindow::ShutDown()

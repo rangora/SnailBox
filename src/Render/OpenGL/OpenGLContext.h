@@ -15,6 +15,7 @@ struct GLFWwindow;
 namespace sb
 {
     class Window;
+    class Canvas;
 
     struct OpenglStaticMeshData
     {
@@ -33,7 +34,7 @@ namespace sb
     {
     public:
         OpenglContext() {}
-        OpenglContext(GLFWwindow* in_window_handle, Window* in_window);
+        OpenglContext(GLFWwindow* in_window_handle, Canvas* in_canvas);
 
         static SPtr<OpenglShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
@@ -51,7 +52,6 @@ namespace sb
         // TEMP?
         void Render() final;
 
-
         uint32 m_program = 0;
         std::map<std::string, OpenglStaticMeshData> m_staticMeshData;
 
@@ -61,7 +61,7 @@ namespace sb
         void UpdateFPS();
 
         GLFWwindow* m_glWindow_handle = nullptr;
-        Window* m_window_handle = nullptr;
+        Canvas* m_canvas_handle = nullptr;
 
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 

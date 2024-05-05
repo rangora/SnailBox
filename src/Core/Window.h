@@ -1,9 +1,10 @@
 ﻿#pragma once
 
+#include "Actor/Actor.h"
+#include "Canvas.h"
+#include "Common.h"
 #include <sstream>
 #include <vector>
-#include "Common.h"
-#include "Actor/Actor.h"
 
 struct GLFWwindow;
 
@@ -17,11 +18,19 @@ namespace sb
         std::string title;
         uint32_t width;
         uint32_t height;
+        GraphicsDevice graphicsDevice;
 
         WindowContext(const std::string& arg_title = "New_Window",
                       uint32_t arg_width = 1000,
                       uint32_t arg_height = 600)
             : title(arg_title), width(arg_width), height(arg_height) {}
+    };
+
+    struct WinWindowData
+    {
+        std::string title;
+        uint32_t width, height;
+        bool vsync;
     };
 
     class Window
@@ -30,8 +39,9 @@ namespace sb
         virtual ~Window() = default;
         virtual void Update() = 0;
         virtual void ShutDown() = 0;
-        virtual void InitRenderer() = 0;
-        // static UPtr<Window> Create(const WindowContext& arg_context = WindowContext());
+
+        virtual bool InitializeWithOpenglDevice() = 0;
+        virtual bool InitializeCanvas() = 0;
 
         virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
 
@@ -50,7 +60,6 @@ namespace sb
         static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
-
-        std::vector<UPtr<Actor>> m_actors;
+        UPtr<Canvas> m_canvas = nullptr;
     };
 } // namespace sb

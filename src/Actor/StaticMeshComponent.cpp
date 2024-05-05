@@ -15,6 +15,8 @@ namespace sb
     {
         Application& app = Application::Get();
         Window& Window = app.GetOpenglWindow();
-        Window.m_graphicContext->m_targetRenderResources.emplace_back(&m_sm_renderResource);
+
+        // TEMP
+        Window.m_canvas->GetGraphcisContext()->m_targetRenderResources.emplace_back(&m_sm_renderResource);
     }
 } // namespace sb
