@@ -101,10 +101,9 @@ namespace sb
         ImGui_ImplOpenGL3_CreateFontsTexture();
         ImGui_ImplOpenGL3_CreateDeviceObjects();
 
-        glfwSetFramebufferSizeCallback(m_nativeWindow, framebuffer_size_callback);
-
         glfwSetWindowUserPointer(m_nativeWindow, this);
 
+        // Register callbacks
         glfwSetFramebufferSizeCallback(m_nativeWindow, OnFreamBufferSizeChanged);
 
         // input callback binding은 init()에서 해준다.

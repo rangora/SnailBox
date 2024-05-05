@@ -45,7 +45,7 @@ namespace sb
         void BindBuffer() final;
         void AddData(const void* in_data) final;
         void CommitData() final;
-
+        
         void VertexProcess(SPtr<class VertexRenderResource>& in_vertexResource) final;
         void StaticMeshProcess(SPtr<class StaticMeshRenderResource>& in_staticMeshResource) final;
 
