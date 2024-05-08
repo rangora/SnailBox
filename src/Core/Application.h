@@ -19,6 +19,7 @@ namespace sb
         void Run();
 
         Window& GetOpenglWindow() { return *(m_windows[openglWindowTitle]); }
+        Window& GetFocusWindow() { return *(m_windows[openglWindowTitle]); } // TEMP
         static Application& Get() { return *s_instance; }
 
         void CreateAppWindow(const WindowContext& in_windowContext);

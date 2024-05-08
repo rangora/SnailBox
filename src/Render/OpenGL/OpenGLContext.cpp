@@ -146,6 +146,12 @@ namespace sb
 
         const float deltaTick = m_elapsedTime * 0.001;
 
+        std::vector<Layout*>& layouts = m_window_handle->GetLayoutRef();
+        for (const auto layout : layouts)
+        {
+            layout->OnUpdate(deltaTick);
+        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (!m_window_handle)

@@ -10,6 +10,7 @@ struct GLFWwindow;
 
 namespace sb
 {
+    class Layout;
     class Actor;
     class GraphicsContext;
 
@@ -43,12 +44,16 @@ namespace sb
         virtual bool InitializeWithOpenglDevice() = 0;
         virtual bool InitializeCanvas() = 0;
 
-        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
+        virtual void GetMousePos(double& out_x, double& out_y) = 0;
 
         // Input 처리는 외부로 뺴야함..
         virtual void ProcessInput() = 0;
         virtual void MouseMove(double in_x, double in_y) = 0;
         virtual void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
+
+        virtual void AttachLayout(Layout* in_layout) {}
+
+        bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
         static void OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier);
         static void OnCharEvent(GLFWwindow* in_window, uint32 in_ch);
@@ -57,9 +62,16 @@ namespace sb
         static void OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset);
         // ~Input
 
+        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
         static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
+
+        std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         UPtr<Canvas> m_canvas = nullptr;
+
+        protected:
+            bool m_isOpenglWindow = false; // TEMP
+            std::vector<Layout*> m_layouts;
     };
 } // namespace sb

@@ -1,9 +1,11 @@
 ﻿#pragma once
 
+#include "Actor/Actor.h"
 #include "Common.h"
+#include "Layout.h"
+#include "Render/Camera.h"
 #include "Render/GraphicsContext.h"
 #include <vector>
-#include "Actor/Actor.h"
 
 namespace sb
 {
@@ -11,7 +13,7 @@ namespace sb
     class GraphicsContext;
     class Window;
 
-    class Canvas
+    class Canvas : public Layout
     {
     public:
         Canvas(Window* in_window);
@@ -19,7 +21,8 @@ namespace sb
 
         virtual void* GetNativeWindow() = 0;
         virtual bool InitCanvas(const WinWindowData* in_windowData) = 0;
-        virtual void Update() = 0;
+        virtual void Render() = 0;
+        virtual void Update(float in_delta) = 0;
         virtual void SwapBuffers() = 0;
 
         GraphicsContext* GetGraphcisContext() const { return m_graphicContext.get(); }
@@ -29,5 +32,6 @@ namespace sb
     protected:
         Window* m_window = nullptr;
         UPtr<GraphicsContext> m_graphicContext = nullptr;
+        Camera m_camera;
     };
 };

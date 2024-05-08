@@ -14,11 +14,13 @@ namespace sb
     public:
         OpenglCanvas(Window* in_window);
         OpenglCanvas() = delete;
-
+        
         void* GetNativeWindow() final;
-
+        
         bool InitCanvas(const WinWindowData* in_windowData) final;
-        void Update() final;
+        void Update(float in_delta) final;
+        void OnUpdate(float in_delta) final;
+        void Render() final;
         void SwapBuffers() final;
 
         Camera& GetCameraRef() { return m_camera; }

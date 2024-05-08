@@ -51,7 +51,16 @@ namespace sb
         return true;
     }
 
-    void OpenglCanvas::Update()
+    void OpenglCanvas::Update(float in_delta)
+    {
+    }
+
+    void OpenglCanvas::OnUpdate(float in_delta)
+    {
+        m_camera.OnUpdate(in_delta);
+    }
+
+    void OpenglCanvas::Render()
     {
         m_graphicContext->Render();
     }

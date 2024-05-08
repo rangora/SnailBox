@@ -3,6 +3,7 @@
 #include "Core/Platform.h"
 #include "Quat.h"
 #include <cstdlib>
+#include <cmath>
 
 namespace sb
 {

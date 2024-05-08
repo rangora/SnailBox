@@ -7,6 +7,7 @@
 #include "spdlog/spdlog.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <vector>
 
 void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
@@ -24,7 +25,6 @@ namespace sb
 
     WinsWindow::WinsWindow(const WindowContext& in_windowContext, Application* in_app)
     {
-        // InitRenderer(arg_WindowContext);
         m_windowData.height = in_windowContext.height;
         m_windowData.width = in_windowContext.width;
         m_windowData.title = in_windowContext.title;
@@ -46,7 +46,7 @@ namespace sb
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             ProcessInput();
-            m_canvas->Update();
+            m_canvas->Render();
             ImGui::Render();
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -79,6 +79,8 @@ namespace sb
             spdlog::error("Failed init openglCanvas.");
             return false;
         }
+
+        AttachLayout(m_canvas.get());
 
         m_nativeWindow = static_cast<GLFWwindow*>(m_canvas->GetNativeWindow());
         if (m_nativeWindow == nullptr)
@@ -117,6 +119,8 @@ namespace sb
         glfwSetCursorPosCallback(m_nativeWindow, OnCursorPos);
         glfwSetMouseButtonCallback(m_nativeWindow, OnMouseButton);
         glfwSetScrollCallback(m_nativeWindow, OnScroll);
+
+        m_isOpenglWindow = true;
 
         return true;
     }
@@ -200,6 +204,19 @@ namespace sb
                 m_cameraTranslation = false;
             }
         }
+    }
+
+    void WinsWindow::GetMousePos(double& out_x, double& out_y)
+    {
+        if (IsOpenglWindow())
+        {
+            glfwGetCursorPos(m_nativeWindow, &out_x, &out_y);
+        }
+    }
+
+    void WinsWindow::AttachLayout(Layout* in_layout)
+    {
+        m_layouts.emplace_back(in_layout);
     }
 
     void WinsWindow::ShutDown()
