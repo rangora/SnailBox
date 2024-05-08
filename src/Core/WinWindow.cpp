@@ -4,6 +4,8 @@
 #include "OpenglCanvas.h"
 #include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
+#include "Input.h"
+#include "InputKey.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <vector>
@@ -189,7 +191,7 @@ namespace sb
         m_preMousePos = pos;
     }
 
-    void WinsWindow::MouseButton(int32 in_button, int32 in_action, double in_x, double in_y)
+    void WinsWindow::MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y)
     {
         if (in_button == GLFW_MOUSE_BUTTON_RIGHT)
         {
@@ -201,6 +203,21 @@ namespace sb
             else if (in_action == GLFW_RELEASE)
             {
                 m_cameraTranslation = false;
+            }
+        }
+
+        // new
+        switch (in_action)
+        {
+            case GLFW_PRESS:
+            {
+                Input::UpdateButtonState((MouseButton)in_button, KeyState::Pressed);
+                break;
+            }
+            case GLFW_RELEASE:
+            {
+                Input::UpdateButtonState((MouseButton)in_button, KeyState::Released);
+                break;
             }
         }
     }

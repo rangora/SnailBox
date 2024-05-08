@@ -9,6 +9,15 @@ namespace sb
     {
         Vector2d mousePos{Input::GetMouseX(), Input::GetMouseY()};
 
-        spdlog::info("x:{}, y:{}", mousePos.X, mousePos.Y);
+        if (Input::IsMouseButtonDown(MouseButton::Right))
+        {
+            spdlog::info("Right Pressed/held");
+        }
+        else
+        {
+            spdlog::info("Right idle");
+        }
+
+        // spdlog::info("x:{}, y:{}", mousePos.X, mousePos.Y);
     }
 } // namespace sb

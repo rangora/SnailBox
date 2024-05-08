@@ -28,6 +28,8 @@ namespace sb
         static ShaderArchive s_staticShaderArchive;
 
     private:
+        void PreProcessOnFrame();
+
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;

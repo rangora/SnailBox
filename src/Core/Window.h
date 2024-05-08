@@ -49,7 +49,7 @@ namespace sb
         // Input 처리는 외부로 뺴야함..
         virtual void ProcessInput() = 0;
         virtual void MouseMove(double in_x, double in_y) = 0;
-        virtual void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
+        virtual void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
 
         virtual void AttachLayout(Layout* in_layout) {}
 

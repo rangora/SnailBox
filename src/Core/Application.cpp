@@ -1,6 +1,7 @@
 ﻿#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
+#include "Input.h"
 #include "Enums.h"
 #include "Render/ShaderCompiler.h"
 #include "WinWindow.h"
@@ -70,10 +71,17 @@ namespace sb
         m_runningWindowCount = 0;
     }
 
+    void Application::PreProcessOnFrame()
+    {
+        Input::TransitionPressedButtons();
+    }
+
     void Application::Run()
     {
         while (m_runningWindowCount)
         {
+            PreProcessOnFrame();
+
             for (auto& [_, window] : m_windows)
             {
                 window->Update();

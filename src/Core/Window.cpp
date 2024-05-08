@@ -41,7 +41,7 @@ namespace sb
         Window* WindowPtr = (Window*)glfwGetWindowUserPointer(in_window);
         double x, y;
         glfwGetCursorPos(in_window, &x, &y);
-        WindowPtr->MouseButton(in_button, in_action, x, y);
+        WindowPtr->MouseButtonAction(in_button, in_action, x, y);
     }
 
     void Window::OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset)

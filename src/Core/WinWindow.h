@@ -31,13 +31,13 @@ namespace sb
         // input
         void ProcessInput() final;
         void MouseMove(double in_x, double in_y) final;
-        void MouseButton(int32 in_button, int32 in_action, double in_x, double in_y) final;
+        void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) final;
         // ~input
 
         void GetMousePos(double& out_x, double& out_y) final;
 
         void AttachLayout(Layout* in_layout) final;
-
+        
         const WinWindowData& GetWindowData()
         {
             return m_windowData;
