@@ -39,30 +39,10 @@ namespace sb
 
     void WinsWindow::Update()
     {
-        if (!glfwWindowShouldClose(m_nativeWindow))
+        if(!m_canvas->IsWindowShouldClosed())
         {
-            glfwPollEvents();
-
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
             ProcessInput();
-            m_canvas->Render();
-            ImGui::Render();
-
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            ImGuiIO& io = ImGui::GetIO();
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-            {
-                // in-statement 안됨! 꼭 뺴서 넣어야 됨
-                // 왜 인지는 모름
-                GLFWwindow* CurrentContext = glfwGetCurrentContext();
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                glfwMakeContextCurrent(CurrentContext);
-            }
-
+            m_canvas->Update();
             m_canvas->SwapBuffers();
         }
         else

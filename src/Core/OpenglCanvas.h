@@ -14,16 +14,20 @@ namespace sb
     public:
         OpenglCanvas(Window* in_window);
         OpenglCanvas() = delete;
-        
+
         void* GetNativeWindow() final;
-        
+
         bool InitCanvas(const WinWindowData* in_windowData) final;
-        void Update(float in_delta) final;
+        void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;
         void SwapBuffers() final;
+        bool IsWindowShouldClosed() final;
 
-        Camera& GetCameraRef() { return m_camera; }
+        Camera& GetCameraRef()
+        {
+            return m_camera;
+        }
 
     private:
         // 소유자는 Window? Cnavas?? 우선 canvas가 가지도록 했음..

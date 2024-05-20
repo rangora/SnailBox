@@ -55,7 +55,7 @@ namespace sb
 
     private:
         void ShutDown() final;
-
+        
         Application* m_app = nullptr; // TEMP
         GLFWwindow* m_nativeWindow = nullptr;
         ImGuiContext* m_imguiContext = nullptr;

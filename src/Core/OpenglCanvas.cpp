@@ -51,8 +51,28 @@ namespace sb
         return true;
     }
 
-    void OpenglCanvas::Update(float in_delta)
+    void OpenglCanvas::Update()
     {
+        glfwPollEvents();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        Render();
+        ImGui::Render();
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            // in-statement 안됨! 꼭 뺴서 넣어야 됨
+            // 왜 인지는 모름
+            GLFWwindow* CurrentContext = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(CurrentContext);
+        }
     }
 
     void OpenglCanvas::OnUpdate(float in_delta)
@@ -68,5 +88,10 @@ namespace sb
     void OpenglCanvas::SwapBuffers()
     {
         m_graphicContext->SwapBuffers();
+    }
+
+    bool OpenglCanvas::IsWindowShouldClosed()
+    {
+        return glfwWindowShouldClose(m_glfwWindow);
     }
 } // namespace sb

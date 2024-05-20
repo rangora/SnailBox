@@ -22,8 +22,9 @@ namespace sb
         virtual void* GetNativeWindow() = 0;
         virtual bool InitCanvas(const WinWindowData* in_windowData) = 0;
         virtual void Render() = 0;
-        virtual void Update(float in_delta) = 0;
+        virtual void Update() = 0;
         virtual void SwapBuffers() = 0;
+        virtual bool IsWindowShouldClosed() = 0;
 
         GraphicsContext* GetGraphcisContext() const { return m_graphicContext.get(); }
 
