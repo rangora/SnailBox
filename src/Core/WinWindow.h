@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Window.h"
 
@@ -24,6 +24,7 @@ namespace sb
         void Update() final;
 
         bool InitializeWithOpenglDevice() final;
+        bool InitializeWithDirectXDevice() final;
         bool InitializeCanvas() final;
 
         void OnWindowSizeChanged(int32 in_width, int32 in_height) final;

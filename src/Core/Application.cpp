@@ -29,16 +29,16 @@ namespace sb
 
 
         // opengl window
-        WindowContext openglWindowContext;
-        openglWindowContext.title = openglWindowTitle;
-        openglWindowContext.graphicsDevice = GraphicsDevice::OpenGL;
-        CreateAppWindow(openglWindowContext);
+        // WindowContext openglWindowContext;
+        // openglWindowContext.title = openglWindowTitle;
+        // openglWindowContext.graphicsDevice = GraphicsDevice::OpenGL;
+        // CreateAppWindow(openglWindowContext);
 
         // dirctX window
-        // WindowContext directXWindowContext;
-        // directXWindowContext.title = directXWindowTitle;
-        // openglWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
-        // CreateAppWindow(directXWindowContext);
+        WindowContext directXWindowContext;
+        directXWindowContext.title = directXWindowTitle;
+        directXWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
+        CreateAppWindow(directXWindowContext);
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -58,6 +58,14 @@ namespace sb
             if (!m_windows[in_windowContext.title]->InitializeWithOpenglDevice())
             {
                 spdlog::error("Failed to createWindow during initOpenglDevice.");
+                return;
+            }
+        }
+        else if (in_windowContext.graphicsDevice == GraphicsDevice::DirectX12)
+        {
+            if (!m_windows[in_windowContext.title]->InitializeWithDirectXDevice())
+            {
+                spdlog::error("Failed to createWindow during initDirectXDevice.");
                 return;
             }
         }

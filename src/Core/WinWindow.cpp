@@ -2,6 +2,7 @@
 #include "WinWindow.h"
 #include "Application.h"
 #include "OpenglCanvas.h"
+#include "DirectXCanvas.h"
 #include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
 #include "Input.h"
@@ -102,6 +103,20 @@ namespace sb
         glfwSetScrollCallback(m_nativeWindow, OnScroll);
 
         m_isOpenglWindow = true;
+
+        return true;
+    }
+
+    bool WinsWindow::InitializeWithDirectXDevice()
+    {
+        m_canvas = CreateUPtr<DirectXCanvas>(this);
+        if (!m_canvas->InitCanvas(&m_windowData))
+        {
+            spdlog::error("Failed init DirectXCanvas.");
+            return false;
+        }
+
+        AttachLayout(m_canvas.get());
 
         return true;
     }

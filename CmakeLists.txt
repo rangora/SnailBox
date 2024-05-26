@@ -43,6 +43,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/imgui)
 target_include_directories(${PROJECT_NAME} PUBLIC thirdparty/include) # thirdParties
 
 target_link_libraries(${PROJECT_NAME} PUBLIC imgui) # imgui
+target_link_libraries(${PROJECT_NAME} PRIVATE d3d12.lib dxgi.lib) # directX12
 
 target_link_directories(${PROJECT_NAME} PUBLIC thirdparty/lib)
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog)

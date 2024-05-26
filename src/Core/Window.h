@@ -42,6 +42,7 @@ namespace sb
         virtual void ShutDown() = 0;
 
         virtual bool InitializeWithOpenglDevice() = 0;
+        virtual bool InitializeWithDirectXDevice() = 0;
         virtual bool InitializeCanvas() = 0;
 
         virtual void GetMousePos(double& out_x, double& out_y) = 0;
