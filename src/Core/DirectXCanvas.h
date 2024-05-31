@@ -3,6 +3,7 @@
 #include "Canvas.h"
 #include "Render/Camera.h"
 #include "imgui.h"
+#include "Render/DirectX12/Device.h"
 
 struct GLFWwindow;
 
@@ -31,8 +32,13 @@ namespace sb
         }
 
     private:
+        bool CreateDevice(HWND in_hwnd);
+
         Camera m_camera;
 
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+        UPtr<Device> m_device;
+
     };
 };

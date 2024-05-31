@@ -33,6 +33,8 @@ add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 # build_dependencies 사용 안함
 # include(ExternalProjects.cmake)
 
+# set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.22621.0")
+
 # imgui
 add_subdirectory(imgui)
 target_include_directories(imgui PRIVATE thirdparty/include) # 모두 포함?

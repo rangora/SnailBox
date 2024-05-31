@@ -1,11 +1,12 @@
 ﻿#pragma once
 
-#include <memory>
+#include "platform.h"
 #include <fstream>
+#include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
-#include <optional>
-#include "platform.h"
+#include <wrl/client.h>
 
 using int8 = __int8;
 using int16 = __int16;
@@ -23,8 +24,10 @@ namespace sb
     template <typename T>
     using UPtr = std::unique_ptr<T>;
 
-    template <typename T, typename ... Args>
-    constexpr UPtr<T> CreateUPtr(Args&& ... args)
+    template <typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+    template <typename T, typename... Args>
+    constexpr UPtr<T> CreateUPtr(Args&&... args)
     {
         return std::make_unique<T>(std::forward<Args>(args)...);
     }
