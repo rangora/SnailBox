@@ -7,10 +7,9 @@ namespace sb
     class TableDescriptorHeap
     {
     public:
-        TableDescriptorHeap(class DirectXCanvas* in_canvas);
+        TableDescriptorHeap();
         void Init(uint32 in_count);
         void Clear();
-        // void SetCBV(D3D12_CPU_DESCRIPTOR_HANDLE in_srcHandle, CBV_REGISTER in_reg);
         void SetCBV(D3D12_CPU_DESCRIPTOR_HANDLE in_srcHandle);
         void CommitTable();
 
@@ -21,8 +20,6 @@ namespace sb
         D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 in_reg);
 
     private:
-        class DirectXCanvas* m_canvas = nullptr;
-
         ComPtr<ID3D12DescriptorHeap> m_descRtvHeap;
         ComPtr<ID3D12DescriptorHeap> m_descSrvHeap;
         uint64 m_handleSize = 0;

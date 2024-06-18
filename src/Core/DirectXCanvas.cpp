@@ -89,56 +89,6 @@ namespace sb
 
     bool DirectXCanvas::InitCanvas(const WinWindowData* in_windowData)
     {
-        return InitCanvas2(in_windowData);
-
-        /*
-        m_device = CreateUPtr<Device>();
-        m_rootSignature = CreateUPtr<RootSignature>();
-
-        WNDCLASSEXW wc = {
-            sizeof(wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
-            nullptr,    nullptr,    L"Imgui Example", nullptr};
-        ::RegisterClassExW(&wc);
-
-        HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear Imgui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100,
-                                    1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
-
-        if (!CreateDevice(hwnd))
-        {
-            CleanupDeviceD3D();
-            ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
-            return false;
-        }
-
-        // Show window
-        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-        ::UpdateWindow(hwnd);
-
-        // Setup imguiContext
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        (void)io;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-        ImGui::StyleColorsDark();
-
-        // Setup platform/Renderer backends
-        ImGui_ImplWin32_Init(hwnd);
-        ImGui_ImplDX12_Init(g_cacheDevice, NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
-                            g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-                            g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
-
-        // State
-        bool show_demo_window = true;
-        bool show_another_window = false;
-
-        return true;
-        */
-    }
-
-    bool DirectXCanvas::InitCanvas2(const WinWindowData* in_windowData)
-    {
         WNDCLASSEXW wc = {
             sizeof(wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
             nullptr,    nullptr,    L"Imgui Example", nullptr};
@@ -151,8 +101,8 @@ namespace sb
         m_device = CreateUPtr<Device>();
         m_rootSignature = CreateUPtr<RootSignature>();
         m_swapChain = CreateUPtr<SwapChain>();
-        m_commandQueue = CreateUPtr<CommandQueue>(this);
-        m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>(this);
+        m_commandQueue = CreateUPtr<CommandQueue>();
+        m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
 
 
         m_device->Init();
@@ -160,24 +110,6 @@ namespace sb
         m_DescriptorHeap->Init(256);
         m_swapChain->Init(sg_d3dDevice, m_device->GetDXGI(), m_commandQueue->GetCmdQueue(), hwnd);
         m_rootSignature->Init(sg_d3dDevice);
-
-        // frameContext
-        // for (int32 i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-        // {
-        //     if (m_device->GetDevice()->CreateCommandAllocator(
-        //             D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_frameContexts[i].CommandAllocator)) != S_OK)
-        //     {
-        //         return false;
-        //     }
-        // }
-
-        // if (m_device->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-        //                                              g_frameContext[0].CommandAllocator, nullptr,
-        //                                              IID_PPV_ARGS(&m_commandQueue->GetCmdQueue())) != S_OK)
-        // {
-        //     return false;
-        // }
-            // ~frameContext
 
         // fence
         HRESULT hr = m_device->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
@@ -319,131 +251,6 @@ namespace sb
         return false;
     }
 
-    bool DirectXCanvas::CreateDevice(HWND in_hwnd)
-    {
-        /*
-        // Device
-        m_device->Init();
-        g_cacheDevice = m_device->GetDevice().Get();
-        assert(g_cacheDevice);
-
-        // SwapChain
-        DXGI_SWAP_CHAIN_DESC1 sd;
-        {
-            ZeroMemory(&sd, sizeof(sd));
-            sd.BufferCount = SWAP_CHAIN_BUFFER_COUNT;
-            sd.Width = 0;
-            sd.Height = 0;
-            sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-            sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-            sd.SampleDesc.Count = 1;
-            sd.SampleDesc.Quality = 0;
-            sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-            sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-            sd.Scaling = DXGI_SCALING_STRETCH;
-            sd.Stereo = FALSE;
-        }
-
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            desc.NumDescriptors = SWAP_CHAIN_BUFFER_COUNT;
-            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            desc.NodeMask = 1;
-            if (g_cacheDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dRtvDescHeap)) != S_OK)
-            {
-                return false;
-            }
-
-            SIZE_T rtvDescriptorSize = g_cacheDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-            D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            for (UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
-            {
-                mainRenderTargetDescriptor[i] = rtvHandle;
-                rtvHandle.ptr += rtvDescriptorSize;
-            }
-        }
-
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1;
-            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            if (g_cacheDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
-            {
-                return false;
-            }
-        }
-
-        {
-            D3D12_COMMAND_QUEUE_DESC desc = {};
-            desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-            desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-            desc.NodeMask = 1;
-            if (g_cacheDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&g_pd3dCommandQueue)) != S_OK)
-            {
-                return false;
-            }
-        }
-
-        for (uint32 i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-        {
-            if (g_cacheDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                      IID_PPV_ARGS(&g_frameContext[i].CommandAllocator)) != S_OK)
-            {
-                return false;
-            }
-        }
-
-        if (g_cacheDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_frameContext[0].CommandAllocator,
-                                             nullptr, IID_PPV_ARGS(&g_pd3dCommandList)) != S_OK ||
-            g_pd3dCommandList->Close() != S_OK)
-        {
-            return false;
-        }
-
-        if (g_cacheDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_fence)) != S_OK)
-        {
-            return false;
-        }
-
-        g_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (g_fenceEvent == nullptr)
-        {
-            return false;
-        }
-
-        {
-            IDXGIFactory4* dxgiFactory = nullptr;
-            IDXGISwapChain1* swapChain1 = nullptr;
-            if (CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)) != S_OK)
-            {
-                return false;
-            }
-
-            if (dxgiFactory->CreateSwapChainForHwnd(g_pd3dCommandQueue, in_hwnd, &sd, nullptr, nullptr, &swapChain1) !=
-                S_OK)
-            {
-                return false;
-            }
-
-            if (swapChain1->QueryInterface(IID_PPV_ARGS(&g_pSwapChain)) != S_OK)
-            {
-                return false;
-            }
-
-            swapChain1->Release();
-            dxgiFactory->Release();
-            g_pSwapChain->SetMaximumFrameLatency(SWAP_CHAIN_BUFFER_COUNT);
-            g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
-        }
-
-        CreateRenderTarget();
-        */
-        return true;
-    }
-
     void DirectXCanvas::CleanUpDevice()
     {
         CleanUpRenderTarget();
@@ -583,10 +390,8 @@ namespace sb
         {
             if (m_swapChain->GetMainRenderTargetResources()[i])
             {
-                // m_swapChain->GetMainRenderTargetResource(i)->Release();
                 m_swapChain->GetMainRenderTargetResources()[i]->Release();
                 m_swapChain->GetMainRenderTargetResources()[i] = nullptr;
-                // m_swapChain->GetMainRenderTargetResource(i) = nullptr;
             }
         }
     }

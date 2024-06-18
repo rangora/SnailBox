@@ -3,7 +3,7 @@
 
 namespace sb
 {
-    TableDescriptorHeap::TableDescriptorHeap(DirectXCanvas* in_canvas) : m_canvas(in_canvas)
+    TableDescriptorHeap::TableDescriptorHeap()
     {
     }
 
@@ -11,20 +11,21 @@ namespace sb
     {
         m_groupCount = in_count;
 
-        { // RTV
+        {
+            // RTV
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             desc.NumDescriptors = SWAP_CHAIN_BUFFER_COUNT; // num of backBuffers
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             desc.NodeMask = 1;
 
-            if (m_canvas->GetD3Device()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descRtvHeap)) != S_OK)
+            if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descRtvHeap)) != S_OK)
             {
                 return;
             }
 
             m_rtvHandleIncrementSize =
-                m_canvas->GetD3Device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                sg_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             m_cpuRtvHandleBegin = m_descRtvHeap->GetCPUDescriptorHandleForHeapStart();
             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_cpuRtvHandleBegin;
             for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
@@ -40,7 +41,7 @@ namespace sb
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             desc.NumDescriptors = 1;
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            if (m_canvas->GetD3Device()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descSrvHeap)) != S_OK)
+            if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descSrvHeap)) != S_OK)
             {
                 return;
             }

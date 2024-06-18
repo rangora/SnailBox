@@ -4,7 +4,7 @@
 
 namespace sb
 {
-    CommandQueue::CommandQueue(DirectXCanvas* in_canvas) : m_canvas(in_canvas)
+    CommandQueue::CommandQueue()
     {
     }
 
@@ -60,7 +60,7 @@ namespace sb
         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             m_swapChain->GetBackRTVBuffer().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-        m_cmdList->SetGraphicsRootSignature(m_canvas->GetRootSignature()->GetSignature().Get());
+        m_cmdList->SetGraphicsRootSignature(sg_d3dDriver->GetRootSignature()->GetSignature().Get());
 
         // 여기서부터 cb가 나온다.
     }

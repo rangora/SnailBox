@@ -10,7 +10,7 @@ namespace sb
     class CommandQueue
     {
     public:
-        CommandQueue(class DirectXCanvas* in_canvas);
+        CommandQueue();
         ~CommandQueue();
 
         void Init(ComPtr<ID3D12Device> in_device, SwapChain* in_swapChain);
@@ -23,8 +23,6 @@ namespace sb
         ComPtr<ID3D12GraphicsCommandList> GetCmdList() { return m_cmdList; }
 
     private:
-        DirectXCanvas* m_canvas = nullptr;
-        
         ComPtr<ID3D12CommandQueue> m_cmdQueue;
         ComPtr<ID3D12CommandAllocator> m_cmdAllocator;
         ComPtr<ID3D12GraphicsCommandList> m_cmdList;

@@ -15,7 +15,7 @@ struct GLFWwindow;
 namespace sb
 {
     class Window;
-    
+
     struct FrameContext
     {
         ID3D12CommandAllocator* CommandAllocator;
@@ -31,7 +31,6 @@ namespace sb
         void* GetNativeWindow() final;
 
         bool InitCanvas(const WinWindowData* in_windowData) final;
-        bool InitCanvas2(const WinWindowData* in_windowData);
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;
@@ -57,7 +56,6 @@ namespace sb
         FrameContext* GetFrameContexts() { return m_frameContexts; }
 
     private:
-        bool CreateDevice(HWND in_hwnd);
         void CleanUpDevice();
 
         FrameContext* WaitForNextFrameResources();
