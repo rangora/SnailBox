@@ -217,6 +217,18 @@ namespace sb
         }
     }
 
+    Device* WinsWindow::GetD3dDevice()
+    {
+        DirectXCanvas* d3dCanvas = static_cast<DirectXCanvas*>(m_canvas.get());
+
+        return d3dCanvas == nullptr ? nullptr : d3dCanvas->GetDevice();
+    }
+
+    DirectXCanvas* WinsWindow::GetDirectXCanvas()
+    {
+        return static_cast<DirectXCanvas*>(m_canvas.get());
+    }
+
     void WinsWindow::GetMousePos(double& out_x, double& out_y)
     {
         if (IsOpenglWindow())

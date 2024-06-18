@@ -79,6 +79,20 @@ namespace sb
         m_runningWindowCount = 0;
     }
 
+    Device* Application::GetD3Device()
+    {
+        Application& app = Get();
+        Window& window = app.GetDirectXWindow();
+        return window.GetD3dDevice();
+    }
+
+    DirectXCanvas* Application::GetDirectXCanvas()
+    {
+        Application& app = Get();
+        Window& window = app.GetDirectXWindow();
+        return window.GetDirectXCanvas();
+    }
+
     void Application::PreProcessOnFrame()
     {
         Input::TransitionPressedButtons();

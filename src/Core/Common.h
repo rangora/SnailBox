@@ -44,6 +44,12 @@ namespace sb
     const std::string openglWindowTitle = "opengl";
     const std::string directXWindowTitle = "directX";
 
+    enum
+    {
+        SWAP_CHAIN_BUFFER_COUNT = 3,
+        NUM_FRAMES_IN_FLIGHT = 3
+    };
+
     // 나중에 FileSystem으로 빠져야 함
     // 템플릿 함수만 있도록 구성할 것..
     std::optional<std::string> LoadTextFile(const std::string& arg_filename);

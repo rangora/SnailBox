@@ -54,6 +54,9 @@ namespace sb
 
         virtual void AttachLayout(Layout* in_layout) {}
 
+        virtual class Device* GetD3dDevice() { return nullptr; }
+        virtual class DirectXCanvas* GetDirectXCanvas() { return nullptr; }
+
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
         static void OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier);

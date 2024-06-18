@@ -30,6 +30,8 @@ file(GLOB_RECURSE MAIN_SOURCE
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
 
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
+
 # build_dependencies 사용 안함
 # include(ExternalProjects.cmake)
 
