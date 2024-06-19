@@ -1,8 +1,8 @@
 ﻿#pragma once
 
+#include "corepch.h"
 #include "Actor/Actor.h"
 #include "Canvas.h"
-#include "Common.h"
 #include <sstream>
 #include <vector>
 
@@ -54,7 +54,7 @@ namespace sb
 
         virtual void AttachLayout(Layout* in_layout) {}
 
-        virtual class Device* GetD3dDevice() { return nullptr; }
+        virtual ComPtr<ID3D12Device> GetD3dDevice() { return nullptr; }
         virtual class DirectXCanvas* GetDirectXCanvas() { return nullptr; }
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }

@@ -217,7 +217,7 @@ namespace sb
         }
     }
 
-    Device* WinsWindow::GetD3dDevice()
+    ComPtr<ID3D12Device> WinsWindow::GetD3dDevice()
     {
         DirectXCanvas* d3dCanvas = static_cast<DirectXCanvas*>(m_canvas.get());
 

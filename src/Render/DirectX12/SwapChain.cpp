@@ -1,6 +1,7 @@
 ﻿#include "SwapChain.h"
 #include "Core/DirectXCanvas.h"
 #include "TableDescriptorHeap.h"
+#include "Core/Application.h"
 
 namespace sb
 {
@@ -51,7 +52,7 @@ namespace sb
         // CreateRenderTarget
         // 이 방식은 lecture 방식과 imgui방식이 다른데 우선 imgui방식을 따름.
         auto Heap = sg_d3dDriver->GetDescriptorHeap();
-        
+
         for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
         {
             ID3D12Resource* pBackBuffer = nullptr;
@@ -61,13 +62,6 @@ namespace sb
                 assert(false);
                 continue;
             }
-
-            // D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = Heap->GetCPUHandle(i);
-            // if (rtvHandle.ptr == 0)
-            // {
-            //     assert(false);
-            //     continue;
-            // }
 
             sg_d3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, Heap->GetRenderTargetDescriptors()[i]);
             m_mainRenderTargetResources[i] = pBackBuffer;

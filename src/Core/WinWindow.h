@@ -2,6 +2,7 @@
 
 #include "Window.h"
 
+#include "corepch.h"
 #include <string>
 #include <cstdint>
 #include <GLFW/glfw3.h>
@@ -35,7 +36,7 @@ namespace sb
         void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) final;
         // ~input
 
-        class Device* GetD3dDevice() final;
+        ComPtr<ID3D12Device> GetD3dDevice() final;
         class DirectXCanvas* GetDirectXCanvas() final;
 
         void GetMousePos(double& out_x, double& out_y) final;

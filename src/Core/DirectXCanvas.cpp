@@ -6,6 +6,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <tchar.h>
+#include "Core/Application.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -97,22 +98,20 @@ namespace sb
         HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear Imgui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100,
                                     1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
+        InitDevice();
 
-        m_device = CreateUPtr<Device>();
         m_rootSignature = CreateUPtr<RootSignature>();
         m_swapChain = CreateUPtr<SwapChain>();
         m_commandQueue = CreateUPtr<CommandQueue>();
         m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
 
-
-        m_device->Init();
         m_commandQueue->Init(sg_d3dDevice, m_swapChain.get());
         m_DescriptorHeap->Init(256);
-        m_swapChain->Init(sg_d3dDevice, m_device->GetDXGI(), m_commandQueue->GetCmdQueue(), hwnd);
+        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), hwnd);
         m_rootSignature->Init(sg_d3dDevice);
 
         // fence
-        HRESULT hr = m_device->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+        HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
         if (FAILED(hr))
         {
             return false;
@@ -211,6 +210,8 @@ namespace sb
                 commandQueue->Signal(m_fence.Get(), fenceValue);
                 m_fenceLastSignaledValue = fenceValue;
                 frameCtx->FenceValue = fenceValue;
+
+                ImGui::UpdatePlatformWindows();
             }
         }
     }
@@ -249,6 +250,26 @@ namespace sb
     bool DirectXCanvas::IsWindowShouldClosed()
     {
         return false;
+    }
+
+    void DirectXCanvas::InitDevice()
+    {
+#ifdef _DEBUG
+        ::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController));
+        m_debugController->EnableDebugLayer();
+
+#endif
+        ::CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgi));
+        ::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device));
+
+#ifdef _DEBUG
+        ID3D12InfoQueue* pInfoQueue = nullptr;
+        m_device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+        pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+        pInfoQueue->Release();
+#endif
     }
 
     void DirectXCanvas::CleanUpDevice()
@@ -376,7 +397,7 @@ namespace sb
         {
             ID3D12Resource* pBackBuffer = nullptr;
             m_swapChain->GetSwapChain3()->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-            m_device->GetDevice()->CreateRenderTargetView(pBackBuffer, nullptr,
+            m_device->CreateRenderTargetView(pBackBuffer, nullptr,
                                                           m_DescriptorHeap->GetRenderTargetDescriptors()[i]);
             m_swapChain->GetMainRenderTargetResources()[i] = pBackBuffer;
         }

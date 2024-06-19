@@ -72,14 +72,14 @@ namespace sb
 
         m_runningWindowCount++;
     }
-
+    
     void Application::DestroyAppWindow()
     {
         m_windows.clear();
         m_runningWindowCount = 0;
     }
 
-    Device* Application::GetD3Device()
+    ComPtr<ID3D12Device> Application::GetD3Device()
     {
         Application& app = Get();
         Window& window = app.GetDirectXWindow();

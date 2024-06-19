@@ -1,10 +1,13 @@
 #pragma once
 
-#include "Common.h"
+#include "corepch.h"
 #include "Render/ShaderArchive.h"
 #include "Window.h"
 #include <boost/container/flat_map.hpp>
 #include <vector>
+
+#define sg_d3dDevice sb::Application::GetD3Device()
+#define sg_d3dDriver sb::Application::GetDirectXCanvas()
 
 namespace sb
 {
@@ -26,7 +29,7 @@ namespace sb
         void CreateAppWindow(const WindowContext& in_windowContext);
         void DestroyAppWindow(); // TEMP
 
-        static class Device* GetD3Device();
+        static ComPtr<ID3D12Device> GetD3Device();
         static class DirectXCanvas* GetDirectXCanvas();
 
         static ShaderArchive s_staticShaderArchive;

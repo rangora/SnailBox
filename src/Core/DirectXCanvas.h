@@ -3,7 +3,6 @@
 #include "Canvas.h"
 #include "Render/Camera.h"
 #include "Render/DirectX12/CommandQueue.h"
-#include "Render/DirectX12/Device.h"
 #include "Render/DirectX12/RootSignature.h"
 #include "Render/DirectX12/SwapChain.h"
 #include "Render/DirectX12/TableDescriptorHeap.h"
@@ -37,9 +36,8 @@ namespace sb
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
 
-        Device* GetDevice() const { return m_device.get(); }
+        ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
-        ComPtr<ID3D12Device> GetD3Device() const { return m_device->GetDevice(); }
         RootSignature* GetRootSignature() const { return m_rootSignature.get(); }
         SwapChain* GetSwapChain() const { return m_swapChain.get(); }
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
@@ -56,15 +54,19 @@ namespace sb
         FrameContext* GetFrameContexts() { return m_frameContexts; }
 
     private:
+        void InitDevice();
         void CleanUpDevice();
 
         FrameContext* WaitForNextFrameResources();
+
+        ComPtr<ID3D12Debug> m_debugController;
+        ComPtr<IDXGIFactory4> m_dxgi;
+        ComPtr<ID3D12Device> m_device;
 
         Camera m_camera;
 
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-        UPtr<Device> m_device = nullptr;
         UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;
         UPtr<SwapChain> m_swapChain = nullptr;

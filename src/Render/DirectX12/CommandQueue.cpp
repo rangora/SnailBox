@@ -1,6 +1,7 @@
 ﻿#include "CommandQueue.h"
 #include "SwapChain.h"
 #include "Core/DirectXCanvas.h"
+#include "Core/Application.h"
 
 namespace sb
 {
@@ -35,10 +36,6 @@ namespace sb
                                      sg_d3dDriver->GetFrameContexts()[0].CommandAllocator, nullptr,
                                      IID_PPV_ARGS(&m_cmdList));
         m_cmdList->Close();
-
-        // fence 외부로 추출
-        // in_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
-        // m_fenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
     }
 
     void CommandQueue::WaitSync()
