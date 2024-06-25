@@ -1,6 +1,6 @@
 #include "Input.h"
 #include "Application.h"
-#include "Core/Canvas.h"
+#include "Core/Driver.h"
 #include "Core/Window.h"
 #include <GLFW/glfw3.h>
 
@@ -12,8 +12,8 @@ namespace sb
 
         if (window.IsOpenglWindow())
         {
-            auto canvas = window.m_canvas.get();
-            GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(canvas->GetNativeWindow());
+            auto driver = window.m_driver.get();
+            GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(driver->GetNativeWindow());
             double x = 0.0, y = 0.0;
             glfwGetCursorPos(glfwWindow, &x, &y);
             return {(double)x, (double)y};
@@ -40,8 +40,8 @@ namespace sb
 
         if (window.IsOpenglWindow())
         {
-            auto canvas = window.m_canvas.get();
-            GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(canvas->GetNativeWindow());
+            auto driver = window.m_driver.get();
+            GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(driver->GetNativeWindow());
             int state = glfwGetMouseButton(glfwWindow, static_cast<int32>(in_button));
             return state == GLFW_PRESS;
         }

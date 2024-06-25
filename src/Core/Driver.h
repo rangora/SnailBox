@@ -13,14 +13,14 @@ namespace sb
     class GraphicsContext;
     class Window;
 
-    class Canvas : public Layout
+    class Driver : public Layout
     {
     public:
-        Canvas(Window* in_window);
-        Canvas() = delete;
+        Driver(Window* in_window);
+        Driver() = delete;
 
         virtual void* GetNativeWindow() = 0;
-        virtual bool InitCanvas(const WinWindowData* in_windowData) = 0;
+        virtual bool InitDriver(const WinWindowData* in_windowData) = 0;
         virtual void Render() = 0;
         virtual void Update() = 0;
         virtual void SwapBuffers() = 0;

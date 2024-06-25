@@ -1,4 +1,4 @@
-﻿#include "DirectXCanvas.h"
+﻿#include "Direct3dDriver.h"
 
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
@@ -106,18 +106,18 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 namespace sb
 {
-    DirectXCanvas::DirectXCanvas(Window* in_window)
-    : Canvas(in_window)
+    Direct3dDriver::Direct3dDriver(Window* in_window)
+    : Driver(in_window)
     {
     }
 
-    void* DirectXCanvas::GetNativeWindow()
+    void* Direct3dDriver::GetNativeWindow()
     {
 
         return nullptr;
     }
 
-    bool DirectXCanvas::InitCanvas(const WinWindowData* in_windowData)
+    bool Direct3dDriver::InitDriver(const WinWindowData* in_windowData)
     {
         m_wc = {sizeof(m_wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
                 nullptr,    nullptr,    L"Imgui Example", nullptr};
@@ -174,7 +174,7 @@ namespace sb
         return true;
     }
 
-    void DirectXCanvas::Update()
+    void Direct3dDriver::Update()
     {
         auto pressedAction = [this]()
         {
@@ -256,11 +256,11 @@ namespace sb
         }
     }
 
-    void DirectXCanvas::OnUpdate(float in_delta)
+    void Direct3dDriver::OnUpdate(float in_delta)
     {
     }
 
-    void DirectXCanvas::Render()
+    void Direct3dDriver::Render()
     {
         static float f = 0.0f;
         static int counter = 0;
@@ -283,11 +283,11 @@ namespace sb
         ImGui::End();
     }
 
-    void DirectXCanvas::SwapBuffers()
+    void Direct3dDriver::SwapBuffers()
     {
     }
 
-    bool DirectXCanvas::IsWindowShouldClosed()
+    bool Direct3dDriver::IsWindowShouldClosed()
     {
         if (bShutDownCalled)
         {
@@ -306,7 +306,7 @@ namespace sb
         return false;
     }
 
-    void DirectXCanvas::InitDevice()
+    void Direct3dDriver::InitDevice()
     {
 #ifdef _DEBUG
         ::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController));
@@ -327,7 +327,7 @@ namespace sb
 #endif
     }
 
-    void DirectXCanvas::CleanUpDevice()
+    void Direct3dDriver::CleanUpDevice()
     {
         CleanUpRenderTarget();
         if (m_swapChain->GetSwapChain3())
@@ -401,7 +401,7 @@ namespace sb
 #endif
     }
 
-    FrameContext* DirectXCanvas::WaitForNextFrameResources()
+    FrameContext* Direct3dDriver::WaitForNextFrameResources()
     {
         uint32 nextFrameIndex = m_frameIndex + 1;
         m_frameIndex = nextFrameIndex;
@@ -424,7 +424,7 @@ namespace sb
         return frameCtx;
     }
 
-    void DirectXCanvas::WaitForLastSubmittedFrame()
+    void Direct3dDriver::WaitForLastSubmittedFrame()
     {
         FrameContext* frameCtx = &m_frameContexts[m_frameIndex % NUM_FRAMES_IN_FLIGHT];
 
@@ -445,7 +445,7 @@ namespace sb
         WaitForSingleObject(sg_d3dDriver->GetFenceEvent(), INFINITE);
     }
 
-    void DirectXCanvas::CreateRenderTarget()
+    void Direct3dDriver::CreateRenderTarget()
     {
         for (int i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
         {
@@ -457,7 +457,7 @@ namespace sb
         }
     }
 
-    void DirectXCanvas::CleanUpRenderTarget()
+    void Direct3dDriver::CleanUpRenderTarget()
     {
         WaitForLastSubmittedFrame();
 

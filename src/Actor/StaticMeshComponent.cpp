@@ -17,6 +17,6 @@ namespace sb
         Window& Window = app.GetOpenglWindow();
 
         // TEMP
-        Window.m_canvas->GetGraphcisContext()->m_targetRenderResources.emplace_back(&m_sm_renderResource);
+        Window.m_driver->GetGraphcisContext()->m_targetRenderResources.emplace_back(&m_sm_renderResource);
     }
 } // namespace sb

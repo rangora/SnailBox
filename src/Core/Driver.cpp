@@ -1,8 +1,8 @@
-﻿#include "Canvas.h"
+﻿#include "Driver.h"
 
 namespace sb
 {
-    Canvas::Canvas(Window* in_window)
+    Driver::Driver(Window* in_window)
     : m_window(in_window)
     {
     }

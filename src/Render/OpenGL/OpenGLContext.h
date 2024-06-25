@@ -15,7 +15,7 @@ struct GLFWwindow;
 namespace sb
 {
     class Window;
-    class Canvas;
+    class Driver;
 
     struct OpenglStaticMeshData
     {
@@ -34,7 +34,7 @@ namespace sb
     {
     public:
         OpenglContext() {}
-        OpenglContext(GLFWwindow* in_window_handle, Canvas* in_canvas);
+        OpenglContext(GLFWwindow* in_window_handle, Driver* in_driver);
 
         static SPtr<OpenglShader> CreateFromFile(const std::string& in_filename, GLenum in_shaderType);
 
@@ -45,7 +45,7 @@ namespace sb
         void BindBuffer() final;
         void AddData(const void* in_data) final;
         void CommitData() final;
-        
+
         void VertexProcess(SPtr<class VertexRenderResource>& in_vertexResource) final;
         void StaticMeshProcess(SPtr<class StaticMeshRenderResource>& in_staticMeshResource) final;
 
@@ -61,7 +61,7 @@ namespace sb
         void UpdateFPS();
 
         GLFWwindow* m_glWindow_handle = nullptr;
-        Canvas* m_canvas_handle = nullptr;
+        Driver* m_driver_handle = nullptr;
 
         glm::vec4 m_clearColor{glm::vec4(0.1f, 0.2f, 0.3f, 0.0f)};
 

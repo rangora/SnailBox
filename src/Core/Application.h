@@ -7,7 +7,7 @@
 #include <vector>
 
 #define sg_d3dDevice sb::Application::GetD3Device()
-#define sg_d3dDriver sb::Application::GetDirectXCanvas()
+#define sg_d3dDriver sb::Application::GetDirect3dDriver()
 
 namespace sb
 {
@@ -30,7 +30,7 @@ namespace sb
         void DestroyAppWindow(); // TEMP
 
         static ComPtr<ID3D12Device> GetD3Device();
-        static class DirectXCanvas* GetDirectXCanvas();
+        static class Direct3dDriver* GetDirect3dDriver();
 
         static ShaderArchive s_staticShaderArchive;
 

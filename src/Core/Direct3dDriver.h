@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include "Canvas.h"
+#include "Driver.h"
 #include "Render/Camera.h"
 #include "Render/DirectX12/CommandQueue.h"
 #include "Render/DirectX12/RootSignature.h"
 #include "Render/DirectX12/SwapChain.h"
 #include "Render/DirectX12/TableDescriptorHeap.h"
-#include "imgui.h"
 #include "corepch.h"
+#include "imgui.h"
 
 struct GLFWwindow;
 
@@ -21,15 +21,15 @@ namespace sb
         uint64 FenceValue;
     };
 
-    class DirectXCanvas : public Canvas
+    class Direct3dDriver : public Driver
     {
     public:
-        DirectXCanvas(Window* in_window);
-        DirectXCanvas() = delete;
+        Direct3dDriver(Window* in_window);
+        Direct3dDriver() = delete;
 
         void* GetNativeWindow() final;
 
-        bool InitCanvas(const WinWindowData* in_windowData) final;
+        bool InitDriver(const WinWindowData* in_windowData) final;
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;

@@ -1,6 +1,6 @@
 #define GLFW_INCLUDE_NONE
 
-#include "OpenglCanvas.h"
+#include "OpenglDriver.h"
 #include "Render/OpenGL/OpenGLContext.h"
 #include "Window.h"
 #include "spdlog/spdlog.h"
@@ -10,17 +10,17 @@
 
 namespace sb
 {
-    OpenglCanvas::OpenglCanvas(Window* in_window)
-    : Canvas(in_window)
+    OpenglDriver::OpenglDriver(Window* in_window)
+    : Driver(in_window)
     {
     }
 
-    void* OpenglCanvas::GetNativeWindow()
+    void* OpenglDriver::GetNativeWindow()
     {
         return m_glfwWindow;
     }
 
-    bool OpenglCanvas::InitCanvas(const WinWindowData* in_windowData)
+    bool OpenglDriver::InitDriver(const WinWindowData* in_windowData)
     {
         if (m_graphicContext != nullptr)
         {
@@ -51,7 +51,7 @@ namespace sb
         return true;
     }
 
-    void OpenglCanvas::Update()
+    void OpenglDriver::Update()
     {
         glfwPollEvents();
 
@@ -75,22 +75,22 @@ namespace sb
         }
     }
 
-    void OpenglCanvas::OnUpdate(float in_delta)
+    void OpenglDriver::OnUpdate(float in_delta)
     {
         m_camera.OnUpdate(in_delta);
     }
 
-    void OpenglCanvas::Render()
+    void OpenglDriver::Render()
     {
         m_graphicContext->Render();
     }
 
-    void OpenglCanvas::SwapBuffers()
+    void OpenglDriver::SwapBuffers()
     {
         m_graphicContext->SwapBuffers();
     }
 
-    bool OpenglCanvas::IsWindowShouldClosed()
+    bool OpenglDriver::IsWindowShouldClosed()
     {
         return glfwWindowShouldClose(m_glfwWindow);
     }

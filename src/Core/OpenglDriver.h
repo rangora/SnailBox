@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Canvas.h"
+#include "Driver.h"
 #include "Render/Camera.h"
 
 struct GLFWwindow;
@@ -9,15 +9,15 @@ namespace sb
 {
     class Window;
 
-    class OpenglCanvas : public Canvas
+    class OpenglDriver : public Driver
     {
     public:
-        OpenglCanvas(Window* in_window);
-        OpenglCanvas() = delete;
+        OpenglDriver(Window* in_window);
+        OpenglDriver() = delete;
 
         void* GetNativeWindow() final;
 
-        bool InitCanvas(const WinWindowData* in_windowData) final;
+        bool InitDriver(const WinWindowData* in_windowData) final;
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;
@@ -30,7 +30,7 @@ namespace sb
         }
 
     private:
-        // 소유자는 Window? Cnavas?? 우선 canvas가 가지도록 했음..
+        // 소유자는 Window? driver?? 우선 driver 가지도록 했음..
         GLFWwindow* m_glfwWindow = nullptr;
 
         Camera m_camera;

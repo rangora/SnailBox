@@ -1,7 +1,7 @@
 ﻿#include "SwapChain.h"
-#include "Core/DirectXCanvas.h"
-#include "TableDescriptorHeap.h"
 #include "Core/Application.h"
+#include "Core/Direct3dDriver.h"
+#include "TableDescriptorHeap.h"
 
 namespace sb
 {

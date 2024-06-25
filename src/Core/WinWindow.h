@@ -26,7 +26,7 @@ namespace sb
 
         bool InitializeWithOpenglDevice() final;
         bool InitializeWithDirectXDevice() final;
-        bool InitializeCanvas() final;
+        bool InitializeDriver() final;
 
         void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
 
@@ -37,7 +37,7 @@ namespace sb
         // ~input
 
         ComPtr<ID3D12Device> GetD3dDevice() final;
-        class DirectXCanvas* GetDirectXCanvas() final;
+        class Direct3dDriver* GetDirect3dDriver() final;
 
         void GetMousePos(double& out_x, double& out_y) final;
 

@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "corepch.h"
 #include "Actor/Actor.h"
-#include "Canvas.h"
+#include "Driver.h"
+#include "corepch.h"
 #include <sstream>
 #include <vector>
 
@@ -43,7 +43,7 @@ namespace sb
 
         virtual bool InitializeWithOpenglDevice() = 0;
         virtual bool InitializeWithDirectXDevice() = 0;
-        virtual bool InitializeCanvas() = 0;
+        virtual bool InitializeDriver() = 0;
 
         virtual void GetMousePos(double& out_x, double& out_y) = 0;
 
@@ -55,7 +55,7 @@ namespace sb
         virtual void AttachLayout(Layout* in_layout) {}
 
         virtual ComPtr<ID3D12Device> GetD3dDevice() { return nullptr; }
-        virtual class DirectXCanvas* GetDirectXCanvas() { return nullptr; }
+        virtual class Direct3dDriver* GetDirect3dDriver() { return nullptr; }
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
@@ -72,7 +72,7 @@ namespace sb
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
-        UPtr<Canvas> m_canvas = nullptr;
+        UPtr<Driver> m_driver = nullptr;
 
         protected:
             bool m_isOpenglWindow = false; // TEMP

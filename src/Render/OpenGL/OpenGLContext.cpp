@@ -28,8 +28,8 @@ namespace sb
         constexpr float zFar = 100.f;
     }
 
-    OpenglContext::OpenglContext(GLFWwindow* in_window_handle, Canvas* in_canvas)
-        : m_glWindow_handle(in_window_handle), m_canvas_handle(in_canvas)
+    OpenglContext::OpenglContext(GLFWwindow* in_window_handle, Driver* in_driver)
+        : m_glWindow_handle(in_window_handle), m_driver_handle(in_driver)
     {
         m_graphicsFramework = GraphicsDevice::OpenGL;
     }
@@ -39,10 +39,10 @@ namespace sb
         glfwMakeContextCurrent(m_glWindow_handle);
         int status = gladLoadGL(glfwGetProcAddress);
 
-        m_canvas_handle->m_actors.emplace_back(CreateUPtr<CubeActor>());
+        m_driver_handle->m_actors.emplace_back(CreateUPtr<CubeActor>());
 
         Vector3d actorLocation(-1.5, -2.2, -2.5);
-        for (auto& actor : m_canvas_handle->m_actors)
+        for (auto& actor : m_driver_handle->m_actors)
         {
             actor->SetActorLocation(actorLocation);
             actor->DrawActor();
@@ -206,7 +206,7 @@ namespace sb
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
-        for (const auto& actor : m_canvas_handle->m_actors)
+        for (const auto& actor : m_driver_handle->m_actors)
         {
             if (actor.get())
             {

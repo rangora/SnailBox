@@ -72,7 +72,7 @@ namespace sb
 
         m_runningWindowCount++;
     }
-    
+
     void Application::DestroyAppWindow()
     {
         m_windows.clear();
@@ -86,11 +86,11 @@ namespace sb
         return window.GetD3dDevice();
     }
 
-    DirectXCanvas* Application::GetDirectXCanvas()
+    Direct3dDriver* Application::GetDirect3dDriver()
     {
         Application& app = Get();
         Window& window = app.GetDirectXWindow();
-        return window.GetDirectXCanvas();
+        return window.GetDirect3dDriver();
     }
 
     void Application::PreProcessOnFrame()

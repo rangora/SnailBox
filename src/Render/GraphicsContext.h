@@ -9,7 +9,7 @@
 namespace sb
 {
     class Window;
-    class Canvas;
+    class Driver;
 
     class GraphicsContext
     {
@@ -27,7 +27,7 @@ namespace sb
         virtual void AddData(const void* in_data) = 0;
         virtual void CommitData() = 0;
 
-        static UPtr<GraphicsContext> Create(void* in_glWindow, Canvas* in_canvas);
+        static UPtr<GraphicsContext> Create(void* in_glWindow, Driver* in_driver);
 
         std::vector<class RenderResource*> m_targetRenderResources;
         std::vector<SPtr<RenderBuffer>> m_renderbuffers;

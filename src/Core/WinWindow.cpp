@@ -1,8 +1,8 @@
 ﻿#define GLFW_INCLUDE_NONE
 #include "WinWindow.h"
 #include "Application.h"
-#include "OpenglCanvas.h"
-#include "DirectXCanvas.h"
+#include "OpenglDriver.h"
+#include "Direct3dDriver.h"
 #include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
 #include "Input.h"
@@ -39,11 +39,11 @@ namespace sb
 
     void WinsWindow::Update()
     {
-        if(!m_canvas->IsWindowShouldClosed())
+        if(!m_driver->IsWindowShouldClosed())
         {
             ProcessInput();
-            m_canvas->Update();
-            m_canvas->SwapBuffers();
+            m_driver->Update();
+            m_driver->SwapBuffers();
         }
         else
         {
@@ -54,16 +54,16 @@ namespace sb
 
     bool WinsWindow::InitializeWithOpenglDevice()
     {
-        m_canvas = CreateUPtr<OpenglCanvas>(this);
-        if (!m_canvas->InitCanvas(&m_windowData))
+        m_driver = CreateUPtr<OpenglDriver>(this);
+        if (!m_driver->InitDriver(&m_windowData))
         {
-            spdlog::error("Failed init openglCanvas.");
+            spdlog::error("Failed init openglDriver.");
             return false;
         }
 
-        AttachLayout(m_canvas.get());
+        AttachLayout(m_driver.get());
 
-        m_nativeWindow = static_cast<GLFWwindow*>(m_canvas->GetNativeWindow());
+        m_nativeWindow = static_cast<GLFWwindow*>(m_driver->GetNativeWindow());
         if (m_nativeWindow == nullptr)
         {
             return false;
@@ -108,19 +108,19 @@ namespace sb
 
     bool WinsWindow::InitializeWithDirectXDevice()
     {
-        m_canvas = CreateUPtr<DirectXCanvas>(this);
-        if (!m_canvas->InitCanvas(&m_windowData))
+        m_driver = CreateUPtr<Direct3dDriver>(this);
+        if (!m_driver->InitDriver(&m_windowData))
         {
-            spdlog::error("Failed init DirectXCanvas.");
+            spdlog::error("Failed init Direct3dDriver.");
             return false;
         }
 
-        AttachLayout(m_canvas.get());
+        AttachLayout(m_driver.get());
 
         return true;
     }
 
-    bool WinsWindow::InitializeCanvas()
+    bool WinsWindow::InitializeDriver()
     {
         return false;
     }
@@ -218,14 +218,14 @@ namespace sb
 
     ComPtr<ID3D12Device> WinsWindow::GetD3dDevice()
     {
-        DirectXCanvas* d3dCanvas = static_cast<DirectXCanvas*>(m_canvas.get());
+        Direct3dDriver* driver = static_cast<Direct3dDriver*>(m_driver.get());
 
-        return d3dCanvas == nullptr ? nullptr : d3dCanvas->GetDevice();
+        return driver == nullptr ? nullptr : driver->GetDevice();
     }
 
-    DirectXCanvas* WinsWindow::GetDirectXCanvas()
+    Direct3dDriver* WinsWindow::GetDirect3dDriver()
     {
-        return static_cast<DirectXCanvas*>(m_canvas.get());
+        return static_cast<Direct3dDriver*>(m_driver.get());
     }
 
     void WinsWindow::GetMousePos(double& out_x, double& out_y)
