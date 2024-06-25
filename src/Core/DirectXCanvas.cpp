@@ -7,6 +7,7 @@
 #include <dxgi1_4.h>
 #include <tchar.h>
 #include "Core/Application.h"
+#include "Core/Input.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -31,7 +32,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_SIZE:
         {
-            if (wParam != SIZE_MINIMIZED)
+            if (sg_d3dDevice && wParam != SIZE_MINIMIZED)
             {
                 sg_d3dDriver->WaitForLastSubmittedFrame();
                 sg_d3dDriver->CleanUpRenderTarget();
@@ -65,10 +66,38 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+
+        case WM_KEYDOWN:
+        {
+            if (wParam == VK_ESCAPE)
+            {
+                if (sb::Input::IsKeyButtonDown(sb::KeyButton::Esc))
+                {
+                    break;
+                }
+
+                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Pressed);
+            }
+            break;
+        }
+
+        case WM_KEYUP:
+        {
+            if (wParam == VK_ESCAPE)
+            {
+                if (sb::Input::IsKeyButtonReleased(sb::KeyButton::Esc))
+                {
+                    break;
+                }
+
+                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Released);
+            }
+            break;
+        }
         case WM_DESTROY:
         {
             ::PostQuitMessage(0);
-            break;
+            return 0;
         }
     }
 
@@ -90,13 +119,12 @@ namespace sb
 
     bool DirectXCanvas::InitCanvas(const WinWindowData* in_windowData)
     {
-        WNDCLASSEXW wc = {
-            sizeof(wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
-            nullptr,    nullptr,    L"Imgui Example", nullptr};
-        ::RegisterClassExW(&wc);
+        m_wc = {sizeof(m_wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
+                nullptr,    nullptr,    L"Imgui Example", nullptr};
+        ::RegisterClassExW(&m_wc);
 
-        HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear Imgui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100,
-                                    1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+        m_hwnd = ::CreateWindowW(m_wc.lpszClassName, L"Dear Imgui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100,
+                                    1280, 800, nullptr, nullptr, m_wc.hInstance, nullptr);
 
         InitDevice();
 
@@ -107,7 +135,7 @@ namespace sb
 
         m_commandQueue->Init(sg_d3dDevice, m_swapChain.get());
         m_DescriptorHeap->Init(256);
-        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), hwnd);
+        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), m_hwnd);
         m_rootSignature->Init(sg_d3dDevice);
 
         // fence
@@ -124,8 +152,8 @@ namespace sb
         }
         // ~fence
 
-        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-        ::UpdateWindow(hwnd);
+        ::ShowWindow(m_hwnd, SW_SHOWDEFAULT);
+        ::UpdateWindow(m_hwnd);
 
         // Setup imGuiContext
         IMGUI_CHECKVERSION();
@@ -137,7 +165,7 @@ namespace sb
 
         ImGui::StyleColorsDark();
 
-        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplWin32_Init(m_hwnd);
         ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM,
                             m_DescriptorHeap->GetSrvHeap(),
                             m_DescriptorHeap->GetSrvHeap()->GetCPUDescriptorHandleForHeapStart(),
@@ -148,6 +176,18 @@ namespace sb
 
     void DirectXCanvas::Update()
     {
+        auto pressedAction = [this]()
+        {
+            bShutDownCalled = true;
+        };
+        auto heldAction = []() {};
+        auto releasedAction = []() {};
+
+        Input::KeyInputAction(pressedAction, KeyState::Pressed, KeyButton::Esc);
+        Input::KeyInputAction(heldAction, KeyState::Held, KeyButton::Esc);
+        Input::KeyInputAction(releasedAction, KeyState::Released, KeyButton::Esc);
+
+
         // Poll handle messages
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -249,6 +289,20 @@ namespace sb
 
     bool DirectXCanvas::IsWindowShouldClosed()
     {
+        if (bShutDownCalled)
+        {
+            WaitForLastSubmittedFrame();
+
+            ImGui_ImplDX12_Shutdown();
+            ImGui_ImplWin32_Shutdown();
+            ImGui::DestroyContext();
+
+            CleanUpDevice();
+            ::DestroyWindow(m_hwnd);
+            ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);
+            return true;
+        }
+
         return false;
     }
 
@@ -269,6 +323,7 @@ namespace sb
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
         pInfoQueue->Release();
+        m_debugController->Release();
 #endif
     }
 
@@ -277,74 +332,73 @@ namespace sb
         CleanUpRenderTarget();
         if (m_swapChain->GetSwapChain3())
         {
-            m_swapChain->GetSwapChain3()->SetFullscreenState(false, nullptr);
-            m_swapChain->GetSwapChain3()->Release();
-            m_swapChain = nullptr;
+            m_swapChain->Clear();
+            m_swapChain.reset();
         }
 
-        /*
-        if (g_hSwapChainWaitableObject != nullptr)
+        if (m_hSwapChainWaitableObject != nullptr)
         {
-            CloseHandle(g_hSwapChainWaitableObject);
+            CloseHandle(m_hSwapChainWaitableObject);
         }
 
         for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
         {
-            m_frameContexts[i].CommandAllocator->Release();
-            m_frameContexts[i].CommandAllocator = nullptr;
+            if (m_frameContexts[i].CommandAllocator)
+            {
+                m_frameContexts[i].CommandAllocator->Release();
+                m_frameContexts[i].CommandAllocator = nullptr;
+            }
         }
 
-        if (g_pd3dCommandQueue)
+        if (ComPtr<ID3D12CommandQueue> cmdQueue = m_commandQueue->GetCmdQueue())
         {
-            g_pd3dCommandQueue->Release();
-            g_pd3dCommandQueue = nullptr;
+            cmdQueue->Release();
+            cmdQueue.Reset();
         }
 
-        if (g_pd3dCommandList)
+        if (ComPtr<ID3D12GraphicsCommandList> cmdList = m_commandQueue->GetCmdList())
         {
-            g_pd3dCommandList->Release();
-            g_pd3dCommandList = nullptr;
+            cmdList->Release();
+            cmdList.Reset();
         }
 
-        if (g_pd3dRtvDescHeap)
+        if (ID3D12DescriptorHeap* rtvHeap = m_DescriptorHeap->GetRtvHeap())
         {
-            g_pd3dRtvDescHeap->Release();
-            g_pd3dRtvDescHeap = nullptr;
+            rtvHeap->Release();
+            rtvHeap = nullptr;
         }
 
-        if (g_pd3dSrvDescHeap)
+        if (ID3D12DescriptorHeap* srvHeap = m_DescriptorHeap->GetSrvHeap())
         {
-            g_pd3dSrvDescHeap->Release();
-            g_pd3dSrvDescHeap = nullptr;
+            srvHeap->Release();
+            srvHeap = nullptr;
         }
 
-        if (g_fence)
+        if (m_fence)
         {
-            g_fence->Release();
-            g_fence = nullptr;
+            m_fence.Reset();
         }
 
-        if (g_fenceEvent)
+        if (m_fenceEvent)
         {
-            CloseHandle(g_fenceEvent);
-            g_fenceEvent = nullptr;
+            CloseHandle(m_fenceEvent);
+            m_fenceEvent = nullptr;
         }
 
-        if (g_cacheDevice)
+        if (m_device)
         {
-            g_cacheDevice->Release();
-            g_cacheDevice = nullptr;
+            m_device.Reset();
         }
 
-#ifdef DX12_ENABLE_DEBUG_LAYER
-        IDXGIDebug1* pDebug = nullptr;
-        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
-        {
-            pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
-            pDebug->Release();
-        }
+#ifdef _DEBUG
+        // 이거 안되는데 나중에 한 번 다시 보기
+        // IDXGIDebug1* pDebug = nullptr;
+        // if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+        // {
+        //     pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+        //     pDebug->Release();
+        // }
 #endif
-    */
     }
 
     FrameContext* DirectXCanvas::WaitForNextFrameResources()

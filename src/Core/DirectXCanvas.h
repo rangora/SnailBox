@@ -79,5 +79,11 @@ namespace sb
         FrameContext m_frameContexts[NUM_FRAMES_IN_FLIGHT] = {};
         uint32 m_frameIndex = 0;
         uint32 m_fenceLastSignaledValue = 0;
+
+        // Windows
+        WNDCLASSEXW m_wc;
+        HWND m_hwnd;
+
+        bool bShutDownCalled = false;
     };
 };

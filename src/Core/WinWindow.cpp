@@ -6,7 +6,6 @@
 #include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
 #include "Input.h"
-#include "InputKey.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <vector>
@@ -244,12 +243,14 @@ namespace sb
 
     void WinsWindow::ShutDown()
     {
-        ImGui_ImplOpenGL3_DestroyFontsTexture();
-        ImGui_ImplOpenGL3_DestroyDeviceObjects();
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext(m_imguiContext);
-
-        glfwTerminate();
+        if (m_isOpenglWindow)
+        {
+            ImGui_ImplOpenGL3_DestroyFontsTexture();
+            ImGui_ImplOpenGL3_DestroyDeviceObjects();
+            ImGui_ImplOpenGL3_Shutdown();
+            ImGui_ImplGlfw_Shutdown();
+            ImGui::DestroyContext(m_imguiContext);
+            glfwTerminate();
+        }
     }
 } // namespace sb

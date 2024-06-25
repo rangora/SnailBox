@@ -12,6 +12,25 @@ namespace sb
         // CreateRTV(in_device);
     }
 
+    void SwapChain::Clear()
+    {
+        m_swapChain3->SetFullscreenState(false, nullptr);
+        m_swapChain3.Reset();
+
+        m_rtvHeap = nullptr;
+        for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
+        {
+            if (m_rtvBuffer[i])
+            {
+                m_rtvBuffer[i].Reset();
+            }
+            if (m_mainRenderTargetResources[i])
+            {
+                m_mainRenderTargetResources[i] = nullptr;
+            }
+        }
+    }
+
     void SwapChain::Present()
     {
         m_swapChain3->Present(0, 0);
@@ -24,8 +43,6 @@ namespace sb
 
     void SwapChain::CreateSwapChain(ComPtr<IDXGIFactory4> in_dxgi, ComPtr<ID3D12CommandQueue> in_cmdQueue, HWND in_hwnd)
     {
-        //m_swapChain3.Reset();
-
         DXGI_SWAP_CHAIN_DESC1 sd;
         ZeroMemory(&sd, sizeof(sd));
         sd.BufferCount = SWAP_CHAIN_BUFFER_COUNT;

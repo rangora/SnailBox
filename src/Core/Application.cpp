@@ -1,4 +1,4 @@
-﻿#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
 #include "Input.h"
@@ -95,6 +95,7 @@ namespace sb
 
     void Application::PreProcessOnFrame()
     {
+        Input::ClearReleasedKeys();
         Input::TransitionPressedButtons();
     }
 
