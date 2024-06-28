@@ -12,7 +12,7 @@ namespace sb
 
         if (window.IsOpenglWindow())
         {
-            auto driver = window.m_driver.get();
+            auto driver = window.m_driver;
             GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(driver->GetNativeWindow());
             double x = 0.0, y = 0.0;
             glfwGetCursorPos(glfwWindow, &x, &y);
@@ -40,7 +40,7 @@ namespace sb
 
         if (window.IsOpenglWindow())
         {
-            auto driver = window.m_driver.get();
+            auto driver = window.m_driver;
             GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(driver->GetNativeWindow());
             int state = glfwGetMouseButton(glfwWindow, static_cast<int32>(in_button));
             return state == GLFW_PRESS;

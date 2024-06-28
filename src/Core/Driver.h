@@ -17,7 +17,7 @@ namespace sb
     {
     public:
         Driver(Window* in_window);
-        Driver() = delete;
+        Driver() = default;
 
         virtual void* GetNativeWindow() = 0;
         virtual bool InitDriver(const WinWindowData* in_windowData) = 0;

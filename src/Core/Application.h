@@ -1,14 +1,15 @@
 #pragma once
 
-#include "corepch.h"
+#include "Direct3dDriver.h"
+#include "FrontWindow.h"
 #include "Render/ShaderArchive.h"
 #include "Window.h"
+#include "corepch.h"
 #include <boost/container/flat_map.hpp>
 #include <vector>
 
 #define sg_d3dDevice sb::Application::GetD3Device()
 #define sg_d3dDriver sb::Application::GetDirect3dDriver()
-// #define sg_winsWindow sb::Application::GetWinsWindow()
 
 namespace sb
 {
@@ -36,11 +37,15 @@ namespace sb
         static ShaderArchive s_staticShaderArchive;
 
     private:
+        void InitializeDirect3dDriver();
+
         void PreProcessOnFrame();
 
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;
         static Application* s_instance;
+        // Graphics drivers
+        UPtr<Direct3dDriver> m_d3dDriver = nullptr;
     };
 } // namespace sb

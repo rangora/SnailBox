@@ -26,7 +26,7 @@ namespace sb
     {
     public:
         Direct3dDriver(Window* in_window);
-        Direct3dDriver() = delete;
+        Direct3dDriver() = default;
 
         void* GetNativeWindow() final;
 
@@ -37,6 +37,7 @@ namespace sb
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
 
+        void InitDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
         RootSignature* GetRootSignature() const { return m_rootSignature.get(); }
@@ -55,7 +56,6 @@ namespace sb
         FrameContext* GetFrameContexts() { return m_frameContexts; }
 
     private:
-        void InitDevice();
         void CleanUpDevice();
 
         WinsWindow* GetWinWindow() const;
@@ -67,9 +67,8 @@ namespace sb
         ComPtr<ID3D12Device> m_device;
 
         Camera m_camera;
-
+        
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
         UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;
         UPtr<SwapChain> m_swapChain = nullptr;

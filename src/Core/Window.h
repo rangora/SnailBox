@@ -55,7 +55,6 @@ namespace sb
         virtual void AttachLayout(Layout* in_layout) {}
 
         virtual ComPtr<ID3D12Device> GetD3dDevice() { return nullptr; }
-        virtual class Direct3dDriver* GetDirect3dDriver() { return nullptr; }
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
@@ -72,10 +71,10 @@ namespace sb
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
-        UPtr<Driver> m_driver = nullptr;
+        Driver* m_driver = nullptr;
 
-        protected:
-            bool m_isOpenglWindow = false; // TEMP
-            std::vector<Layout*> m_layouts;
+    protected:
+        bool m_isOpenglWindow = false; // TEMP
+        std::vector<Layout*> m_layouts;
     };
 } // namespace sb

@@ -24,7 +24,7 @@ namespace sb
         WinsWindow(const WindowContext& in_windowContext, class Application* in_app);
         virtual ~WinsWindow();
 
-        void Update() final;
+        void Update() override;
 
         bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
         bool InitializeWithOpenglDevice() final;
@@ -40,7 +40,6 @@ namespace sb
         // ~input
 
         ComPtr<ID3D12Device> GetD3dDevice() final;
-        class Direct3dDriver* GetDirect3dDriver() final;
 
         void GetMousePos(double& out_x, double& out_y) final;
 

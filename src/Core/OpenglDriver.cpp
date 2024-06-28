@@ -1,4 +1,4 @@
-#define GLFW_INCLUDE_NONE
+﻿#define GLFW_INCLUDE_NONE
 
 #include "OpenglDriver.h"
 #include "Render/OpenGL/OpenGLContext.h"

@@ -156,14 +156,14 @@ namespace sb
 
     bool WinsWindow::InitializeWithOpenglDevice()
     {
-        m_driver = CreateUPtr<OpenglDriver>(this);
+        m_driver = new OpenglDriver(this);
         if (!m_driver->InitDriver(&m_windowData))
         {
             spdlog::error("Failed init openglDriver.");
             return false;
         }
 
-        AttachLayout(m_driver.get());
+        AttachLayout(m_driver);
 
         m_nativeWindow = static_cast<GLFWwindow*>(m_driver->GetNativeWindow());
         if (m_nativeWindow == nullptr)
@@ -202,7 +202,7 @@ namespace sb
         glfwSetCursorPosCallback(m_nativeWindow, OnCursorPos);
         glfwSetMouseButtonCallback(m_nativeWindow, OnMouseButton);
         glfwSetScrollCallback(m_nativeWindow, OnScroll);
-
+        
         m_isOpenglWindow = true;
 
         return true;
@@ -216,14 +216,14 @@ namespace sb
             return false;
         }
 
-        m_driver = CreateUPtr<Direct3dDriver>(this);
+        m_driver = sg_d3dDriver;
         if (!m_driver->InitDriver(&m_windowData))
         {
             spdlog::error("Failed init Direct3dDriver.");
             return false;
         }
 
-        AttachLayout(m_driver.get());
+        AttachLayout(m_driver);
 
         return true;
     }
@@ -326,14 +326,9 @@ namespace sb
 
     ComPtr<ID3D12Device> WinsWindow::GetD3dDevice()
     {
-        Direct3dDriver* driver = static_cast<Direct3dDriver*>(m_driver.get());
+        Direct3dDriver* driver = static_cast<Direct3dDriver*>(m_driver);
 
         return driver == nullptr ? nullptr : driver->GetDevice();
-    }
-
-    Direct3dDriver* WinsWindow::GetDirect3dDriver()
-    {
-        return static_cast<Direct3dDriver*>(m_driver.get());
     }
 
     void WinsWindow::GetMousePos(double& out_x, double& out_y)

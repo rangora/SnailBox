@@ -1,8 +1,9 @@
-﻿#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
 #include "Application.h"
 
-#include "Input.h"
+#include "Direct3dDriver.h"
 #include "Enums.h"
+#include "Input.h"
 #include "Render/ShaderCompiler.h"
 #include "WinWindow.h"
 #include "spdlog/spdlog.h"
@@ -17,6 +18,8 @@ namespace sb
     {
         // s_instance에 assert 필요!
         s_instance = this;
+
+        InitializeDirect3dDriver();
 
         // ShaderPreCompiler list
         s_staticShaderArchive.Add("../resources/shader/simple.vs");
@@ -82,15 +85,19 @@ namespace sb
     ComPtr<ID3D12Device> Application::GetD3Device()
     {
         Application& app = Get();
-        Window& window = app.GetDirectXWindow();
-        return window.GetD3dDevice();
+        return app.m_d3dDriver->GetDevice();
     }
 
     Direct3dDriver* Application::GetDirect3dDriver()
     {
         Application& app = Get();
-        Window& window = app.GetDirectXWindow();
-        return window.GetDirect3dDriver();
+        return app.m_d3dDriver.get();
+    }
+
+    void Application::InitializeDirect3dDriver()
+    {
+        m_d3dDriver = CreateUPtr<Direct3dDriver>();
+        m_d3dDriver->InitDevice();
     }
 
     void Application::PreProcessOnFrame()

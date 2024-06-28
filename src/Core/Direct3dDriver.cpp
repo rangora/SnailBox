@@ -1,4 +1,4 @@
-﻿#include "Direct3dDriver.h"
+#include "Direct3dDriver.h"
 
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
@@ -34,8 +34,6 @@ namespace sb
     bool Direct3dDriver::InitDriver(const WinWindowData* in_windowData)
     {
         const HWND hwnd = GetWinWindow()->m_hwnd;
-
-        InitDevice();
 
         m_rootSignature = CreateUPtr<RootSignature>();
         m_swapChain = CreateUPtr<SwapChain>();
@@ -315,7 +313,8 @@ namespace sb
 
     WinsWindow* Direct3dDriver::GetWinWindow() const
     {
-        return static_cast<WinsWindow*>(m_window);
+        // TEMP
+        return static_cast<WinsWindow*>(&(sb::Application::Get().GetDirectXWindow()));
     }
 
     FrameContext* Direct3dDriver::WaitForNextFrameResources()
