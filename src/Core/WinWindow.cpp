@@ -5,6 +5,8 @@
 #include "Input.h"
 #include "OpenglDriver.h"
 #include "Render/OpenGL/OpenGLContext.h"
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
 #include "spdlog/spdlog.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -129,14 +131,57 @@ namespace sb
         if(!m_driver->IsWindowShouldClosed())
         {
             ProcessInput();
-            m_driver->Update();
-            m_driver->SwapBuffers();
-        }
+
+            MSG msg;
+            while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+            {
+                ::TranslateMessage(&msg);
+                ::DispatchMessage(&msg);
+                if (msg.message == WM_QUIT)
+                {
+                    // 종료
+                    break;
+                }
+
+                // Imgui update
+                ImGui_ImplDX12_NewFrame();
+                ImGui_ImplWin32_NewFrame();
+                ImGui::NewFrame();
+                ImGuiUpdate();
+                ImGui::Render();
+
+                // Driver update
+                m_driver->Update();
+                m_driver->SwapBuffers();
+            }
+
+            }
         else
         {
             // TEMP
             m_app->DestroyAppWindow();
         }
+    }
+
+    void WinsWindow::ImGuiUpdate()
+    {
+        static ImVec4 clearColor;
+
+        ImGui::Begin("Hello, world!");
+
+        ImGui::Text("This is some useful text.");
+        ImGui::SliderFloat("float", &m_f, 0.0f, 1.0f);
+        ImGui::ColorEdit3("clear color", (float*)&clearColor);
+        if (ImGui::Button("Button"))
+            m_counter++;
+        ImGui::SameLine();
+        ImGui::Text("counter = %d", m_counter);
+
+        ImGui::End();
+
+        m_clearColor = {clearColor.x, clearColor.y, clearColor.z};
+
+        sg_d3dDriver->EnqueueImGuiProperty({m_clearColor});
     }
 
     bool WinsWindow::InitializeWindows(const std::string& in_menuName, const std::string& in_className)
@@ -215,7 +260,7 @@ namespace sb
             spdlog::error("Failed to init winswindows.");
             return false;
         }
-        
+
         m_driver = sg_d3dDriver;
         if (!m_driver->InitDriver())
         {

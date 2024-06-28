@@ -8,6 +8,7 @@
 #include "Render/DirectX12/TableDescriptorHeap.h"
 #include "corepch.h"
 #include "imgui.h"
+#include <variant>
 
 struct GLFWwindow;
 
@@ -21,6 +22,13 @@ namespace sb
         uint64 FenceValue;
     };
 
+    struct ImGuiPropertyPlaceHolder
+    {
+        using ImGuiProperty = std::variant<float, int32, Vector3f>;
+
+        ImGuiProperty m_property;
+    };
+
     class Direct3dDriver : public Driver
     {
     public:
@@ -32,7 +40,7 @@ namespace sb
         bool InitDriver() final;
         void Update() final;
         void OnUpdate(float in_delta) final;
-        void Render() final;
+        void Render() final {} // ??
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
 
@@ -54,10 +62,13 @@ namespace sb
         void CleanUpRenderTarget();
         FrameContext* GetFrameContexts() { return m_frameContexts; }
 
+        // ImGui Interface
+        void EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property);
+
     private:
         void CleanUpDevice();
 
-        WinsWindow* GetWinWindow() const;
+        WinsWindow* GetTargetWindow() const;
 
         FrameContext* WaitForNextFrameResources();
 
@@ -67,7 +78,6 @@ namespace sb
 
         Camera m_camera;
 
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;
         UPtr<SwapChain> m_swapChain = nullptr;
@@ -82,5 +92,7 @@ namespace sb
         uint32 m_fenceLastSignaledValue = 0;
 
         bool bShutDownCalled = false;
+
+        std::vector<ImGuiPropertyPlaceHolder> m_ImGuiProperties;
     };
 };

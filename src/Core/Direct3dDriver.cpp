@@ -43,7 +43,7 @@ namespace sb
             return false;
         }
 
-        const HWND hwnd = GetWinWindow()->m_hwnd;
+        const HWND hwnd = GetTargetWindow()->m_hwnd;
 
         m_rootSignature = CreateUPtr<RootSignature>();
         m_swapChain = CreateUPtr<SwapChain>();
@@ -104,100 +104,66 @@ namespace sb
         Input::KeyInputAction(heldAction, KeyState::Held, KeyButton::Esc);
         Input::KeyInputAction(releasedAction, KeyState::Released, KeyButton::Esc);
 
+        // Render things..
+        auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
+        auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
+        auto commandList = m_commandQueue->GetCmdList().Get();
+        auto commandQueue = m_commandQueue->GetCmdQueue();
+        auto swapChain = m_swapChain->GetSwapChain3();
+        auto srvDescHeap = m_DescriptorHeap->GetSrvHeap();
 
-        // Poll handle messages
-        MSG msg;
-        while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+        FrameContext* frameCtx = WaitForNextFrameResources();
+        uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
+        frameCtx->CommandAllocator->Reset();
+
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource = mainRenderTargetResource[backBufferIdx];
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        commandList->Reset(frameCtx->CommandAllocator, nullptr);
+        commandList->ResourceBarrier(1, &barrier);
+
+        // Render imgui graphics
+        const float w = 1.f; // TEMP
+        Vector3f clearColor{0.45f, 0.55f, 0.60f};
+        if (m_ImGuiProperties.size())
         {
-            ::TranslateMessage(&msg);
-            ::DispatchMessage(&msg);
-            if (msg.message == WM_QUIT)
+            if (auto colorVector = std::get_if<Vector3f>(&m_ImGuiProperties[0].m_property))
             {
-                // 종료
-                break;
-            }
-
-            ImGui_ImplDX12_NewFrame();
-            ImGui_ImplWin32_NewFrame();
-            ImGui::NewFrame();
-            Render();
-            ImGui::Render();
-
-            // Render things..
-            {
-                auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
-                auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
-                auto commandList = m_commandQueue->GetCmdList().Get();
-                auto commandQueue = m_commandQueue->GetCmdQueue();
-                auto swapChain = m_swapChain->GetSwapChain3();
-                auto srvDescHeap = m_DescriptorHeap->GetSrvHeap();
-
-                FrameContext* frameCtx = WaitForNextFrameResources();
-                uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
-                frameCtx->CommandAllocator->Reset();
-
-                D3D12_RESOURCE_BARRIER barrier = {};
-                barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-                barrier.Transition.pResource = mainRenderTargetResource[backBufferIdx];
-                barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-                commandList->Reset(frameCtx->CommandAllocator, nullptr);
-                commandList->ResourceBarrier(1, &barrier);
-
-                // Render imgui graphics
-                const float clear_color_with_alpha[4] = {clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-                                                         clear_color.z * clear_color.w, clear_color.w};
-                commandList->ClearRenderTargetView(mainRenderTargetDescriptor[backBufferIdx],
-                                                         clear_color_with_alpha, 0, nullptr);
-                commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
-                commandList->SetDescriptorHeaps(1, &srvDescHeap);
-                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
-                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-                commandList->ResourceBarrier(1, &barrier);
-                commandList->Close();
-
-                commandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&commandList);
-
-                swapChain->Present(1, 0); // 1이면 vsync
-
-                uint64 fenceValue = m_fenceLastSignaledValue + 1;
-                commandQueue->Signal(m_fence.Get(), fenceValue);
-                m_fenceLastSignaledValue = fenceValue;
-                frameCtx->FenceValue = fenceValue;
-
-                ImGui::UpdatePlatformWindows();
+                clearColor = {colorVector->X, colorVector->Y, colorVector->Z};
             }
         }
+
+        const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
+        commandList->ClearRenderTargetView(mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0,
+                                           nullptr);
+        commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
+        commandList->SetDescriptorHeaps(1, &srvDescHeap);
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+        commandList->ResourceBarrier(1, &barrier);
+        commandList->Close();
+
+        commandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&commandList);
+
+        swapChain->Present(1, 0); // 1이면 vsync
+
+        uint64 fenceValue = m_fenceLastSignaledValue + 1;
+        commandQueue->Signal(m_fence.Get(), fenceValue);
+        m_fenceLastSignaledValue = fenceValue;
+        frameCtx->FenceValue = fenceValue;
+
+        ImGui::UpdatePlatformWindows();
+
+        m_ImGuiProperties.clear();
     }
 
     void Direct3dDriver::OnUpdate(float in_delta)
     {
-    }
-
-    void Direct3dDriver::Render()
-    {
-        static float f = 0.0f;
-        static int counter = 0;
-
-        ImGui::Begin("Hello, world!");
-        ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
-        // ImGui::Checkbox("Demo Window", &true); // Edit bools storing our window open/close state
-        // ImGui::Checkbox("Another Window", &true);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button(
-                "Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        ImGui::End();
     }
 
     void Direct3dDriver::SwapBuffers()
@@ -208,8 +174,8 @@ namespace sb
     {
         if (bShutDownCalled)
         {
-            const HWND hwnd = GetWinWindow()->m_hwnd;
-            const WNDCLASSEXW wc = GetWinWindow()->m_wc;
+            const HWND hwnd = GetTargetWindow()->m_hwnd;
+            const WNDCLASSEXW wc = GetTargetWindow()->m_wc;
 
             WaitForLastSubmittedFrame();
 
@@ -245,6 +211,11 @@ namespace sb
         pInfoQueue->Release();
         m_debugController->Release();
 #endif
+    }
+
+    void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)
+    {
+        m_ImGuiProperties.emplace_back(std::move(in_property));
     }
 
     void Direct3dDriver::CleanUpDevice()
@@ -321,9 +292,8 @@ namespace sb
 #endif
     }
 
-    WinsWindow* Direct3dDriver::GetWinWindow() const
+    WinsWindow* Direct3dDriver::GetTargetWindow() const
     {
-        // TEMP
         return static_cast<WinsWindow*>(&(sb::Application::Get().GetDirectXWindow()));
     }
 

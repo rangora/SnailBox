@@ -46,7 +46,7 @@ namespace sb
         virtual bool InitializeDriver() = 0;
 
         virtual void GetMousePos(double& out_x, double& out_y) = 0;
-
+        
         // Input 처리는 외부로 뺴야함..
         virtual void ProcessInput() = 0;
         virtual void MouseMove(double in_x, double in_y) = 0;

@@ -23,8 +23,9 @@ namespace sb
         WinsWindow(const WindowContext& in_windowContext);
         WinsWindow(const WindowContext& in_windowContext, class Application* in_app);
         virtual ~WinsWindow();
-
+        
         void Update() override;
+        void ImGuiUpdate();
 
         bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
         bool InitializeWithOpenglDevice() final;
@@ -63,6 +64,11 @@ namespace sb
         // Windows
         WNDCLASSEXW m_wc;
         HWND m_hwnd;
+
+        // Render properties
+        float m_f = 0.f;
+        int32 m_counter = 0;
+        Vector3f m_clearColor = {0.45f, 0.55f, 0.60f};
 
     private:
         void ShutDown() final;
