@@ -8,6 +8,7 @@
 
 #define sg_d3dDevice sb::Application::GetD3Device()
 #define sg_d3dDriver sb::Application::GetDirect3dDriver()
+// #define sg_winsWindow sb::Application::GetWinsWindow()
 
 namespace sb
 {

@@ -8,6 +8,7 @@
 #include <tchar.h>
 #include "Core/Application.h"
 #include "Core/Input.h"
+#include "WinWindow.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -18,92 +19,6 @@
 #pragma comment(lib, "dxguid.lib")
 #endif
 
-// forward declare
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-    {
-        return true;
-    }
-
-    switch (msg)
-    {
-        case WM_SIZE:
-        {
-            if (sg_d3dDevice && wParam != SIZE_MINIMIZED)
-            {
-                sg_d3dDriver->WaitForLastSubmittedFrame();
-                sg_d3dDriver->CleanUpRenderTarget();
-
-                auto swapChain = sg_d3dDriver->GetSwapChain();
-                if(swapChain == nullptr)
-                    return 0;
-
-                auto swapChain3 = swapChain->GetSwapChain3();
-                if(swapChain3 == nullptr)
-                    return 0;
-
-                HWND pHwnd;
-                swapChain3->GetHwnd(&pHwnd);
-
-                HRESULT result = sg_d3dDriver->GetSwapChain()->GetSwapChain3()->ResizeBuffers(
-                    0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN,
-                    DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
-
-                assert(SUCCEEDED(result) && "Failed to reszie swapchain.");
-                sg_d3dDriver->CreateRenderTarget();
-            }
-            return 0;
-        }
-        case WM_SYSCOMMAND:
-        {
-            // Disable ALT application menu
-            if ((wParam & 0xfff0) == SC_KEYMENU)
-            {
-                return 0;
-            }
-            break;
-        }
-
-        case WM_KEYDOWN:
-        {
-            if (wParam == VK_ESCAPE)
-            {
-                if (sb::Input::IsKeyButtonDown(sb::KeyButton::Esc))
-                {
-                    break;
-                }
-
-                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Pressed);
-            }
-            break;
-        }
-
-        case WM_KEYUP:
-        {
-            if (wParam == VK_ESCAPE)
-            {
-                if (sb::Input::IsKeyButtonReleased(sb::KeyButton::Esc))
-                {
-                    break;
-                }
-
-                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Released);
-            }
-            break;
-        }
-        case WM_DESTROY:
-        {
-            ::PostQuitMessage(0);
-            return 0;
-        }
-    }
-
-    return ::DefWindowProcW(hWnd, msg, wParam, lParam);
-}
-
 namespace sb
 {
     Direct3dDriver::Direct3dDriver(Window* in_window)
@@ -113,18 +28,12 @@ namespace sb
 
     void* Direct3dDriver::GetNativeWindow()
     {
-
         return nullptr;
     }
 
     bool Direct3dDriver::InitDriver(const WinWindowData* in_windowData)
     {
-        m_wc = {sizeof(m_wc), CS_CLASSDC, WndProc,          0L,     0L, GetModuleHandle(nullptr), nullptr, nullptr,
-                nullptr,    nullptr,    L"Imgui Example", nullptr};
-        ::RegisterClassExW(&m_wc);
-
-        m_hwnd = ::CreateWindowW(m_wc.lpszClassName, L"Dear Imgui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100,
-                                    1280, 800, nullptr, nullptr, m_wc.hInstance, nullptr);
+        const HWND hwnd = GetWinWindow()->m_hwnd;
 
         InitDevice();
 
@@ -135,7 +44,7 @@ namespace sb
 
         m_commandQueue->Init(sg_d3dDevice, m_swapChain.get());
         m_DescriptorHeap->Init(256);
-        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), m_hwnd);
+        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), hwnd);
         m_rootSignature->Init(sg_d3dDevice);
 
         // fence
@@ -152,8 +61,8 @@ namespace sb
         }
         // ~fence
 
-        ::ShowWindow(m_hwnd, SW_SHOWDEFAULT);
-        ::UpdateWindow(m_hwnd);
+        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
+        ::UpdateWindow(hwnd);
 
         // Setup imGuiContext
         IMGUI_CHECKVERSION();
@@ -165,7 +74,7 @@ namespace sb
 
         ImGui::StyleColorsDark();
 
-        ImGui_ImplWin32_Init(m_hwnd);
+        ImGui_ImplWin32_Init(hwnd);
         ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM,
                             m_DescriptorHeap->GetSrvHeap(),
                             m_DescriptorHeap->GetSrvHeap()->GetCPUDescriptorHandleForHeapStart(),
@@ -291,6 +200,9 @@ namespace sb
     {
         if (bShutDownCalled)
         {
+            const HWND hwnd = GetWinWindow()->m_hwnd;
+            const WNDCLASSEXW wc = GetWinWindow()->m_wc;
+
             WaitForLastSubmittedFrame();
 
             ImGui_ImplDX12_Shutdown();
@@ -298,8 +210,8 @@ namespace sb
             ImGui::DestroyContext();
 
             CleanUpDevice();
-            ::DestroyWindow(m_hwnd);
-            ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);
+            ::DestroyWindow(hwnd);
+            ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
             return true;
         }
 
@@ -399,6 +311,11 @@ namespace sb
         //     pDebug->Release();
         // }
 #endif
+    }
+
+    WinsWindow* Direct3dDriver::GetWinWindow() const
+    {
+        return static_cast<WinsWindow*>(m_window);
     }
 
     FrameContext* Direct3dDriver::WaitForNextFrameResources()

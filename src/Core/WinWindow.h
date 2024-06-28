@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Window.h"
 
@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 struct GLFWwindow;
 struct ImGuiContext;
@@ -24,6 +26,7 @@ namespace sb
 
         void Update() final;
 
+        bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
         bool InitializeWithOpenglDevice() final;
         bool InitializeWithDirectXDevice() final;
         bool InitializeDriver() final;
@@ -57,6 +60,10 @@ namespace sb
         glm::vec3 m_cameraPos = glm::vec3(0.f, 0.f, 3.f);
         glm::vec3 m_cameraUp = glm::vec3(0.f, 1.f, 0.f);
         // ~camera
+
+        // Windows
+        WNDCLASSEXW m_wc;
+        HWND m_hwnd;
 
     private:
         void ShutDown() final;

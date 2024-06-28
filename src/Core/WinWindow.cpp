@@ -1,14 +1,101 @@
 ﻿#define GLFW_INCLUDE_NONE
 #include "WinWindow.h"
 #include "Application.h"
-#include "OpenglDriver.h"
 #include "Direct3dDriver.h"
+#include "Input.h"
+#include "OpenglDriver.h"
 #include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
-#include "Input.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <tchar.h>
 #include <vector>
+
+// forward declare
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+    {
+        return true;
+    }
+
+    switch (msg)
+    {
+        case WM_SIZE:
+        {
+            if (sg_d3dDevice && wParam != SIZE_MINIMIZED)
+            {
+                sg_d3dDriver->WaitForLastSubmittedFrame();
+                sg_d3dDriver->CleanUpRenderTarget();
+
+                auto swapChain = sg_d3dDriver->GetSwapChain();
+                if (swapChain == nullptr)
+                    return 0;
+
+                auto swapChain3 = swapChain->GetSwapChain3();
+                if (swapChain3 == nullptr)
+                    return 0;
+
+                HWND pHwnd;
+                swapChain3->GetHwnd(&pHwnd);
+
+                HRESULT result = sg_d3dDriver->GetSwapChain()->GetSwapChain3()->ResizeBuffers(
+                    0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN,
+                    DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
+
+                assert(SUCCEEDED(result) && "Failed to reszie swapchain.");
+                sg_d3dDriver->CreateRenderTarget();
+            }
+            return 0;
+        }
+        case WM_SYSCOMMAND:
+        {
+            // Disable ALT application menu
+            if ((wParam & 0xfff0) == SC_KEYMENU)
+            {
+                return 0;
+            }
+            break;
+        }
+
+        case WM_KEYDOWN:
+        {
+            if (wParam == VK_ESCAPE)
+            {
+                if (sb::Input::IsKeyButtonDown(sb::KeyButton::Esc))
+                {
+                    break;
+                }
+
+                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Pressed);
+            }
+            break;
+        }
+
+        case WM_KEYUP:
+        {
+            if (wParam == VK_ESCAPE)
+            {
+                if (sb::Input::IsKeyButtonReleased(sb::KeyButton::Esc))
+                {
+                    break;
+                }
+
+                sb::Input::UpdateKeyState(sb::KeyButton::Esc, sb::KeyState::Released);
+            }
+            break;
+        }
+        case WM_DESTROY:
+        {
+            ::PostQuitMessage(0);
+            return 0;
+        }
+    }
+
+    return ::DefWindowProcW(hWnd, msg, wParam, lParam);
+}
 
 void framebuffer_size_callback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
@@ -50,6 +137,21 @@ namespace sb
             // TEMP
             m_app->DestroyAppWindow();
         }
+    }
+
+    bool WinsWindow::InitializeWindows(const std::string& in_menuName, const std::string& in_className)
+    {
+        std::wstring menuWidStr(in_menuName.begin(), in_menuName.end());
+        std::wstring classWidStr(in_className.begin(), in_className.end());
+
+        m_wc = {sizeof(m_wc), CS_CLASSDC, WndProc, 0L,      0L,         GetModuleHandle(nullptr),
+                nullptr,      nullptr,    nullptr, nullptr, menuWidStr.c_str(), nullptr};
+        ::RegisterClassExW(&m_wc);
+
+        m_hwnd = ::CreateWindowW(m_wc.lpszClassName, classWidStr.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr,
+                                 nullptr, m_wc.hInstance, nullptr);
+
+        return true;
     }
 
     bool WinsWindow::InitializeWithOpenglDevice()
@@ -108,6 +210,12 @@ namespace sb
 
     bool WinsWindow::InitializeWithDirectXDevice()
     {
+        if (!InitializeWindows("dirct3d menu", "direct3d window"))
+        {
+            spdlog::error("Failed to init winswindows.");
+            return false;
+        }
+
         m_driver = CreateUPtr<Direct3dDriver>(this);
         if (!m_driver->InitDriver(&m_windowData))
         {
