@@ -19,8 +19,9 @@ namespace sb
         Driver(Window* in_window);
         Driver() = default;
 
-        virtual void* GetNativeWindow() = 0;
-        virtual bool InitDriver(const WinWindowData* in_windowData) = 0;
+        virtual void* GetNativeWindow() = 0; // 제거 예정
+        virtual bool InitDriver(const WinWindowData* in_windowData) { return false; } // 제거 예정
+        virtual bool InitDriver() = 0;
         virtual void Render() = 0;
         virtual void Update() = 0;
         virtual void SwapBuffers() = 0;

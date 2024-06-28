@@ -18,6 +18,7 @@ namespace sb
         void* GetNativeWindow() final;
 
         bool InitDriver(const WinWindowData* in_windowData) final;
+        bool InitDriver() final { return false; };
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;

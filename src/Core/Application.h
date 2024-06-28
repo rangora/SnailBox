@@ -45,6 +45,7 @@ namespace sb
 
         static int32_t m_runningWindowCount;
         static Application* s_instance;
+        
         // Graphics drivers
         UPtr<Direct3dDriver> m_d3dDriver = nullptr;
     };

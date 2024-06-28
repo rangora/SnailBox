@@ -13,7 +13,6 @@ struct GLFWwindow;
 
 namespace sb
 {
-    class Window;
     class WinsWindow;
 
     struct FrameContext
@@ -28,9 +27,9 @@ namespace sb
         Direct3dDriver(Window* in_window);
         Direct3dDriver() = default;
 
-        void* GetNativeWindow() final;
+        void* GetNativeWindow() final { return nullptr; };
 
-        bool InitDriver(const WinWindowData* in_windowData) final;
+        bool InitDriver() final;
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final;
@@ -67,7 +66,7 @@ namespace sb
         ComPtr<ID3D12Device> m_device;
 
         Camera m_camera;
-        
+
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;

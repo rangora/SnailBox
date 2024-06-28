@@ -202,7 +202,7 @@ namespace sb
         glfwSetCursorPosCallback(m_nativeWindow, OnCursorPos);
         glfwSetMouseButtonCallback(m_nativeWindow, OnMouseButton);
         glfwSetScrollCallback(m_nativeWindow, OnScroll);
-        
+
         m_isOpenglWindow = true;
 
         return true;
@@ -215,9 +215,9 @@ namespace sb
             spdlog::error("Failed to init winswindows.");
             return false;
         }
-
+        
         m_driver = sg_d3dDriver;
-        if (!m_driver->InitDriver(&m_windowData))
+        if (!m_driver->InitDriver())
         {
             spdlog::error("Failed init Direct3dDriver.");
             return false;

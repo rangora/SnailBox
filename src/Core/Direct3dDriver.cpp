@@ -1,4 +1,4 @@
-#include "Direct3dDriver.h"
+﻿#include "Direct3dDriver.h"
 
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
@@ -26,13 +26,23 @@ namespace sb
     {
     }
 
-    void* Direct3dDriver::GetNativeWindow()
+    bool Direct3dDriver::InitDriver()
     {
-        return nullptr;
-    }
+        // Check device
+        if (!m_device)
+        {
+            spdlog::error("Direct device doesn't created.");
+            assert(false);
+            return false;
+        }
 
-    bool Direct3dDriver::InitDriver(const WinWindowData* in_windowData)
-    {
+        if (!m_dxgi)
+        {
+            spdlog::error("Direct factory doesn't created.");
+            assert(false);
+            return false;
+        }
+
         const HWND hwnd = GetWinWindow()->m_hwnd;
 
         m_rootSignature = CreateUPtr<RootSignature>();
