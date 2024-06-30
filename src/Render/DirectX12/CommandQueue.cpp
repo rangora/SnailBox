@@ -11,7 +11,7 @@ namespace sb
 
     CommandQueue::~CommandQueue()
     {
-        ::CloseHandle(m_fenceEvent);
+        // ::CloseHandle(m_fenceEvent);
     }
 
     void CommandQueue::Init(ComPtr<ID3D12Device> in_device)
@@ -36,31 +36,31 @@ namespace sb
         m_cmdList->Close();
     }
 
-    void CommandQueue::WaitSync()
-    {
-        m_fenceValue++;
-        m_cmdQueue->Signal(m_fence.Get(), m_fenceValue);
-        if (m_fence->GetCompletedValue() < m_fenceValue)
-        {
-            m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent);
-            ::WaitForSingleObject(m_fenceEvent, INFINITE);
-        }
-    }
+    // void CommandQueue::WaitSync()
+    // {
+    //     m_fenceValue++;
+    //     m_cmdQueue->Signal(m_fence.Get(), m_fenceValue);
+    //     if (m_fence->GetCompletedValue() < m_fenceValue)
+    //     {
+    //         m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent);
+    //         ::WaitForSingleObject(m_fenceEvent, INFINITE);
+    //     }
+    // }
 
-    void CommandQueue::RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect)
-    {
-        m_cmdAllocator->Reset();
-        m_cmdList->Reset(m_cmdAllocator.Get(), nullptr);
+    // void CommandQueue::RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect)
+    // {
+    //     m_cmdAllocator->Reset();
+    //     m_cmdList->Reset(m_cmdAllocator.Get(), nullptr);
 
-        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_swapChain->GetBackRTVBuffer().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    //     D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+    //         m_swapChain->GetBackRTVBuffer().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-        m_cmdList->SetGraphicsRootSignature(sg_d3dDriver->GetRootSignature()->GetSignature().Get());
+    //     m_cmdList->SetGraphicsRootSignature(sg_d3dDriver->GetRootSignature()->GetSignature().Get());
 
-        // 여기서부터 cb가 나온다.
-    }
+    //     // 여기서부터 cb가 나온다.
+    // }
 
-    void CommandQueue::RenderEnd()
-    {
-    }
+    // void CommandQueue::RenderEnd()
+    // {
+    // }
 } // namespace sb

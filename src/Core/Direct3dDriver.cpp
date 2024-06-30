@@ -67,17 +67,6 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
-        auto pressedAction = [this]()
-        {
-            bShutDownCalled = true;
-        };
-        auto heldAction = []() {};
-        auto releasedAction = []() {};
-
-        Input::KeyInputAction(pressedAction, KeyState::Pressed, KeyButton::Esc);
-        Input::KeyInputAction(heldAction, KeyState::Held, KeyButton::Esc);
-        Input::KeyInputAction(releasedAction, KeyState::Released, KeyButton::Esc);
-
         // Render things..
         auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
         auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
@@ -166,6 +155,16 @@ namespace sb
         return false;
     }
 
+    void Direct3dDriver::CleanDriver()
+    {
+        WaitForLastSubmittedFrame();
+
+        ImGui_ImplDX12_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+
+        CleanUpDevice();
+    }
+
     void Direct3dDriver::InitD3dDevice()
     {
 #ifdef _DEBUG
@@ -235,16 +234,16 @@ namespace sb
             }
         }
 
-        if (ComPtr<ID3D12CommandQueue> cmdQueue = m_commandQueue->GetCmdQueue())
-        {
-            cmdQueue->Release();
-            cmdQueue.Reset();
-        }
-
         if (ComPtr<ID3D12GraphicsCommandList> cmdList = m_commandQueue->GetCmdList())
         {
             cmdList->Release();
             cmdList.Reset();
+        }
+
+        if (ComPtr<ID3D12CommandQueue> cmdQueue = m_commandQueue->GetCmdQueue())
+        {
+            cmdQueue->Release();
+            cmdQueue.Reset();
         }
 
         if (ID3D12DescriptorHeap* rtvHeap = m_DescriptorHeap->GetRtvHeap())
@@ -274,6 +273,11 @@ namespace sb
         {
             m_device.Reset();
         }
+
+        m_rootSignature.reset();
+        m_DescriptorHeap.reset();
+        m_swapChain.reset();
+        m_commandQueue.reset();
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기

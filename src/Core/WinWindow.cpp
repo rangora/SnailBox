@@ -123,14 +123,13 @@ namespace sb
 
     WinsWindow::~WinsWindow()
     {
-        ShutDown();
     }
 
     void WinsWindow::Update()
     {
-        if(!m_driver->IsWindowShouldClosed())
+        if (!ShouldWindowShutDown())
         {
-            ProcessInput();
+            ProcessWinInput();
 
             MSG msg;
             while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -158,8 +157,7 @@ namespace sb
             }
         else
         {
-            // TEMP
-            m_app->DestroyAppWindow();
+            OnWindowShutDown();
         }
     }
 
@@ -287,7 +285,7 @@ namespace sb
         glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
     }
 
-    void WinsWindow::ProcessInput()
+    void WinsWindow::ProcessGlfwInput()
     {
         if(!m_cameraTranslation)
         {
@@ -311,6 +309,17 @@ namespace sb
             m_cameraPos += cameraSpeed * cameraUp;
         if (glfwGetKey(m_nativeWindow, GLFW_KEY_Q) == GLFW_PRESS)
             m_cameraPos -= cameraSpeed * cameraUp;
+    }
+
+    void WinsWindow::ProcessWinInput()
+    {
+        auto pressedAction = [this]() { m_isWindowShutDownKeyPressed = true; };
+        auto heldAction = []() {};
+        auto releasedAction = []() {};
+
+        Input::KeyInputAction(pressedAction, KeyState::Pressed, KeyButton::Esc);
+        Input::KeyInputAction(heldAction, KeyState::Held, KeyButton::Esc);
+        Input::KeyInputAction(releasedAction, KeyState::Released, KeyButton::Esc);
     }
 
     void WinsWindow::MouseMove(double in_x, double in_y)
@@ -403,7 +412,7 @@ namespace sb
         ImGui::StyleColorsDark();
     }
 
-    void WinsWindow::ShutDown()
+    void WinsWindow::OnWindowShutDown()
     {
         if (m_isOpenglWindow)
         {
@@ -414,5 +423,20 @@ namespace sb
             ImGui::DestroyContext(m_imguiContext);
             glfwTerminate();
         }
+        else
+        {
+            m_driver->CleanDriver();
+
+            ImGui::DestroyContext();
+            ::DestroyWindow(m_hwnd);
+            ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);
+        }
+
+        m_isWindowShutdown = true;
+    }
+
+    bool WinsWindow::ShouldWindowShutDown()
+    {
+        return m_isWindowShutDownKeyPressed;
     }
 } // namespace sb

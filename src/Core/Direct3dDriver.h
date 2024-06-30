@@ -28,7 +28,7 @@ namespace sb
 
         ImGuiProperty m_property;
     };
-    
+
     class Direct3dDriver : public Driver
     {
     public:
@@ -44,6 +44,7 @@ namespace sb
         void Render() final {} // ??
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
+        void CleanDriver() final;
 
         void InitD3dDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
@@ -78,7 +79,7 @@ namespace sb
         ComPtr<ID3D12Device> m_device;
 
         Camera m_camera;
-
+        
         UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;
         UPtr<SwapChain> m_swapChain = nullptr;

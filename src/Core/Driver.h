@@ -27,6 +27,7 @@ namespace sb
         virtual void Update() = 0;
         virtual void SwapBuffers() = 0;
         virtual bool IsWindowShouldClosed() = 0;
+        virtual void CleanDriver() {};
 
         GraphicsContext* GetGraphcisContext() const { return m_graphicContext.get(); }
 

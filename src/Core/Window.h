@@ -39,21 +39,22 @@ namespace sb
     public:
         virtual ~Window() = default;
         virtual void Update() = 0;
-        virtual void ShutDown() = 0;
+        virtual void OnWindowShutDown() = 0;
 
         virtual bool InitializeWithOpenglDevice() = 0;
         virtual bool InitializeWithDirectXDevice() = 0;
         virtual bool InitializeDriver() = 0;
 
         virtual void GetMousePos(double& out_x, double& out_y) = 0;
-        
+
         // Input 처리는 외부로 뺴야함..
-        virtual void ProcessInput() = 0;
+        virtual void ProcessGlfwInput() {};
+        virtual void ProcessWinInput() {};
         virtual void MouseMove(double in_x, double in_y) = 0;
         virtual void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
 
         virtual void AttachLayout(Layout* in_layout) {}
-
+        
         virtual ComPtr<ID3D12Device> GetD3dDevice() { return nullptr; }
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
@@ -69,12 +70,15 @@ namespace sb
         static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
 
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
+        bool IswindowShutDown() const { return m_isWindowShutdown; }
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Driver* m_driver = nullptr;
 
     protected:
         bool m_isOpenglWindow = false; // TEMP
+        bool m_isWindowShutdown = false;
+
         std::vector<Layout*> m_layouts;
     };
 } // namespace sb

@@ -21,7 +21,7 @@ namespace sb
         Application();
         Application(const Application&) = delete;
         Application& operator=(const Application&) = delete;
-        virtual ~Application(){};
+        virtual ~Application();
 
         void Run();
 
@@ -31,7 +31,6 @@ namespace sb
         static Application& Get() { return *s_instance; }
 
         void CreateAppWindow(const WindowContext& in_windowContext);
-        void DestroyAppWindow(); // TEMP
 
         static ComPtr<ID3D12Device> GetD3Device();
         static class Direct3dDriver* GetDirect3dDriver();
@@ -40,9 +39,10 @@ namespace sb
 
     private:
         void InitializeDirect3dDriver();
+        void CleanGraphicsDriver();
 
         void PreProcessOnFrame();
-        
+
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;

@@ -35,7 +35,8 @@ namespace sb
         void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
 
         // input
-        void ProcessInput() final;
+        void ProcessGlfwInput() final;
+        void ProcessWinInput() final;
         void MouseMove(double in_x, double in_y) final;
         void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) final;
         // ~input
@@ -72,12 +73,14 @@ namespace sb
 
     private:
         void SetupImGuiContext();
-        void ShutDown() final;
+        void OnWindowShutDown() final;
+        bool ShouldWindowShutDown();
 
         Application* m_app = nullptr; // TEMP
         GLFWwindow* m_nativeWindow = nullptr;
         ImGuiContext* m_imguiContext = nullptr;
 
         WinWindowData m_windowData;
+        bool m_isWindowShutDownKeyPressed = false;
     };
 }

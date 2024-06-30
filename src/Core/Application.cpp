@@ -33,9 +33,9 @@ namespace sb
         FrontWindowContext.title = directXWindowTitle;
         FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
         m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext, this);
-        m_frontWindow->InitializeDriver();
         m_frontWindow->InitializeWithDirectXDevice();
-        while(true) {
+        while (!m_frontWindow->m_bNext && !m_frontWindow->IswindowShutDown())
+        {
             m_frontWindow->Update();
         }
 
@@ -84,15 +84,6 @@ namespace sb
         m_runningWindowCount++;
     }
 
-    void Application::DestroyAppWindow()
-    {
-        if (!m_windows.empty())
-        {
-            m_windows.clear();
-            m_runningWindowCount = 0;
-        }
-    }
-
     ComPtr<ID3D12Device> Application::GetD3Device()
     {
         Application& app = Get();
@@ -108,7 +99,12 @@ namespace sb
     void Application::InitializeDirect3dDriver()
     {
         m_d3dDriver = CreateUPtr<Direct3dDriver>();
-        m_d3dDriver->InitDevice();
+        m_d3dDriver->InitD3dDevice();
+    }
+
+    void Application::CleanGraphicsDriver()
+    {
+        m_d3dDriver.reset();
     }
 
     void Application::PreProcessOnFrame()
@@ -117,15 +113,35 @@ namespace sb
         Input::TransitionPressedButtons();
     }
 
+    Application::~Application()
+    {
+        CleanGraphicsDriver();
+    }
+
     void Application::Run()
     {
         while (m_runningWindowCount)
         {
             PreProcessOnFrame();
 
-            for (auto& [_, window] : m_windows)
+            std::queue<std::string> deadWindows;
+
+            for (auto& [name, window] : m_windows)
             {
+                if (window->IswindowShutDown())
+                {
+                    deadWindows.emplace(name);
+                    continue;
+                }
+
                 window->Update();
+            }
+
+            while (!deadWindows.empty())
+            {
+                m_windows.erase(deadWindows.front());
+                deadWindows.pop();
+                m_runningWindowCount--;
             }
         }
     }
