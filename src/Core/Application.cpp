@@ -28,8 +28,16 @@ namespace sb
         // 1) 쉐이더 컴파일
         ShaderCompiler::Compile(s_staticShaderArchive);
 
-        // 2) program에 attach(link)
-
+        // FrontWindow
+        WindowContext FrontWindowContext;
+        FrontWindowContext.title = directXWindowTitle;
+        FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
+        m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext, this);
+        m_frontWindow->InitializeDriver();
+        m_frontWindow->InitializeWithDirectXDevice();
+        while(true) {
+            m_frontWindow->Update();
+        }
 
         // opengl window
         // WindowContext openglWindowContext;
@@ -38,10 +46,10 @@ namespace sb
         // CreateAppWindow(openglWindowContext);
 
         // dirctX window
-        WindowContext directXWindowContext;
-        directXWindowContext.title = directXWindowTitle;
-        directXWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
-        CreateAppWindow(directXWindowContext);
+        // WindowContext directXWindowContext;
+        // directXWindowContext.title = directXWindowTitle;
+        // directXWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
+        // CreateAppWindow(directXWindowContext);
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -78,8 +86,11 @@ namespace sb
 
     void Application::DestroyAppWindow()
     {
-        m_windows.clear();
-        m_runningWindowCount = 0;
+        if (!m_windows.empty())
+        {
+            m_windows.clear();
+            m_runningWindowCount = 0;
+        }
     }
 
     ComPtr<ID3D12Device> Application::GetD3Device()
@@ -117,5 +128,15 @@ namespace sb
                 window->Update();
             }
         }
+    }
+
+    Window& Application::GetDirectXWindow()
+    {
+        if (m_windows.size())
+        {
+            return *(m_windows[directXWindowTitle]);
+        }
+
+        return *m_frontWindow.get();
     }
 } // namespace sb

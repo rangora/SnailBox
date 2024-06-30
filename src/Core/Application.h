@@ -13,6 +13,8 @@
 
 namespace sb
 {
+    class FrontWindow;
+
     class Application
     {
     public:
@@ -24,7 +26,7 @@ namespace sb
         void Run();
 
         Window& GetOpenglWindow() { return *(m_windows[openglWindowTitle]); }
-        Window& GetDirectXWindow() { return *(m_windows[directXWindowTitle]); }
+        Window& GetDirectXWindow();
         Window& GetFocusWindow() { return *(m_windows[openglWindowTitle]); } // TEMP
         static Application& Get() { return *s_instance; }
 
@@ -40,13 +42,15 @@ namespace sb
         void InitializeDirect3dDriver();
 
         void PreProcessOnFrame();
-
+        
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;
         static Application* s_instance;
-        
+
         // Graphics drivers
         UPtr<Direct3dDriver> m_d3dDriver = nullptr;
+
+        UPtr<FrontWindow> m_frontWindow = nullptr;
     };
 } // namespace sb

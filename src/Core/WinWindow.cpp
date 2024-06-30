@@ -224,7 +224,7 @@ namespace sb
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
+        
         const char* glsl_version = "#version 460";
         ImGui_ImplGlfw_InitForOpenGL(m_nativeWindow, false);
         ImGui_ImplOpenGL3_Init(glsl_version);

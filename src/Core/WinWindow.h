@@ -23,9 +23,9 @@ namespace sb
         WinsWindow(const WindowContext& in_windowContext);
         WinsWindow(const WindowContext& in_windowContext, class Application* in_app);
         virtual ~WinsWindow();
-        
+
         void Update() override;
-        void ImGuiUpdate();
+        virtual void ImGuiUpdate();
 
         bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
         bool InitializeWithOpenglDevice() final;
