@@ -26,63 +26,37 @@ namespace sb
     {
     }
 
-    bool Direct3dDriver::InitDriver()
+    Direct3dDriver::~Direct3dDriver()
     {
+    }
+
+    bool Direct3dDriver::BindWinWindow(const HWND in_hwnd)
+    {
+#define DEVICE_VALID_CHECK(_device)                                                                                    \
+    if (!_device)                                                                                                      \
+    {                                                                                                                  \
+        #_device;                                                                                                      \
+        spdlog::error("Invalid {}. Make sure InitD3dDevice called.", #_device);                                        \
+        assert(false);                                                                                                 \
+        return false;                                                                                                  \
+    }
+
         // Check device
-        if (!m_device)
-        {
-            spdlog::error("Direct device doesn't created.");
-            assert(false);
-            return false;
-        }
+        DEVICE_VALID_CHECK(m_device);
+        DEVICE_VALID_CHECK(m_dxgi);
+        DEVICE_VALID_CHECK(m_rootSignature);
+        DEVICE_VALID_CHECK(m_commandQueue);
+        DEVICE_VALID_CHECK(m_DescriptorHeap);
 
-        if (!m_dxgi)
-        {
-            spdlog::error("Direct factory doesn't created.");
-            assert(false);
-            return false;
-        }
-
-        const HWND hwnd = GetTargetWindow()->m_hwnd;
-
-        m_rootSignature = CreateUPtr<RootSignature>();
+        // SwapChain need hwnd.
         m_swapChain = CreateUPtr<SwapChain>();
-        m_commandQueue = CreateUPtr<CommandQueue>();
-        m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
+        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), in_hwnd);
 
-        m_commandQueue->Init(sg_d3dDevice, m_swapChain.get());
-        m_DescriptorHeap->Init(256);
-        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), hwnd);
-        m_rootSignature->Init(sg_d3dDevice);
+        // WndProc에서 swapChain 사용.
+        ::ShowWindow(in_hwnd, SW_SHOWDEFAULT);
+        ::UpdateWindow(in_hwnd);
 
-        // fence
-        HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
-        if (FAILED(hr))
-        {
-            return false;
-        }
-
-        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (m_fenceEvent == nullptr)
-        {
-            return false;
-        }
-        // ~fence
-
-        ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-        ::UpdateWindow(hwnd);
-
-        // Setup imGuiContext
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-        ImGui::StyleColorsDark();
-
-        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplWin32_Init(in_hwnd);
         ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM,
                             m_DescriptorHeap->GetSrvHeap(),
                             m_DescriptorHeap->GetSrvHeap()->GetCPUDescriptorHandleForHeapStart(),
@@ -192,7 +166,7 @@ namespace sb
         return false;
     }
 
-    void Direct3dDriver::InitDevice()
+    void Direct3dDriver::InitD3dDevice()
     {
 #ifdef _DEBUG
         ::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController));
@@ -211,6 +185,26 @@ namespace sb
         pInfoQueue->Release();
         m_debugController->Release();
 #endif
+
+        m_rootSignature = CreateUPtr<RootSignature>();
+        m_commandQueue = CreateUPtr<CommandQueue>();
+        m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
+
+        m_commandQueue->Init(sg_d3dDevice);
+        m_DescriptorHeap->Init(256);
+        m_rootSignature->Init(sg_d3dDevice);
+
+        HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+        if (FAILED(hr))
+        {
+            return;
+        }
+
+        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (m_fenceEvent == nullptr)
+        {
+            return;
+        }
     }
 
     void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)

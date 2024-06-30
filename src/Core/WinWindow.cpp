@@ -196,6 +196,8 @@ namespace sb
         m_hwnd = ::CreateWindowW(m_wc.lpszClassName, classWidStr.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr,
                                  nullptr, m_wc.hInstance, nullptr);
 
+        SetupImGuiContext();
+
         return true;
     }
 
@@ -224,7 +226,7 @@ namespace sb
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        
+
         const char* glsl_version = "#version 460";
         ImGui_ImplGlfw_InitForOpenGL(m_nativeWindow, false);
         ImGui_ImplOpenGL3_Init(glsl_version);
@@ -262,7 +264,7 @@ namespace sb
         }
 
         m_driver = sg_d3dDriver;
-        if (!m_driver->InitDriver())
+        if (!m_driver->BindWinWindow(m_hwnd))
         {
             spdlog::error("Failed init Direct3dDriver.");
             return false;
@@ -387,6 +389,18 @@ namespace sb
     void WinsWindow::AttachLayout(Layout* in_layout)
     {
         m_layouts.emplace_back(in_layout);
+    }
+
+    void WinsWindow::SetupImGuiContext()
+    {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+        ImGui::StyleColorsDark();
     }
 
     void WinsWindow::ShutDown()

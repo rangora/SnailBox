@@ -71,6 +71,7 @@ namespace sb
         Vector3f m_clearColor = {0.45f, 0.55f, 0.60f};
 
     private:
+        void SetupImGuiContext();
         void ShutDown() final;
 
         Application* m_app = nullptr; // TEMP

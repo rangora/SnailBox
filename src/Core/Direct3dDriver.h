@@ -28,23 +28,24 @@ namespace sb
 
         ImGuiProperty m_property;
     };
-
+    
     class Direct3dDriver : public Driver
     {
     public:
         Direct3dDriver(Window* in_window);
         Direct3dDriver() = default;
+        ~Direct3dDriver();
 
-        void* GetNativeWindow() final { return nullptr; };
+        void* GetNativeWindow() final { return nullptr; }; // ??
 
-        bool InitDriver() final;
+        bool BindWinWindow(const HWND in_hwnd) final;
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final {} // ??
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
 
-        void InitDevice();
+        void InitD3dDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
         RootSignature* GetRootSignature() const { return m_rootSignature.get(); }
