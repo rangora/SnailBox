@@ -38,6 +38,8 @@ namespace sb
         static ShaderArchive s_staticShaderArchive;
 
     private:
+        void OpenFrontWindow(WindowContext& OutWindowContext);
+
         void InitializeDirect3dDriver();
         void CleanGraphicsDriver();
 

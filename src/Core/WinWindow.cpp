@@ -50,7 +50,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-        
+
         case WM_KEYDOWN:
         {
             if (wParam == VK_ESCAPE)
@@ -369,13 +369,6 @@ namespace sb
         }
     }
 
-    ComPtr<ID3D12Device> WinsWindow::GetD3dDevice()
-    {
-        Direct3dDriver* driver = static_cast<Direct3dDriver*>(m_driver);
-
-        return driver == nullptr ? nullptr : driver->GetDevice();
-    }
-
     void WinsWindow::GetMousePos(double& out_x, double& out_y)
     {
         if (IsOpenglWindow())
@@ -426,6 +419,6 @@ namespace sb
 
     bool WinsWindow::ShouldWindowShutDown()
     {
-        return m_isWindowShutDownKeyPressed;
+        return m_isWindowShutDownKeyPressed || m_bForceShutDown;
     }
 } // namespace sb

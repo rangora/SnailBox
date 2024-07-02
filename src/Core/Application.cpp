@@ -28,16 +28,9 @@ namespace sb
         // 1) 쉐이더 컴파일
         ShaderCompiler::Compile(s_staticShaderArchive);
 
-        // FrontWindow
-        WindowContext FrontWindowContext;
-        FrontWindowContext.title = directXWindowTitle;
-        FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
-        m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext, this);
-        m_frontWindow->InitializeWithDirectXDevice();
-        while (!m_frontWindow->m_bNext && !m_frontWindow->IswindowShutDown())
-        {
-            m_frontWindow->Update();
-        }
+        WindowContext RandomWindowContext;
+        OpenFrontWindow(RandomWindowContext);
+        CreateAppWindow(RandomWindowContext);
 
         // opengl window
         // WindowContext openglWindowContext;
@@ -74,6 +67,7 @@ namespace sb
         }
         else if (in_windowContext.graphicsDevice == GraphicsDevice::DirectX12)
         {
+            InitializeDirect3dDriver();
             if (!m_windows[in_windowContext.title]->InitializeWithDirectXDevice())
             {
                 spdlog::error("Failed to createWindow during initDirectXDevice.");
@@ -94,6 +88,23 @@ namespace sb
     {
         Application& app = Get();
         return app.m_d3dDriver.get();
+    }
+
+    void Application::OpenFrontWindow(WindowContext& OutWindowContext)
+    {
+        WindowContext FrontWindowContext;
+        FrontWindowContext.title = directXWindowTitle;
+        FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
+        m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext, this);
+        m_frontWindow->InitializeWithDirectXDevice();
+        while (!m_frontWindow->IswindowShutDown())
+        {
+            m_frontWindow->Update();
+        }
+
+        OutWindowContext.graphicsDevice = static_cast<GraphicsDevice>(m_frontWindow->m_driverType);
+        OutWindowContext.title =
+            OutWindowContext.graphicsDevice == GraphicsDevice::DirectX12 ? directXWindowTitle : openglWindowTitle;
     }
 
     void Application::InitializeDirect3dDriver()

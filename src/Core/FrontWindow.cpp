@@ -31,14 +31,17 @@ namespace sb
 
     void FrontWindow::ImGuiUpdate()
     {
+        const int32 OpenGL = static_cast<int32>(GraphicsDevice::OpenGL);
+        const int32 DirectX12 = static_cast<int32>(GraphicsDevice::DirectX12);
+
         ImGui::Begin("FrontWindow", 0);
         ImGui::Text("Hello, world!");
-        ImGui::RadioButton("DirectX12", &m_driverType, 0);
+        ImGui::RadioButton("DirectX12", &m_driverType, DirectX12);
         ImGui::SameLine();
-        ImGui::RadioButton("OpenGL", &m_driverType, 1);
+        ImGui::RadioButton("OpenGL", &m_driverType, OpenGL);
         if (ImGui::Button("Next"))
         {
-            m_bNext = true;
+            m_bForceShutDown = true;
         }
         ImGui::End();
     }

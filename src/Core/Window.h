@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Actor/Actor.h"
 #include "Driver.h"
@@ -53,18 +53,16 @@ namespace sb
         virtual void MouseMove(double in_x, double in_y) = 0;
         virtual void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
 
-        virtual void AttachLayout(Layout* in_layout) {}
-        
-        virtual ComPtr<ID3D12Device> GetD3dDevice() { return nullptr; }
-
-        bool IsOpenglWindow() const { return m_isOpenglWindow; }
-
         static void OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier);
         static void OnCharEvent(GLFWwindow* in_window, uint32 in_ch);
         static void OnCursorPos(GLFWwindow* in_window, double in_x, double in_y);
         static void OnMouseButton(GLFWwindow* in_window, int32 in_button, int32 in_action, int32 in_modifier);
         static void OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset);
         // ~Input
+
+        virtual void AttachLayout(Layout* in_layout) {}
+
+        bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
         virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
         static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
@@ -74,6 +72,8 @@ namespace sb
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Driver* m_driver = nullptr;
+
+        bool m_bForceShutDown = false;
 
     protected:
         bool m_isOpenglWindow = false; // TEMP

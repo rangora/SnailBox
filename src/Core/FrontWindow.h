@@ -17,7 +17,6 @@ namespace sb
 
         void ImGuiUpdate() final;
 
-        bool m_bNext = false;
-        int32 m_driverType = 0;
+        int32 m_driverType = 2;
     };
 };
