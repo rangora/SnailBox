@@ -32,17 +32,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 sg_d3dDriver->WaitForLastSubmittedFrame();
                 sg_d3dDriver->CleanUpRenderTarget();
 
-                auto swapChain = sg_d3dDriver->GetSwapChain();
-                if (swapChain == nullptr)
-                    return 0;
-
-                auto swapChain3 = swapChain->GetSwapChain3();
-                if (swapChain3 == nullptr)
-                    return 0;
-
-                HWND pHwnd;
-                swapChain3->GetHwnd(&pHwnd);
-
                 HRESULT result = sg_d3dDriver->GetSwapChain()->GetSwapChain3()->ResizeBuffers(
                     0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN,
                     DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
@@ -61,7 +50,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
-
+        
         case WM_KEYDOWN:
         {
             if (wParam == VK_ESCAPE)

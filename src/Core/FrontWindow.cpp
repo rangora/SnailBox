@@ -26,8 +26,7 @@ namespace sb
 
     bool FrontWindow::BindDirect3dDriver()
     {
-        
-        return false;
+        return true;
     }
 
     void FrontWindow::ImGuiUpdate()

@@ -182,7 +182,7 @@ namespace sb
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
         pInfoQueue->Release();
-        m_debugController->Release();
+        m_debugController.Reset();
 #endif
 
         m_rootSignature = CreateUPtr<RootSignature>();
@@ -234,16 +234,14 @@ namespace sb
             }
         }
 
-        if (ComPtr<ID3D12GraphicsCommandList> cmdList = m_commandQueue->GetCmdList())
-        {
-            cmdList->Release();
-            cmdList.Reset();
-        }
-
         if (ComPtr<ID3D12CommandQueue> cmdQueue = m_commandQueue->GetCmdQueue())
         {
-            cmdQueue->Release();
             cmdQueue.Reset();
+        }
+
+        if (ComPtr<ID3D12GraphicsCommandList> cmdList = m_commandQueue->GetCmdList())
+        {
+            cmdList.Reset();
         }
 
         if (ID3D12DescriptorHeap* rtvHeap = m_DescriptorHeap->GetRtvHeap())
@@ -281,12 +279,12 @@ namespace sb
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기
-        // IDXGIDebug1* pDebug = nullptr;
-        // if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
-        // {
-        //     pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
-        //     pDebug->Release();
-        // }
+        IDXGIDebug1* pDebug = nullptr;
+        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+        {
+            pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+            pDebug->Release();
+        }
 #endif
     }
 
