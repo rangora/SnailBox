@@ -3,6 +3,7 @@
 
 #include "Direct3dDriver.h"
 #include "Enums.h"
+#include "GlfwWindow.h"
 #include "Input.h"
 #include "Render/ShaderCompiler.h"
 #include "WinWindow.h"
@@ -31,18 +32,6 @@ namespace sb
         WindowContext RandomWindowContext;
         OpenFrontWindow(RandomWindowContext);
         CreateAppWindow(RandomWindowContext);
-
-        // opengl window
-        // WindowContext openglWindowContext;
-        // openglWindowContext.title = openglWindowTitle;
-        // openglWindowContext.graphicsDevice = GraphicsDevice::OpenGL;
-        // CreateAppWindow(openglWindowContext);
-
-        // dirctX window
-        // WindowContext directXWindowContext;
-        // directXWindowContext.title = directXWindowTitle;
-        // directXWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
-        // CreateAppWindow(directXWindowContext);
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -54,12 +43,12 @@ namespace sb
 
         spdlog::info("Add new window:{}, height:{}, width:{}", in_windowContext.title, in_windowContext.height,
                      in_windowContext.width);
-        auto newWindow = CreateUPtr<WinsWindow>(in_windowContext, this);
-        m_windows.insert({in_windowContext.title, std::move(newWindow)});
 
         if (in_windowContext.graphicsDevice == GraphicsDevice::OpenGL)
         {
-            if (!m_windows[in_windowContext.title]->InitializeWithOpenglDevice())
+            auto glfwWindow = CreateUPtr<GlfwWindow>(in_windowContext);
+            m_windows.insert({in_windowContext.title, std::move(glfwWindow)});
+            if (!m_windows[in_windowContext.title]->BindGraphicsDriver())
             {
                 spdlog::error("Failed to createWindow during initOpenglDevice.");
                 return;
@@ -68,7 +57,9 @@ namespace sb
         else if (in_windowContext.graphicsDevice == GraphicsDevice::DirectX12)
         {
             InitializeDirect3dDriver();
-            if (!m_windows[in_windowContext.title]->InitializeWithDirectXDevice())
+            auto WinWindow = CreateUPtr<WinsWindow>(in_windowContext);
+            m_windows.insert({in_windowContext.title, std::move(WinWindow)});
+            if (!m_windows[in_windowContext.title]->BindGraphicsDriver())
             {
                 spdlog::error("Failed to createWindow during initDirectXDevice.");
                 return;
@@ -95,8 +86,8 @@ namespace sb
         WindowContext FrontWindowContext;
         FrontWindowContext.title = directXWindowTitle;
         FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
-        m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext, this);
-        m_frontWindow->InitializeWithDirectXDevice();
+        m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext);
+        m_frontWindow->BindGraphicsDriver();
         while (!m_frontWindow->IswindowShutDown())
         {
             m_frontWindow->Update();

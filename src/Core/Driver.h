@@ -9,7 +9,7 @@
 
 namespace sb
 {
-    struct WinWindowData;
+    struct WindowData;
     class GraphicsContext;
     class Window;
 
@@ -20,7 +20,7 @@ namespace sb
         Driver() = default;
 
         virtual void* GetNativeWindow() = 0; // 제거 예정
-        virtual bool InitDriver(const WinWindowData* in_windowData) { return false; } // 제거 예정
+        virtual bool InitDriver(const WindowData* in_windowData) { return false; } // 제거 예정
         virtual bool BindWinWindow(const HWND in_hwnd) { return false; };
         virtual bool BindglfwWindow() { return false; };
         virtual void Render() = 0;

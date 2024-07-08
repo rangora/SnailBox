@@ -20,32 +20,26 @@ namespace sb
     class WinsWindow : public Window
     {
     public:
+        WinsWindow() = delete;
         WinsWindow(const WindowContext& in_windowContext);
-        WinsWindow(const WindowContext& in_windowContext, class Application* in_app);
-        virtual ~WinsWindow();
+        ~WinsWindow();
 
         void Update() override;
         virtual void ImGuiUpdate();
 
         bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
-        bool InitializeWithOpenglDevice() final;
-        bool InitializeWithDirectXDevice() final;
         bool InitializeDriver() final;
+        bool BindGraphicsDriver() final;
 
         void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
 
         // input
-        void ProcessGlfwInput() final;
         void ProcessWinInput() final;
-        void MouseMove(double in_x, double in_y) final;
-        void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) final;
         // ~input
-
-        void GetMousePos(double& out_x, double& out_y) final;
 
         void AttachLayout(Layout* in_layout) final;
 
-        const WinWindowData& GetWindowData() { return m_windowData; }
+        const WindowData& GetWindowData() { return m_windowData; }
 
         // camera 애매.. 뺴야할거 같음
         bool m_cameraTranslation = false;
@@ -71,11 +65,8 @@ namespace sb
         void OnWindowShutDown() final;
         bool ShouldWindowShutDown();
 
-        Application* m_app = nullptr; // TEMP
         GLFWwindow* m_nativeWindow = nullptr;
-        ImGuiContext* m_imguiContext = nullptr;
 
-        WinWindowData m_windowData;
         bool m_isWindowShutDownKeyPressed = false;
     };
 }

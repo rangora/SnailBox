@@ -8,9 +8,9 @@ namespace sb
     class FrontWindow : public WinsWindow
     {
     public:
+        FrontWindow() = delete;
         FrontWindow(const WindowContext& in_windowContext);
-        FrontWindow(const WindowContext& in_windowContext, class Application* in_app);
-        virtual ~FrontWindow() {};
+        ~FrontWindow() {};
 
         bool InitializeFrontWindow();
         bool BindDirect3dDriver();

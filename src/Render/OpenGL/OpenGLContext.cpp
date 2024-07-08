@@ -180,7 +180,7 @@ namespace sb
             glm::rotate(glm::mat4(1.0f), glm::radians(window->m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
             glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
-        const WinWindowData& WinData = window->GetWindowData();
+        const WindowData& WinData = window->GetWindowData();
 
         const glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WinData.width / (float)WinData.height,
                                                       OpenglContextConstants::zNear, OpenglContextConstants::zFar);

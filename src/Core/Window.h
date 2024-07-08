@@ -7,6 +7,7 @@
 #include <vector>
 
 struct GLFWwindow;
+struct ImGuiContext;
 
 namespace sb
 {
@@ -27,7 +28,7 @@ namespace sb
             : title(arg_title), width(arg_width), height(arg_height) {}
     };
 
-    struct WinWindowData
+    struct WindowData
     {
         std::string title;
         uint32_t width, height;
@@ -37,35 +38,26 @@ namespace sb
     class Window
     {
     public:
-        virtual ~Window() = default;
+        Window() = delete;
+        Window(const WindowContext& in_windowContext) {}
+        virtual ~Window() {}
+
         virtual void Update() = 0;
-        virtual void OnWindowShutDown() = 0;
+        virtual void OnWindowShutDown() {};
 
-        virtual bool InitializeWithOpenglDevice() = 0;
-        virtual bool InitializeWithDirectXDevice() = 0;
-        virtual bool InitializeDriver() = 0;
-
-        virtual void GetMousePos(double& out_x, double& out_y) = 0;
+        virtual bool BindGraphicsDriver() = 0;
+        virtual bool InitializeDriver() { return false; };
 
         // Input 처리는 외부로 뺴야함..
         virtual void ProcessGlfwInput() {};
         virtual void ProcessWinInput() {};
-        virtual void MouseMove(double in_x, double in_y) = 0;
-        virtual void MouseButtonAction(int32 in_button, int32 in_action, double in_x, double in_y) = 0;
-
-        static void OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier);
-        static void OnCharEvent(GLFWwindow* in_window, uint32 in_ch);
-        static void OnCursorPos(GLFWwindow* in_window, double in_x, double in_y);
-        static void OnMouseButton(GLFWwindow* in_window, int32 in_button, int32 in_action, int32 in_modifier);
-        static void OnScroll(GLFWwindow* in_window, double in_x_offset, double in_y_offset);
         // ~Input
 
         virtual void AttachLayout(Layout* in_layout) {}
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
 
-        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) = 0;
-        static void OnFreamBufferSizeChanged(GLFWwindow* in_window, int32 in_width, int32 in_height);
+        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) {};
 
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
         bool IswindowShutDown() const { return m_isWindowShutdown; }
@@ -79,6 +71,9 @@ namespace sb
         bool m_isOpenglWindow = false; // TEMP
         bool m_isWindowShutdown = false;
 
+        ImGuiContext* m_imguiContext = nullptr;
+
+        WindowData m_windowData;
         std::vector<Layout*> m_layouts;
     };
 } // namespace sb

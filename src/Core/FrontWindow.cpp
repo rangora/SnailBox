@@ -7,11 +7,6 @@ namespace sb
     {
     }
 
-    FrontWindow::FrontWindow(const WindowContext& in_windowContext, Application* in_app)
-        : WinsWindow(in_windowContext, in_app)
-    {
-    }
-
     bool FrontWindow::InitializeFrontWindow()
     {
         m_wc = {sizeof(m_wc), CS_CLASSDC,         WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr,

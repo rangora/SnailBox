@@ -20,7 +20,7 @@ namespace sb
         return m_glfwWindow;
     }
 
-    bool OpenglDriver::InitDriver(const WinWindowData* in_windowData)
+    bool OpenglDriver::InitDriver(const WindowData* in_windowData)
     {
         if (m_graphicContext != nullptr)
         {
@@ -53,8 +53,6 @@ namespace sb
 
     void OpenglDriver::Update()
     {
-        glfwPollEvents();
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
