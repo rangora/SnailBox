@@ -11,7 +11,7 @@ if(WIN32)
     endif()
 endif()
 
-project(${PROJECT_NAME} LANGUAGES CXX)
+project(${PROJECT_NAME} LANGUAGES CXX C)
 
 # Set variables.
 set(INSTALL_DIR ${PROJECT_BINARY_DIR}/install)
@@ -29,6 +29,8 @@ file(GLOB_RECURSE MAIN_SOURCE
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCE})
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC PROJECT_PATH="${PROJECT_SOURCE_DIR}")
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
 

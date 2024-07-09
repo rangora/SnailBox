@@ -58,7 +58,7 @@ namespace sb
             this->m_staticMeshData;
 
             // texture
-            UPtr<Image> image1 = Image::Load("../../resources/texture/container.jpg");
+            UPtr<Image> image1 = Image::Load(projectPath + "/resources/texture/container.jpg");
             if (!image1)
             {
                 SPDLOG_INFO("Image load failed");
@@ -68,9 +68,9 @@ namespace sb
             // materials
             UPtr<Material> newMaterial = CreateUPtr<Material>();
             newMaterial->m_diffuse =
-                OpenglTexture::CreateTextureFromImage(Image::Load("../../resources/texture/container2.png").get());
-            newMaterial->m_specular =
-                OpenglTexture::CreateTextureFromImage(Image::Load("../../resources/texture/container2_specular.png").get());
+                OpenglTexture::CreateTextureFromImage(Image::Load(projectPath + "/resources/texture/container2.png").get());
+            newMaterial->m_specular = OpenglTexture::CreateTextureFromImage(
+                Image::Load(projectPath + "/resources/texture/container2_specular.png").get());
 
             m_materials.emplace_back(std::move(newMaterial));
 
@@ -84,8 +84,8 @@ namespace sb
             // glBindTexture(GL_TEXTURE_2D, m_texture->Get());
 
             // 2.cube - light[UBO]
-            m_programs.emplace("Light", OpenglProgram::Create("../../resources/shader/simple3.vert",
-                                                              "../../resources/shader/simple3.frag"));
+            m_programs.emplace("Light", OpenglProgram::Create(projectPath + "/resources/shader/simple3.vert",
+                                                              projectPath + "/resources/shader/simple3.frag"));
 
             auto& targetShader = m_programs["Light"]->m_shaders[0];
             GLuint programId = m_programs["Light"]->Get();

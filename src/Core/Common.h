@@ -43,6 +43,7 @@ namespace sb
 
     const std::string openglWindowTitle = "opengl";
     const std::string directXWindowTitle = "directX";
+    const std::string projectPath = PROJECT_PATH;
 
     enum
     {
