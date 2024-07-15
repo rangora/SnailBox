@@ -43,7 +43,7 @@ namespace sb
         virtual ~Window() {}
 
         virtual void Update() = 0;
-        virtual void OnWindowShutDown() {};
+        virtual void ReadyWindowShutdown() { m_isReadyWindowShutdown = true; }
 
         virtual bool BindGraphicsDriver() = 0;
         virtual bool InitializeDriver() { return false; };
@@ -60,7 +60,8 @@ namespace sb
         virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) {};
 
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
-        bool IswindowShutDown() const { return m_isWindowShutdown; }
+        bool IsReadyWindowShutdown() const { return m_isReadyWindowShutdown; }
+        bool IsShutdownReserved();
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Driver* m_driver = nullptr;
@@ -69,7 +70,8 @@ namespace sb
 
     protected:
         bool m_isOpenglWindow = false; // TEMP
-        bool m_isWindowShutdown = false;
+        bool m_isReadyWindowShutdown = false;
+        bool m_isWindowShutDownKeyPressed = false;
 
         ImGuiContext* m_imguiContext = nullptr;
 

@@ -102,7 +102,7 @@ namespace sb
 
     void WinsWindow::Update()
     {
-        if (!ShouldWindowShutDown())
+        if (!IsShutdownReserved())
         {
             ProcessWinInput();
 
@@ -135,7 +135,7 @@ namespace sb
             }
         else
         {
-            OnWindowShutDown();
+            ReadyWindowShutdown();
         }
     }
 
@@ -237,31 +237,14 @@ namespace sb
         ImGui::StyleColorsDark();
     }
 
-    void WinsWindow::OnWindowShutDown()
+    void WinsWindow::ReadyWindowShutdown()
     {
-        if (m_isOpenglWindow)
-        {
-            // ImGui_ImplOpenGL3_DestroyFontsTexture();
-            // ImGui_ImplOpenGL3_DestroyDeviceObjects();
-            // ImGui_ImplOpenGL3_Shutdown();
-            // ImGui_ImplGlfw_Shutdown();
-            // ImGui::DestroyContext(m_imguiContext);
-            // glfwTerminate();
-        }
-        else
-        {
-            m_driver->CleanDriver();
+        m_driver->CleanDriver();
 
-            ImGui::DestroyContext();
-            ::DestroyWindow(m_hwnd);
-            ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);
-        }
+        ImGui::DestroyContext();
+        ::DestroyWindow(m_hwnd);
+        ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);
 
-        m_isWindowShutdown = true;
-    }
-
-    bool WinsWindow::ShouldWindowShutDown()
-    {
-        return m_isWindowShutDownKeyPressed || m_bForceShutDown;
+        Window::ReadyWindowShutdown();
     }
 } // namespace sb

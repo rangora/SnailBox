@@ -91,7 +91,7 @@ namespace sb
         FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
         m_frontWindow = CreateUPtr<FrontWindow>(FrontWindowContext);
         m_frontWindow->BindGraphicsDriver();
-        while (!m_frontWindow->IswindowShutDown())
+        while (!m_frontWindow->IsReadyWindowShutdown())
         {
             m_frontWindow->Update();
         }
@@ -137,7 +137,7 @@ namespace sb
 
             for (auto& [name, window] : m_windows)
             {
-                if (window->IswindowShutDown())
+                if (window->IsReadyWindowShutdown())
                 {
                     deadWindows.emplace(name);
                     continue;

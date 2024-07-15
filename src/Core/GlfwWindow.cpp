@@ -24,11 +24,18 @@ namespace sb
 
     void GlfwWindow::Update()
     {
-        glfwPollEvents();
-        ProcessGlfwInput();
+        if (!IsShutdownReserved() && !m_driver->IsWindowShouldClosed())
+        {
+            glfwPollEvents();
+            ProcessGlfwInput();
 
-        m_driver->Update();
-        m_driver->SwapBuffers();
+            m_driver->Update();
+            m_driver->SwapBuffers();
+        }
+        else
+        {
+            ReadyWindowShutdown();
+        }
     }
     void GlfwWindow::ProcessGlfwInput()
     {
@@ -110,14 +117,16 @@ namespace sb
         return true;
     }
 
-    void GlfwWindow::OnGlfwWindowShutDown()
+    void GlfwWindow::ReadyWindowShutdown()
     {
-        ImGui_ImplOpenGL3_DestroyFontsTexture();
-        ImGui_ImplOpenGL3_DestroyDeviceObjects();
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext(m_imguiContext);
-        glfwTerminate();
+         ImGui_ImplOpenGL3_DestroyFontsTexture();
+         ImGui_ImplOpenGL3_DestroyDeviceObjects();
+         ImGui_ImplOpenGL3_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext(m_imguiContext);
+         glfwTerminate();
+
+         Window::ReadyWindowShutdown();
     }
 
     void GlfwWindow::OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
@@ -133,6 +142,8 @@ namespace sb
                 if (in_key == GLFW_KEY_ESCAPE)
                 {
                     glfwSetWindowShouldClose(in_window, true);
+                    GlfwWindow* glfwWindow = (GlfwWindow*)glfwGetWindowUserPointer(in_window);
+                    glfwWindow->SetWindowShutdownFlag();
                 }
             }
         }

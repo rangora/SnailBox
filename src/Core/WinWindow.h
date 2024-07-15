@@ -62,11 +62,8 @@ namespace sb
 
     private:
         void SetupImGuiContext();
-        void OnWindowShutDown() final;
-        bool ShouldWindowShutDown();
+        void ReadyWindowShutdown() final;
 
         GLFWwindow* m_nativeWindow = nullptr;
-
-        bool m_isWindowShutDownKeyPressed = false;
     };
 }

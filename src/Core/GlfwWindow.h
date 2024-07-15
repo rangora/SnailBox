@@ -16,7 +16,9 @@ namespace sb
         void ProcessGlfwInput() final; // virtual??
         bool BindGraphicsDriver() final; // virtual??
 
-        void OnGlfwWindowShutDown(); // 가상화 필
+        void ReadyWindowShutdown() final;
+
+        void SetWindowShutdownFlag() { m_isWindowShutDownKeyPressed = true; }
 
         // camera 애매.. 뺴야할거 같음
         bool m_cameraTranslation = false;
