@@ -27,7 +27,7 @@ namespace sb
 
         Window& GetOpenglWindow() { return *(m_windows[openglWindowTitle]); }
         Window& GetDirectXWindow();
-        Window& GetFocusWindow() { return *(m_windows[openglWindowTitle]); } // TEMP
+        Window& GetFocusWindow();
         static Application& Get() { return *s_instance; }
 
         void CreateAppWindow(const WindowContext& in_windowContext);
@@ -49,6 +49,9 @@ namespace sb
 
         static int32_t m_runningWindowCount;
         static Application* s_instance;
+
+        bool m_isRunningFrontWindow = false;
+        bool m_isRunningDirectXWindow = false;
 
         // Graphics drivers
         UPtr<Direct3dDriver> m_d3dDriver = nullptr;

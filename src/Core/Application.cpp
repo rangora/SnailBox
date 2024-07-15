@@ -36,9 +36,10 @@ namespace sb
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
     {
-        if (in_windowContext.title.empty())
+        if (in_windowContext.graphicsDevice == GraphicsDevice::None)
         {
-            spdlog::error("WindowContextTitle can't be empty for creating window.");
+            spdlog::info("FrontWindow closed.");
+            return;
         }
 
         spdlog::info("Add new window:{}, height:{}, width:{}", in_windowContext.title, in_windowContext.height,
@@ -56,6 +57,7 @@ namespace sb
         }
         else if (in_windowContext.graphicsDevice == GraphicsDevice::DirectX12)
         {
+            m_isRunningDirectXWindow = true;
             InitializeDirect3dDriver();
             auto WinWindow = CreateUPtr<WinsWindow>(in_windowContext);
             m_windows.insert({in_windowContext.title, std::move(WinWindow)});
@@ -83,6 +85,7 @@ namespace sb
 
     void Application::OpenFrontWindow(WindowContext& OutWindowContext)
     {
+        m_isRunningFrontWindow = true;
         WindowContext FrontWindowContext;
         FrontWindowContext.title = directXWindowTitle;
         FrontWindowContext.graphicsDevice = GraphicsDevice::DirectX12;
@@ -93,9 +96,13 @@ namespace sb
             m_frontWindow->Update();
         }
 
-        OutWindowContext.graphicsDevice = static_cast<GraphicsDevice>(m_frontWindow->m_driverType);
-        OutWindowContext.title =
-            OutWindowContext.graphicsDevice == GraphicsDevice::DirectX12 ? directXWindowTitle : openglWindowTitle;
+        if (m_frontWindow->m_Next)
+        {
+            OutWindowContext.graphicsDevice = static_cast<GraphicsDevice>(m_frontWindow->m_driverType);
+            OutWindowContext.title =
+                OutWindowContext.graphicsDevice == GraphicsDevice::DirectX12 ? directXWindowTitle : openglWindowTitle;
+        }
+        m_isRunningFrontWindow = false;
     }
 
     void Application::InitializeDirect3dDriver()
@@ -156,5 +163,16 @@ namespace sb
         }
 
         return *m_frontWindow.get();
+    }
+
+    Window& Application::GetFocusWindow()
+    {
+        if (m_isRunningFrontWindow)
+        {
+            return *m_frontWindow.get();
+        }
+
+        const std::string key = m_isRunningDirectXWindow ? directXWindowTitle : openglWindowTitle;
+        return *m_windows.find(key).get_ptr()->second;
     }
 } // namespace sb

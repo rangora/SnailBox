@@ -34,7 +34,7 @@ namespace sb
         void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
 
         // input
-        void ProcessWinInput() final;
+        void ProcessWinInput() override;
         // ~input
 
         void AttachLayout(Layout* in_layout) final;

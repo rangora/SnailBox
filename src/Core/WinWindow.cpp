@@ -8,6 +8,8 @@
 #include <tchar.h>
 #include <vector>
 
+sb::Window* destroy_marked_window = nullptr;
+
 // forward declare
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -75,6 +77,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         case WM_DESTROY:
         {
+            destroy_marked_window = &sb::Application::Get().GetFocusWindow();
             ::PostQuitMessage(0);
             return 0;
         }
@@ -110,8 +113,11 @@ namespace sb
                 ::DispatchMessage(&msg);
                 if (msg.message == WM_QUIT)
                 {
-                    // 종료
-                    break;
+                    if (destroy_marked_window == this)
+                    {
+                        // 종료
+                        break;
+                    }
                 }
 
                 // Imgui update

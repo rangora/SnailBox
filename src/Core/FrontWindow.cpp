@@ -36,6 +36,7 @@ namespace sb
         ImGui::RadioButton("OpenGL", &m_driverType, OpenGL);
         if (ImGui::Button("Next"))
         {
+            m_Next = true;
             m_bForceShutDown = true;
         }
         ImGui::End();
