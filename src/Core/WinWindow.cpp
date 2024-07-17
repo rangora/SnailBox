@@ -115,7 +115,7 @@ namespace sb
                 {
                     if (destroy_marked_window == this)
                     {
-                        // 종료
+                        m_bForceShutDown = true;
                         break;
                     }
                 }
@@ -202,13 +202,6 @@ namespace sb
         return false;
     }
 
-    void WinsWindow::OnWindowSizeChanged(int32 in_width, int32 in_height)
-    {
-        m_windowData.width = in_width;
-        m_windowData.height = in_height;
-        glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
-    }
-
     void WinsWindow::ProcessWinInput()
     {
         auto pressedAction = [this]() { m_isWindowShutDownKeyPressed = true; };
@@ -231,7 +224,7 @@ namespace sb
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         ImGui::StyleColorsDark();
@@ -240,7 +233,6 @@ namespace sb
     void WinsWindow::ReadyWindowShutdown()
     {
         m_driver->CleanDriver();
-
         ImGui::DestroyContext();
         ::DestroyWindow(m_hwnd);
         ::UnregisterClassW(m_wc.lpszClassName, m_wc.hInstance);

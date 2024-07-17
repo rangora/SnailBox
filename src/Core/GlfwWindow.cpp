@@ -129,6 +129,13 @@ namespace sb
          Window::ReadyWindowShutdown();
     }
 
+    void GlfwWindow::OnWindowSizeChanged(int32 in_width, int32 in_height)
+    {
+        Window::OnWindowSizeChanged(in_width, in_height);
+
+        glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
+    }
+
     void GlfwWindow::OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
     {
         ImGui_ImplGlfw_KeyCallback(in_window, in_key, in_scancode, in_action, in_modifier);

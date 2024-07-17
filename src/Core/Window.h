@@ -20,7 +20,7 @@ namespace sb
         std::string title;
         uint32_t width;
         uint32_t height;
-        GraphicsDevice graphicsDevice;
+        GraphicsDevice graphicsDevice = GraphicsDevice::None;
 
         WindowContext(const std::string& arg_title = "New_Window",
                       uint32_t arg_width = 1000,
@@ -48,20 +48,13 @@ namespace sb
         virtual bool BindGraphicsDriver() = 0;
         virtual bool InitializeDriver() { return false; };
 
-        // Input 처리는 외부로 뺴야함..
-        virtual void ProcessGlfwInput() {};
-        virtual void ProcessWinInput() {};
-        // ~Input
-
+        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height);
         virtual void AttachLayout(Layout* in_layout) {}
+        virtual bool IsShutdownReserved();
 
         bool IsOpenglWindow() const { return m_isOpenglWindow; }
-
-        virtual void OnWindowSizeChanged(int32 in_width, int32 in_height) {};
-
-        std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
         bool IsReadyWindowShutdown() const { return m_isReadyWindowShutdown; }
-        bool IsShutdownReserved();
+        std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
 
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Driver* m_driver = nullptr;

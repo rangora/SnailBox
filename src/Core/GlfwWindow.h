@@ -13,10 +13,10 @@ namespace sb
         ~GlfwWindow();
 
         void Update() final;
-        void ProcessGlfwInput() final; // virtual??
         bool BindGraphicsDriver() final; // virtual??
-
         void ReadyWindowShutdown() final;
+        void ProcessGlfwInput();
+        void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
 
         void SetWindowShutdownFlag() { m_isWindowShutDownKeyPressed = true; }
 

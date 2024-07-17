@@ -31,10 +31,8 @@ namespace sb
         bool InitializeDriver() final;
         bool BindGraphicsDriver() final;
 
-        void OnWindowSizeChanged(int32 in_width, int32 in_height) final;
-
         // input
-        void ProcessWinInput() override;
+        virtual void ProcessWinInput();
         // ~input
 
         void AttachLayout(Layout* in_layout) final;
