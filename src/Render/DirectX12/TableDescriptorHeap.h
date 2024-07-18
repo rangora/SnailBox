@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "corepch.h"
+#include "Render/ShaderBase.h"
 
 namespace sb
 {
@@ -9,15 +10,15 @@ namespace sb
     public:
         TableDescriptorHeap();
         void Init(uint32 in_count);
+        void CommitToDescriptorTable(ComPtr<ID3D12GraphicsCommandList> in_commandList);
+        void SetCbvFromSource(D3D12_CPU_DESCRIPTOR_HANDLE in_srcHandle, CBV_Register in_reg);
         void Clear();
-        void SetCBV(D3D12_CPU_DESCRIPTOR_HANDLE in_srcHandle);
-        void CommitTable();
 
         ID3D12DescriptorHeap* GetRtvHeap() const { return m_descRtvHeap.Get(); }
         ID3D12DescriptorHeap* GetSrvHeap() const { return m_descSrvHeap.Get(); }
         D3D12_CPU_DESCRIPTOR_HANDLE* GetRenderTargetDescriptors() {return m_mainRenderTargetDescriptor; }
 
-        D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 in_reg);
+        D3D12_CPU_DESCRIPTOR_HANDLE GetRegisterCPUHandle(uint32 in_reg);
 
     private:
         ComPtr<ID3D12DescriptorHeap> m_descRtvHeap;
@@ -32,5 +33,8 @@ namespace sb
 
         // 아마 RenderTargetBuffer에 있어야 할거 같은데 우선 여기에 둠..
         D3D12_CPU_DESCRIPTOR_HANDLE m_mainRenderTargetDescriptor[SWAP_CHAIN_BUFFER_COUNT] = {};
+
+        // render
+        ComPtr<ID3D12DescriptorHeap> m_cbvHeap = nullptr;
     };
 };
