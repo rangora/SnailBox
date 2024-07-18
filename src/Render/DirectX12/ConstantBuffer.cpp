@@ -25,6 +25,11 @@ namespace sb
         CreateView();
     }
 
+    void ConstantBuffer::Clear()
+    {
+        m_currentIndex = 0;
+    }
+
     D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGpuVirtualAddress(uint32 in_index)
     {
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = m_cbvBuffer->GetGPUVirtualAddress();

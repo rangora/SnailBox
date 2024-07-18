@@ -80,6 +80,11 @@ namespace sb
                                       &srcRange, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
+    void TableDescriptorHeap::Clear()
+    {
+        m_currentGroupIndex = 0;
+    }
+
     D3D12_CPU_DESCRIPTOR_HANDLE TableDescriptorHeap::GetRegisterCPUHandle(uint32 in_reg)
     {
         D3D12_CPU_DESCRIPTOR_HANDLE startHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();

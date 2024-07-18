@@ -16,8 +16,8 @@ namespace sb
         void Init(ComPtr<ID3D12Device> in_device);
         // void WaitSync();
 
-        // void RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect);
-        // void RenderEnd();
+         void RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect);
+         void RenderEnd();
 
         ComPtr<ID3D12CommandQueue> GetCmdQueue() { return m_cmdQueue; }
         ComPtr<ID3D12GraphicsCommandList> GetCmdList() { return m_cmdList; }

@@ -1,10 +1,9 @@
 ﻿#include "Direct3dDriver.h"
 
+#include "corepch.h"
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
-#include <d3d12.h>
-#include <dxgi1_4.h>
 #include <tchar.h>
 #include "Core/Application.h"
 #include "Core/Input.h"
@@ -67,6 +66,17 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
+        // Render imgui graphics
+        const float w = 1.f; // TEMP
+        Vector3f clearColor{0.45f, 0.55f, 0.60f};
+        if (m_ImGuiProperties.size())
+        {
+            if (auto colorVector = std::get_if<Vector3f>(&m_ImGuiProperties[0].m_property))
+            {
+                clearColor = {colorVector->X, colorVector->Y, colorVector->Z};
+            }
+        }
+ 
         // Render things..
         auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
         auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
@@ -75,6 +85,7 @@ namespace sb
         auto swapChain = m_swapChain->GetSwapChain3();
         auto srvDescHeap = m_DescriptorHeap->GetSrvHeap();
 
+        // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
         uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
         frameCtx->CommandAllocator->Reset();
@@ -89,23 +100,25 @@ namespace sb
         commandList->Reset(frameCtx->CommandAllocator, nullptr);
         commandList->ResourceBarrier(1, &barrier);
 
-        // Render imgui graphics
-        const float w = 1.f; // TEMP
-        Vector3f clearColor{0.45f, 0.55f, 0.60f};
-        if (m_ImGuiProperties.size())
-        {
-            if (auto colorVector = std::get_if<Vector3f>(&m_ImGuiProperties[0].m_property))
-            {
-                clearColor = {colorVector->X, colorVector->Y, colorVector->Z};
-            }
-        }
+        m_constantBuffer->Clear();
+        m_DescriptorHeap->Clear();
+
+        // CBV
+        commandList->SetGraphicsRootSignature(m_rootSignature->GetSignature().Get());
+        ID3D12DescriptorHeap* cbvHeap = m_DescriptorHeap->GetCbvHeap().Get();
+        ID3D12DescriptorHeap* descriptorHeaps[] = {srvDescHeap, cbvHeap};
 
         const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
         commandList->ClearRenderTargetView(mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0,
                                            nullptr);
         commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
         commandList->SetDescriptorHeaps(1, &srvDescHeap);
+        //commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+        
+        // RenderEnd
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
         commandList->ResourceBarrier(1, &barrier);
@@ -188,10 +201,12 @@ namespace sb
         m_rootSignature = CreateUPtr<RootSignature>();
         m_commandQueue = CreateUPtr<CommandQueue>();
         m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
+        m_constantBuffer = CreateUPtr<ConstantBuffer>();
 
         m_commandQueue->Init(sg_d3dDevice);
         m_DescriptorHeap->Init(256);
         m_rootSignature->Init(sg_d3dDevice);
+        m_constantBuffer->Init(sizeof(DirectX::XMFLOAT4), 256);
 
         HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
         if (FAILED(hr))
@@ -276,6 +291,7 @@ namespace sb
         m_DescriptorHeap.reset();
         m_swapChain.reset();
         m_commandQueue.reset();
+        m_constantBuffer.reset();
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기

@@ -16,6 +16,7 @@ namespace sb
 
         ID3D12DescriptorHeap* GetRtvHeap() const { return m_descRtvHeap.Get(); }
         ID3D12DescriptorHeap* GetSrvHeap() const { return m_descSrvHeap.Get(); }
+        ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return m_cbvHeap; }
         D3D12_CPU_DESCRIPTOR_HANDLE* GetRenderTargetDescriptors() {return m_mainRenderTargetDescriptor; }
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetRegisterCPUHandle(uint32 in_reg);

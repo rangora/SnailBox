@@ -47,20 +47,20 @@ namespace sb
     //     }
     // }
 
-    // void CommandQueue::RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect)
-    // {
-    //     m_cmdAllocator->Reset();
-    //     m_cmdList->Reset(m_cmdAllocator.Get(), nullptr);
+     void CommandQueue::RenderBegin(const D3D12_VIEWPORT* in_vp, const D3D12_RECT* in_rect)
+     {
+       /*  m_cmdAllocator->Reset();
+         m_cmdList->Reset(m_cmdAllocator.Get(), nullptr);
 
-    //     D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-    //         m_swapChain->GetBackRTVBuffer().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+             m_swapChain->GetBackRTVBuffer().Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    //     m_cmdList->SetGraphicsRootSignature(sg_d3dDriver->GetRootSignature()->GetSignature().Get());
+         m_cmdList->SetGraphicsRootSignature(sg_d3dDriver->GetRootSignature()->GetSignature().Get());*/
 
-    //     // 여기서부터 cb가 나온다.
-    // }
+         // 여기서부터 cb가 나온다.
+     }
 
-    // void CommandQueue::RenderEnd()
-    // {
-    // }
+     void CommandQueue::RenderEnd()
+     {
+     }
 } // namespace sb
