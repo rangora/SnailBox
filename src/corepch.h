@@ -8,3 +8,4 @@
 #include <d3dx12.h>
 #include <dxgi.h>
 #include <DirectXMath.h>
+#include <d3dcompiler.h>
