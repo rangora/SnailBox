@@ -14,6 +14,7 @@ namespace sb
     int32_t Application::m_runningWindowCount = 0;
     Application* Application::s_instance = nullptr;
     ShaderArchive Application::s_staticShaderArchive(GraphicsDevice::OpenGL);
+    GraphicsDevice Application::s_currentGraphicsDevice = GraphicsDevice::None;
 
     Application::Application()
     {
@@ -41,6 +42,8 @@ namespace sb
             spdlog::info("FrontWindow closed.");
             return;
         }
+
+        Application::s_currentGraphicsDevice = in_windowContext.graphicsDevice;
 
         spdlog::info("Add new window:{}, height:{}, width:{}", in_windowContext.title, in_windowContext.height,
                      in_windowContext.width);

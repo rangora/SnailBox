@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Common.h"
+#include "corepch.h"
 #include "Enums.h"
 #include "RenderBuffer.h"
 #include <queue>
@@ -27,7 +27,7 @@ namespace sb
         virtual void AddData(const void* in_data) = 0;
         virtual void CommitData() = 0;
 
-        static UPtr<GraphicsContext> Create(void* in_glWindow, Driver* in_driver);
+        static UPtr<GraphicsContext> Create(void * in_userPointer, Driver* in_driver);
 
         std::vector<class RenderResource*> m_targetRenderResources;
         std::vector<SPtr<RenderBuffer>> m_renderbuffers;

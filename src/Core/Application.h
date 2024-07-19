@@ -36,6 +36,7 @@ namespace sb
         static class Direct3dDriver* GetDirect3dDriver();
 
         static ShaderArchive s_staticShaderArchive;
+        static GraphicsDevice s_currentGraphicsDevice;
 
     private:
         void OpenFrontWindow(WindowContext& OutWindowContext);
