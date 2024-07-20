@@ -2,13 +2,12 @@
 
 #include "Core/Platform.h"
 #include "Quat.h"
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 
 namespace sb
 {
-    template <typename T>
-    struct Vector
+    template <typename T> struct Vector
     {
         struct
         {
@@ -30,54 +29,49 @@ namespace sb
         FORCEINLINE Vector<T> operator/(const Vector<T>& U) const;
         FORCEINLINE bool operator==(const Vector<T>& U) const;
 
-        template<typename U>
-        FORCEINLINE Vector<T>& operator=(const Vector<U>& in_other);
+        template <typename U> FORCEINLINE Vector<T>& operator=(const Vector<U>& in_other);
 
         Quat ToQuat() const;
     };
 
-    template <typename T>
-    FORCEINLINE Vector<T>::Vector() {}
+    template <typename T> FORCEINLINE Vector<T>::Vector()
+    {
+    }
 
-    template <typename T>
-    FORCEINLINE Vector<T>::Vector(T in_val) : X(in_val), Y(in_val), Z(in_val) {}
+    template <typename T> FORCEINLINE Vector<T>::Vector(T in_val) : X(in_val), Y(in_val), Z(in_val)
+    {
+    }
 
-    template <typename T>
-    FORCEINLINE Vector<T>::Vector(T in_x, T in_y, T in_z) : X(in_x), Y(in_y), Z(in_z) {}
+    template <typename T> FORCEINLINE Vector<T>::Vector(T in_x, T in_y, T in_z) : X(in_x), Y(in_y), Z(in_z)
+    {
+    }
 
-    template <typename T>
-    FORCEINLINE Vector<T> Vector<T>::operator+(const Vector<T>& U) const
+    template <typename T> FORCEINLINE Vector<T> Vector<T>::operator+(const Vector<T>& U) const
     {
         return Vector<T>(X + U.X, Y + U.Y, Z + U.Z);
     }
 
-    template <typename T>
-    FORCEINLINE Vector<T> Vector<T>::operator-(const Vector<T>& U) const
+    template <typename T> FORCEINLINE Vector<T> Vector<T>::operator-(const Vector<T>& U) const
     {
         return Vector<T>(X - U.X, Y - U.Y, Z - U.Z);
     }
 
-    template <typename T>
-    FORCEINLINE Vector<T> Vector<T>::operator*(const Vector<T>& U) const
+    template <typename T> FORCEINLINE Vector<T> Vector<T>::operator*(const Vector<T>& U) const
     {
         return Vector<T>(X * U.X, Y * U.Y, Z * U.Z);
     }
 
-    template <typename T>
-    FORCEINLINE Vector<T> Vector<T>::operator/(const Vector<T>& U) const
+    template <typename T> FORCEINLINE Vector<T> Vector<T>::operator/(const Vector<T>& U) const
     {
         return Vector<T>(X / U.X, Y / U.Y, Z / U.Z);
     }
 
-    template <typename T>
-    FORCEINLINE bool Vector<T>::operator==(const Vector<T>& U) const
+    template <typename T> FORCEINLINE bool Vector<T>::operator==(const Vector<T>& U) const
     {
         return X == U.X && Y == U.Y && Z == U.Z;
     }
 
-    template <typename T>
-    template <typename U>
-    FORCEINLINE Vector<T>& Vector<T>::operator=(const Vector<U>& in_other)
+    template <typename T> template <typename U> FORCEINLINE Vector<T>& Vector<T>::operator=(const Vector<U>& in_other)
     {
         X = static_cast<T>(in_other.X);
         Y = static_cast<T>(in_other.Y);
@@ -86,8 +80,7 @@ namespace sb
         return *this;
     }
 
-    template <typename T>
-    Quat Vector<T>::ToQuat() const
+    template <typename T> Quat Vector<T>::ToQuat() const
     {
         Quat ReturnQuat;
 
@@ -115,16 +108,15 @@ namespace sb
         return ReturnQuat;
     }
 
-    template<> const Vector<float> Vector<float>::zeroVector(0.f, 0.f, 0.f);
-    template<> const Vector<float> Vector<float>::oneVector(1.f, 1.f, 1.f);
-    template<> const Vector<double> Vector<double>::zeroVector(0.0, 0.0, 0.0);
-    template<> const Vector<double> Vector<double>::oneVector(1.0, 1.0, 1.0);
+    template <> const Vector<float> Vector<float>::zeroVector(0.f, 0.f, 0.f);
+    template <> const Vector<float> Vector<float>::oneVector(1.f, 1.f, 1.f);
+    template <> const Vector<double> Vector<double>::zeroVector(0.0, 0.0, 0.0);
+    template <> const Vector<double> Vector<double>::oneVector(1.0, 1.0, 1.0);
 
     using Vector3f = Vector<float>;
     using Vector3d = Vector<double>;
 
-    template <typename T>
-    struct Vector2
+    template <typename T> struct Vector2
     {
         struct
         {
@@ -185,7 +177,9 @@ namespace sb
         return X == U.X && Y == U.Y;
     }
 
-    template <typename T> template <typename U> FORCEINLINE Vector2<T>& Vector2<T>::operator=(const Vector2<U>& in_other)
+    template <typename T>
+    template <typename U>
+    FORCEINLINE Vector2<T>& Vector2<T>::operator=(const Vector2<U>& in_other)
     {
         X = static_cast<T>(in_other.X);
         Y = static_cast<T>(in_other.Y);
@@ -200,4 +194,88 @@ namespace sb
 
     using Vector2f = Vector2<float>;
     using Vector2d = Vector2<double>;
-}
+
+    template <typename T> struct Vector4
+    {
+        struct
+        {
+            T X;
+            T Y;
+            T Z;
+            T W;
+        };
+
+        static const Vector4<T> zeroVector;
+        static const Vector4<T> oneVector;
+
+        FORCEINLINE Vector4();
+        explicit FORCEINLINE Vector4(T in_val);
+        FORCEINLINE Vector4(T in_x, T in_y, T in_z, T in_w);
+
+        FORCEINLINE Vector4<T> operator+(const Vector4<T>& U) const;
+        FORCEINLINE Vector4<T> operator-(const Vector4<T>& U) const;
+        FORCEINLINE Vector4<T> operator*(const Vector4<T>& U) const;
+        FORCEINLINE Vector4<T> operator/(const Vector4<T>& U) const;
+        FORCEINLINE bool operator==(const Vector4<T>& U) const;
+
+        template <typename U> FORCEINLINE Vector4<T>& operator=(const Vector4<U>& in_other);
+    };
+
+    template <typename T> FORCEINLINE Vector4<T>::Vector4()
+    {
+    }
+
+    template <typename T> FORCEINLINE Vector4<T>::Vector4(T in_val) : X(in_val), Y(in_val), Z(in_val), W(in_val)
+    {
+    }
+
+    template <typename T>
+    FORCEINLINE Vector4<T>::Vector4(T in_x, T in_y, T in_z, T in_w) : X(in_x), Y(in_y), Z(in_z), W(in_w)
+    {
+    }
+
+    template <typename T> FORCEINLINE Vector4<T> Vector4<T>::operator+(const Vector4<T>& U) const
+    {
+        return Vector<T>(X + U.X, Y + U.Y, Z + U.Z, W + U.W);
+    }
+
+    template <typename T> FORCEINLINE Vector4<T> Vector4<T>::operator-(const Vector4<T>& U) const
+    {
+        return Vector<T>(X - U.X, Y - U.Y, Z - U.Z, W - U.W);
+    }
+
+    template <typename T> FORCEINLINE Vector4<T> Vector4<T>::operator*(const Vector4<T>& U) const
+    {
+        return Vector<T>(X * U.X, Y * U.Y, Z * U.Z, W * U.W);
+    }
+
+    template <typename T> FORCEINLINE Vector4<T> Vector4<T>::operator/(const Vector4<T>& U) const
+    {
+        return Vector<T>(X / U.X, Y / U.Y, Z / U.Z, W / U.W);
+    }
+
+    template <typename T> FORCEINLINE bool Vector4<T>::operator==(const Vector4<T>& U) const
+    {
+        return X == U.X && Y == U.Y && Z == U.Z && W == U.W;
+    }
+
+    template <typename T>
+    template <typename U>
+    FORCEINLINE Vector4<T>& Vector4<T>::operator=(const Vector4<U>& in_other)
+    {
+        X = static_cast<T>(in_other.X);
+        Y = static_cast<T>(in_other.Y);
+        Z = static_cast<T>(in_other.Z);
+        W = static_cast<T>(in_other.W);
+
+        return *this;
+    }
+
+    template <> const Vector4<float> Vector4<float>::zeroVector(0.f, 0.f, 0.f, 0.f);
+    template <> const Vector4<float> Vector4<float>::oneVector(1.f, 1.f, 1.f, 1.f);
+    template <> const Vector4<double> Vector4<double>::zeroVector(0.0, 0.0, 0.0, 0.0);
+    template <> const Vector4<double> Vector4<double>::oneVector(1.0, 1.0, 1.0, 1.0);
+
+    using Vector4f = Vector4<float>;
+    using Vector4d = Vector4<double>;
+} // namespace sb
