@@ -8,7 +8,7 @@ namespace sb
 {
     void StaticMeshRenderResource::RenderProcess(GraphicsContext* in_processor)
     {
-        if (GraphicsDevice::OpenGL == in_processor->m_graphicsFramework)
+        if (GraphicsDevice::OpenGL == GraphicsContext::s_currentDevice)
         {
             OpenglRenderProcess_Internal(static_cast<OpenglContext*>(in_processor));
         }

@@ -31,7 +31,7 @@ namespace sb
     OpenglContext::OpenglContext(GLFWwindow* in_window_handle, Driver* in_driver)
         : m_glWindow_handle(in_window_handle), m_driver_handle(in_driver)
     {
-        m_graphicsFramework = GraphicsDevice::OpenGL;
+        GraphicsContext::s_currentDevice = GraphicsDevice::OpenGL;
     }
 
     void OpenglContext::Initialize()

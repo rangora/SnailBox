@@ -32,7 +32,7 @@ namespace sb
         std::vector<class RenderResource*> m_targetRenderResources;
         std::vector<SPtr<RenderBuffer>> m_renderbuffers;
 
-        GraphicsDevice m_graphicsFramework = GraphicsDevice::None;
+        static GraphicsDevice s_currentDevice;
 
         Window* m_window_handle = nullptr;
     };

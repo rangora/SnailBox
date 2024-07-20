@@ -6,6 +6,8 @@
 
 namespace sb
 {
+    GraphicsDevice GraphicsContext::s_currentDevice = GraphicsDevice::None;
+
     UPtr<GraphicsContext> GraphicsContext::Create(void * in_userPointer, Driver* in_drvier)
     {
         switch (Application::s_currentGraphicsDevice)
