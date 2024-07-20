@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Core/Common.h"
+#include "corepch.h"
 #include "Core/Math/Vector.h"
 #include "Enums.h"
 #include "Opengl/OpenGLBuffer.h"
@@ -12,6 +12,12 @@
 namespace sb
 {
     class GraphicsContext;
+
+    struct Vertex
+    {
+        Vector3d m_pos;
+        Vector4d m_color;
+    };
 
     class RenderResource
     {
@@ -49,6 +55,9 @@ namespace sb
         SPtr<RenderBuffer> m_indexBuffer;
         SPtr<RenderBuffer> m_normalBuffer;
         SPtr<RenderBuffer> m_texCoords;
+
+        uint32 m_vertexCount = 0;
+        uint32 m_indexCount = 0;
 
     private:
         void OpenglRenderProcess_Internal(class OpenglContext* in_openglContext);
