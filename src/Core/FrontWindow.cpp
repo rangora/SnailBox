@@ -1,4 +1,4 @@
-﻿#include "FrontWindow.h"
+#include "FrontWindow.h"
 #include "imgui.h"
 
 namespace sb

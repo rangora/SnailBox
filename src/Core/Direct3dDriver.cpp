@@ -8,6 +8,9 @@
 #include "Core/Application.h"
 #include "Core/Input.h"
 #include "WinWindow.h"
+#include "Render/DirectX12/Direct3dContext.h"
+#include "Render/DirectX12/DirectXShader.h"
+#include "Render/RenderResource.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -178,6 +181,40 @@ namespace sb
         CleanUpDevice();
     }
 
+    void Direct3dDriver::InitRenderInfo()
+    {
+        std::vector<Vertex> vec(4);
+        vec[0].m_pos = Vector3d(-0.5f, 0.5f, 0.5f);
+        vec[0].m_color = Vector4d(1.f, 0.f, 0.f, 1.f);
+        vec[1].m_pos = Vector3d(0.5f, 0.5f, 0.5f);
+        vec[1].m_color = Vector4d(0.f, 1.f, 0.f, 1.f);
+        vec[2].m_pos = Vector3d(0.5f, -0.5f, 0.5f);
+        vec[2].m_color = Vector4d(0.f, 0.f, 1.f, 1.f);
+        vec[3].m_pos = Vector3d(-0.5f, -0.5f, 0.5f);
+        vec[3].m_color = Vector4d(0.f, 1.f, 0.f, 1.f);
+
+        std::vector<uint32> indexVec;
+        {
+            indexVec.push_back(0);
+            indexVec.push_back(1);
+            indexVec.push_back(2);
+        }
+        {
+            indexVec.push_back(0);
+            indexVec.push_back(2);
+            indexVec.push_back(3);
+        }
+
+        m_direct3dContext = new Direct3dContext();
+        m_direct3dContext->Init(vec, indexVec); // temp:mesh init
+
+        std::string stringPath = projectPath + "/resources/shader/default.hlsli";
+        std::wstring wstringPath(stringPath.size(), L'\0');
+        std::mbstowcs(&wstringPath[0], stringPath.c_str(), stringPath.size());
+        m_directdShader = new DirectXShader();
+        m_directdShader->Init(wstringPath); // temp:shader init
+    }
+
     void Direct3dDriver::InitD3dDevice()
     {
 #ifdef _DEBUG
@@ -219,6 +256,9 @@ namespace sb
         {
             return;
         }
+
+        // TEMP
+        InitRenderInfo();
     }
 
     void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)
@@ -295,12 +335,12 @@ namespace sb
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기
-        IDXGIDebug1* pDebug = nullptr;
+       /* IDXGIDebug1* pDebug = nullptr;
         if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
         {
             pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
             pDebug->Release();
-        }
+        }*/
 #endif
     }
 

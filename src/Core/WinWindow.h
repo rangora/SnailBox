@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include "Window.h"
 
 #include "corepch.h"
-#include <string>
-#include <cstdint>
 #include <GLFW/glfw3.h>
+#include <cstdint>
 #include <glm/glm.hpp>
+#include <string>
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -37,7 +37,10 @@ namespace sb
 
         void AttachLayout(Layout* in_layout) final;
 
-        const WindowData& GetWindowData() { return m_windowData; }
+        const WindowData& GetWindowData()
+        {
+            return m_windowData;
+        }
 
         // camera 애매.. 뺴야할거 같음
         bool m_cameraTranslation = false;

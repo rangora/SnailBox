@@ -47,6 +47,9 @@ namespace sb
         bool IsWindowShouldClosed() final;
         void CleanDriver() final;
 
+        // TEMP RenderFunc
+        void InitRenderInfo();
+
         void InitD3dDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
@@ -74,6 +77,9 @@ namespace sb
         WinsWindow* GetTargetWindow() const;
 
         FrameContext* WaitForNextFrameResources();
+
+        class Direct3dContext* m_direct3dContext = nullptr;
+        class DirectXShader* m_directdShader = nullptr;
 
         ComPtr<ID3D12Debug> m_debugController;
         ComPtr<IDXGIFactory4> m_dxgi;

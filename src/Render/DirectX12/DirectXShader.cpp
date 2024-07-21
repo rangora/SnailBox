@@ -15,6 +15,7 @@ namespace sb
 
         m_pipelineDesc.InputLayout = {desc, _countof(desc)};
         m_pipelineDesc.pRootSignature = sg_d3dDriver->GetRootSignature()->GetSignature().Get();
+
         m_pipelineDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         m_pipelineDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         m_pipelineDesc.DepthStencilState.DepthEnable = FALSE;
@@ -26,7 +27,7 @@ namespace sb
         m_pipelineDesc.SampleDesc.Count = 1;
 
         HRESULT Result = sg_d3dDevice->CreateGraphicsPipelineState(&m_pipelineDesc, IID_PPV_ARGS(&m_pipelineState));
-        if (Result == FALSE)
+        if (Result == S_FALSE)
         {
             assert(false);
         }
@@ -64,6 +65,6 @@ namespace sb
     void DirectXShader::CreatePixelShader(const std::wstring& in_path, const std::string& in_name,
                                           const std::string& in_version)
     {
-        CreateShader(in_path, in_name, in_version, m_vsBlob, m_pipelineDesc.PS);
+        CreateShader(in_path, in_name, in_version, m_psBlob, m_pipelineDesc.PS);
     }
 } // namespace sb
