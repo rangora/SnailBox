@@ -1,10 +1,25 @@
-#include <spdlog/common.h>
+// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+
+#pragma once
+
 #include <map>
+#include <string>
+
+#include <spdlog/common.h>
+
+// MDC is a simple map of key->string values stored in thread local storage whose content will be printed by the loggers.
+// Note: Not supported in async mode (thread local storage - so the async thread pool have different copy).
+//
+// Usage example:
+// spdlog::mdc::put("mdc_key_1", "mdc_value_1");
+// spdlog::info("Hello, {}", "World!");  // => [2024-04-26 02:08:05.040] [info] [mdc_key_1:mdc_value_1] Hello, World!
 
 namespace spdlog {
-
 class SPDLOG_API mdc {
 public:
+    using mdc_map_t = std::map<std::string, std::string>;
+
     static void put(const std::string &key, const std::string &value) {
         get_context()[key] = value;
     }
@@ -22,8 +37,8 @@ public:
 
     static void clear() { get_context().clear(); }
 
-    static std::map<std::string, std::string> &get_context() {
-        static thread_local std::map<std::string, std::string> context;
+    static mdc_map_t &get_context() {
+        static thread_local mdc_map_t context;
         return context;
     }
 };
