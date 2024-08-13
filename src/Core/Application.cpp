@@ -18,6 +18,12 @@ namespace sb
 
     Application::Application()
     {
+        HMODULE hModule = LoadLibraryA("C:/Program Files/Microsoft PIX/2405.15.002-OneBranch_release/WinPixGpuCapturer.dll");
+        if (hModule == nullptr)
+        {
+            assert(false);
+        }
+
         // s_instance에 assert 필요!
         s_instance = this;
 
