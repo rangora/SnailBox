@@ -77,13 +77,18 @@ namespace sb
         WinsWindow* GetTargetWindow() const;
 
         FrameContext* WaitForNextFrameResources();
+        FrameContext* WaitForPreviousFrame();
 
         class Direct3dContext* m_direct3dContext = nullptr;
-        class DirectXShader* m_directdShader = nullptr;
+        class DirectXShader* m_directdShader = nullptr; // delete?
+        class ShaderResource* _shaderResource = nullptr; // temp
 
         ComPtr<ID3D12Debug> m_debugController;
         ComPtr<IDXGIFactory4> m_dxgi;
         ComPtr<ID3D12Device> m_device;
+
+        D3D12_VIEWPORT _viewport;
+        D3D12_RECT _scissorRect;
 
         Camera m_camera;
         

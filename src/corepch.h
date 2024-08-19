@@ -9,3 +9,5 @@
 #include <dxgi.h>
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
+
+using namespace DirectX;

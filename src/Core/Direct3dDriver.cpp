@@ -1,16 +1,17 @@
 ﻿#include "Direct3dDriver.h"
 
+#include "Core/Application.h"
+#include "Core/Input.h"
+#include "Render/DirectX12/Direct3dContext.h"
+#include "Render/DirectX12/DirectXShader.h"
+#include "Render/DirectX12/ShaderResource.h"
+#include "Render/RenderResource.h"
+#include "WinWindow.h"
 #include "corepch.h"
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include <tchar.h>
-#include "Core/Application.h"
-#include "Core/Input.h"
-#include "WinWindow.h"
-#include "Render/DirectX12/Direct3dContext.h"
-#include "Render/DirectX12/DirectXShader.h"
-#include "Render/RenderResource.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -23,8 +24,7 @@
 
 namespace sb
 {
-    Direct3dDriver::Direct3dDriver(Window* in_window)
-    : Driver(in_window)
+    Direct3dDriver::Direct3dDriver(Window* in_window) : Driver(in_window)
     {
     }
 
@@ -79,7 +79,7 @@ namespace sb
                 clearColor = {colorVector->X, colorVector->Y, colorVector->Z};
             }
         }
- 
+
         // Render things..
         auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
         auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
@@ -90,7 +90,12 @@ namespace sb
 
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
+        //FrameContext* frameCtx = WaitForPreviousFrame();
         uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
+        
+        // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
+        // reset으로 메모리 초기화 줌(저장된 commandList)
+        // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
         frameCtx->CommandAllocator->Reset();
 
         D3D12_RESOURCE_BARRIER barrier = {};
@@ -100,27 +105,47 @@ namespace sb
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        commandList->Reset(frameCtx->CommandAllocator, nullptr);
+
+        // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
+        commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
+        // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
+        
         commandList->ResourceBarrier(1, &barrier);
 
-        m_constantBuffer->Clear();
-        m_DescriptorHeap->Clear();
+    /*    m_constantBuffer->Clear();
+        m_DescriptorHeap->Clear();*/
 
         // CBV
-        commandList->SetGraphicsRootSignature(m_rootSignature->GetSignature().Get());
-        ID3D12DescriptorHeap* cbvHeap = m_DescriptorHeap->GetCbvHeap().Get();
-        ID3D12DescriptorHeap* descriptorHeaps[] = {srvDescHeap, cbvHeap};
+        //commandList->SetGraphicsRootSignature(m_rootSignature->GetSignature().Get());
+        //ID3D12DescriptorHeap* cbvHeap = m_DescriptorHeap->GetCbvHeap().Get();
+        ID3D12DescriptorHeap* descriptorHeaps[] = {srvDescHeap};
 
         const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
         commandList->ClearRenderTargetView(mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0,
                                            nullptr);
-        commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
         commandList->SetDescriptorHeaps(1, &srvDescHeap);
-        //commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        // commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+        ImDrawData* DrawData = ImGui::GetDrawData();
+        _viewport.Height = DrawData->DisplaySize.y;
+        _viewport.Width = DrawData->DisplaySize.x;
+        _scissorRect.bottom = DrawData->DisplaySize.y;
+        _scissorRect.right = DrawData->DisplaySize.x;
+
+        // 여기 또는
+        commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
+        commandList->RSSetViewports(1, &_viewport);
+        commandList->RSSetScissorRects(1, &_scissorRect);
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
+        commandList->DrawInstanced(3, 1, 0, 0);
+
+        commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
-        
+
+        // 여기
+
         // RenderEnd
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -183,36 +208,53 @@ namespace sb
 
     void Direct3dDriver::InitRenderInfo()
     {
-        std::vector<Vertex> vec(4);
-        vec[0].m_pos = Vector3d(-0.5f, 0.5f, 0.5f);
-        vec[0].m_color = Vector4d(1.f, 0.f, 0.f, 1.f);
-        vec[1].m_pos = Vector3d(0.5f, 0.5f, 0.5f);
-        vec[1].m_color = Vector4d(0.f, 1.f, 0.f, 1.f);
-        vec[2].m_pos = Vector3d(0.5f, -0.5f, 0.5f);
-        vec[2].m_color = Vector4d(0.f, 0.f, 1.f, 1.f);
-        vec[3].m_pos = Vector3d(-0.5f, -0.5f, 0.5f);
-        vec[3].m_color = Vector4d(0.f, 1.f, 0.f, 1.f);
+        _shaderResource = new ShaderResource;
+        _shaderResource->Init();
 
-        std::vector<uint32> indexVec;
+        auto cmdList = m_commandQueue->GetCmdList();
+        UpdateSubresources(cmdList.Get(), _shaderResource->GetVertexBuffer().Get(),
+                           _shaderResource->GetVertexBufferUploadHeap().Get(), 0, 0, 1,
+                           _shaderResource->GetVertexBufferData());
+
+        // resource 만들 때 defaultHeap을 COPY_DEST로 사용했다.
+        // 그리고 VertexBuffer 값을 복사해 넣었다.
+        // 이젠 VertexBufferState로 바꿔 사용할 것이다.
+        ID3D12Resource* vResource = _shaderResource->GetVertexBuffer().Get();
+        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            vResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        cmdList->ResourceBarrier(1, &barrier);
+        
+        cmdList->Close();
+        auto cmdQueue = m_commandQueue->GetCmdQueue();
+        ID3D12CommandList* ppCmdLists[] = {cmdList.Get()};
+        cmdQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
+
+        uint64 fenceValue = m_fenceLastSignaledValue + 1;
+        auto& frameCtx = m_frameContexts[m_frameIndex];
+        frameCtx.FenceValue = fenceValue;
+        m_fenceLastSignaledValue = fenceValue;
+        
+        HRESULT hr = cmdQueue->Signal(m_fence.Get(), fenceValue);
+        if (FAILED(hr))
         {
-            indexVec.push_back(0);
-            indexVec.push_back(1);
-            indexVec.push_back(2);
-        }
-        {
-            indexVec.push_back(0);
-            indexVec.push_back(2);
-            indexVec.push_back(3);
+            return;
         }
 
-        m_direct3dContext = new Direct3dContext();
-        m_direct3dContext->Init(vec, indexVec); // temp:mesh init
+        _shaderResource->CreateVertexBufferView();
 
-        std::string stringPath = projectPath + "/resources/shader/default.hlsli";
-        std::wstring wstringPath(stringPath.size(), L'\0');
-        std::mbstowcs(&wstringPath[0], stringPath.c_str(), stringPath.size());
-        m_directdShader = new DirectXShader();
-        m_directdShader->Init(wstringPath); // temp:shader init
+          // Fill out the Viewport
+        _viewport.TopLeftX = 0;
+        _viewport.TopLeftY = 0;
+        _viewport.Width = 800;
+        _viewport.Height = 600;
+        _viewport.MinDepth = 0.0f;
+        _viewport.MaxDepth = 1.0f;
+
+        // Fill out a scissor rect
+        _scissorRect.left = 0;
+        _scissorRect.top = 0;
+        _scissorRect.right = 800;
+        _scissorRect.bottom = 600;
     }
 
     void Direct3dDriver::InitD3dDevice()
@@ -259,6 +301,8 @@ namespace sb
 
         // TEMP
         InitRenderInfo();
+
+        //m_commandQueue->GetCmdList()->Close();
     }
 
     void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)
@@ -329,18 +373,17 @@ namespace sb
 
         m_rootSignature.reset();
         m_DescriptorHeap.reset();
-        m_swapChain.reset();
         m_commandQueue.reset();
         m_constantBuffer.reset();
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기
-       /* IDXGIDebug1* pDebug = nullptr;
-        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
-        {
-            pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
-            pDebug->Release();
-        }*/
+        /* IDXGIDebug1* pDebug = nullptr;
+         if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+         {
+             pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+             pDebug->Release();
+         }*/
 #endif
     }
 
@@ -351,13 +394,12 @@ namespace sb
 
     FrameContext* Direct3dDriver::WaitForNextFrameResources()
     {
-        uint32 nextFrameIndex = m_frameIndex + 1;
-        m_frameIndex = nextFrameIndex;
+        m_frameIndex = m_frameIndex++;
 
         HANDLE waitableObjects[] = {sg_d3dDriver->GetSwapChainWaitableObject(), nullptr};
         DWORD numWaitableObjects = 1;
 
-        FrameContext* frameCtx = &m_frameContexts[nextFrameIndex % NUM_FRAMES_IN_FLIGHT];
+        FrameContext* frameCtx = &m_frameContexts[m_frameIndex % NUM_FRAMES_IN_FLIGHT];
         uint64 fenceValue = frameCtx->FenceValue;
         if (fenceValue != 0) // Means no fence was singaled
         {
@@ -368,6 +410,21 @@ namespace sb
         }
 
         WaitForMultipleObjects(numWaitableObjects, waitableObjects, TRUE, INFINITE);
+
+        return frameCtx;
+    }
+
+    FrameContext* Direct3dDriver::WaitForPreviousFrame()
+    {
+        FrameContext* frameCtx = &m_frameContexts[m_frameIndex % NUM_FRAMES_IN_FLIGHT];
+
+        if (m_fence->GetCompletedValue() < frameCtx->FenceValue)
+        {
+            m_fence->SetEventOnCompletion(frameCtx->FenceValue, m_fenceEvent);
+            WaitForSingleObject(m_fenceEvent, INFINITE);
+        }
+
+        m_frameIndex++;
 
         return frameCtx;
     }
@@ -399,8 +456,7 @@ namespace sb
         {
             ID3D12Resource* pBackBuffer = nullptr;
             m_swapChain->GetSwapChain3()->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-            m_device->CreateRenderTargetView(pBackBuffer, nullptr,
-                                                          m_DescriptorHeap->GetRenderTargetDescriptors()[i]);
+            m_device->CreateRenderTargetView(pBackBuffer, nullptr, m_DescriptorHeap->GetRenderTargetDescriptors()[i]);
             m_swapChain->GetMainRenderTargetResources()[i] = pBackBuffer;
         }
     }

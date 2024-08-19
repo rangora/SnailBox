@@ -33,7 +33,6 @@ namespace sb
         in_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                                      sg_d3dDriver->GetFrameContexts()[0].CommandAllocator, nullptr,
                                      IID_PPV_ARGS(&m_cmdList));
-        m_cmdList->Close();
     }
 
     // void CommandQueue::WaitSync()
