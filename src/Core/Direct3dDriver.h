@@ -3,10 +3,8 @@
 #include "Driver.h"
 #include "Render/Camera.h"
 #include "Render/DirectX12/CommandQueue.h"
-#include "Render/DirectX12/RootSignature.h"
 #include "Render/DirectX12/SwapChain.h"
 #include "Render/DirectX12/TableDescriptorHeap.h"
-#include "Render/DirectX12/ConstantBuffer.h"
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
@@ -53,7 +51,6 @@ namespace sb
         void InitD3dDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
-        RootSignature* GetRootSignature() const { return m_rootSignature.get(); }
         SwapChain* GetSwapChain() const { return m_swapChain.get(); }
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
@@ -92,11 +89,9 @@ namespace sb
 
         Camera m_camera;
         
-        UPtr<RootSignature> m_rootSignature = nullptr;
         UPtr<CommandQueue> m_commandQueue = nullptr;
         UPtr<SwapChain> m_swapChain = nullptr;
         UPtr<TableDescriptorHeap> m_DescriptorHeap = nullptr;
-        UPtr<ConstantBuffer> m_constantBuffer = nullptr;
 
         ComPtr<ID3D12Fence> m_fence; // fence도 객체화 되는 것이??
         HANDLE m_fenceEvent = INVALID_HANDLE_VALUE;

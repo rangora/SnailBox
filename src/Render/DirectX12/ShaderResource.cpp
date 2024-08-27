@@ -1,6 +1,5 @@
 #include "ShaderResource.h"
 #include "Core/Application.h"
-#include "DirectXShader.h"
 
 namespace sb
 {

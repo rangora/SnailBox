@@ -3,7 +3,6 @@
 #include "Core/Application.h"
 #include "Core/Input.h"
 #include "Render/DirectX12/Direct3dContext.h"
-#include "Render/DirectX12/DirectXShader.h"
 #include "Render/DirectX12/ShaderResource.h"
 #include "Render/RenderResource.h"
 #include "WinWindow.h"
@@ -46,7 +45,6 @@ namespace sb
         // Check device
         DEVICE_VALID_CHECK(m_device);
         DEVICE_VALID_CHECK(m_dxgi);
-        DEVICE_VALID_CHECK(m_rootSignature);
         DEVICE_VALID_CHECK(m_commandQueue);
         DEVICE_VALID_CHECK(m_DescriptorHeap);
 
@@ -90,9 +88,9 @@ namespace sb
 
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
-        //FrameContext* frameCtx = WaitForPreviousFrame();
+        // FrameContext* frameCtx = WaitForPreviousFrame();
         uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
-        
+
         // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
         // reset으로 메모리 초기화 줌(저장된 commandList)
         // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
@@ -109,15 +107,13 @@ namespace sb
         // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
         commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
         // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
-        
+
         commandList->ResourceBarrier(1, &barrier);
 
-    /*    m_constantBuffer->Clear();
-        m_DescriptorHeap->Clear();*/
+        /*    m_constantBuffer->Clear();
+            m_DescriptorHeap->Clear();*/
 
         // CBV
-        //commandList->SetGraphicsRootSignature(m_rootSignature->GetSignature().Get());
-        //ID3D12DescriptorHeap* cbvHeap = m_DescriptorHeap->GetCbvHeap().Get();
         ID3D12DescriptorHeap* descriptorHeaps[] = {srvDescHeap};
 
         const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
@@ -223,7 +219,7 @@ namespace sb
         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             vResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         cmdList->ResourceBarrier(1, &barrier);
-        
+
         cmdList->Close();
         auto cmdQueue = m_commandQueue->GetCmdQueue();
         ID3D12CommandList* ppCmdLists[] = {cmdList.Get()};
@@ -233,7 +229,7 @@ namespace sb
         auto& frameCtx = m_frameContexts[m_frameIndex];
         frameCtx.FenceValue = fenceValue;
         m_fenceLastSignaledValue = fenceValue;
-        
+
         HRESULT hr = cmdQueue->Signal(m_fence.Get(), fenceValue);
         if (FAILED(hr))
         {
@@ -242,7 +238,7 @@ namespace sb
 
         _shaderResource->CreateVertexBufferView();
 
-          // Fill out the Viewport
+        // Fill out the Viewport
         _viewport.TopLeftX = 0;
         _viewport.TopLeftY = 0;
         _viewport.Width = 800;
@@ -277,15 +273,11 @@ namespace sb
         m_debugController.Reset();
 #endif
 
-        m_rootSignature = CreateUPtr<RootSignature>();
         m_commandQueue = CreateUPtr<CommandQueue>();
         m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
-        m_constantBuffer = CreateUPtr<ConstantBuffer>();
 
         m_commandQueue->Init(sg_d3dDevice);
         m_DescriptorHeap->Init(256);
-        m_rootSignature->Init(sg_d3dDevice);
-        m_constantBuffer->Init(sizeof(DirectX::XMFLOAT4), 256);
 
         HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
         if (FAILED(hr))
@@ -302,7 +294,7 @@ namespace sb
         // TEMP
         InitRenderInfo();
 
-        //m_commandQueue->GetCmdList()->Close();
+        // m_commandQueue->GetCmdList()->Close();
     }
 
     void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)
@@ -371,10 +363,12 @@ namespace sb
             m_device.Reset();
         }
 
-        m_rootSignature.reset();
-        m_DescriptorHeap.reset();
+        if (m_DescriptorHeap)
+        {
+            m_DescriptorHeap.release();
+        }
+
         m_commandQueue.reset();
-        m_constantBuffer.reset();
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기
