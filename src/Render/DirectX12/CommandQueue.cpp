@@ -1,7 +1,6 @@
 ﻿#include "CommandQueue.h"
 #include "Core/Application.h"
 #include "Core/Direct3dDriver.h"
-#include "SwapChain.h"
 
 namespace sb
 {

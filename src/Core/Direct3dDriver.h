@@ -3,8 +3,6 @@
 #include "Driver.h"
 #include "Render/Camera.h"
 #include "Render/DirectX12/CommandQueue.h"
-#include "Render/DirectX12/SwapChain.h"
-#include "Render/DirectX12/TableDescriptorHeap.h"
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
@@ -35,12 +33,17 @@ namespace sb
         Direct3dDriver() = default;
         ~Direct3dDriver();
 
-        void* GetNativeWindow() final { return nullptr; }; // ??
+        void* GetNativeWindow() final
+        {
+            return nullptr;
+        }; // ??
 
         bool BindWinWindow(const HWND in_hwnd) final;
         void Update() final;
         void OnUpdate(float in_delta) final;
-        void Render() final {} // ??
+        void Render() final
+        {
+        } // ??
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
         void CleanDriver() final;
@@ -50,8 +53,7 @@ namespace sb
 
         void InitD3dDevice();
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
-        TableDescriptorHeap* GetDescriptorHeap() const { return m_DescriptorHeap.get(); }
-        SwapChain* GetSwapChain() const { return m_swapChain.get(); }
+        IDXGISwapChain3* GetSwapChain() const { return _swapChain3.Get(); }
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
@@ -69,6 +71,8 @@ namespace sb
         void EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property);
 
     private:
+        void CreateSwapChain(const HWND in_hwnd);
+        void CreateRtvDescriptorHeap();
         void CleanUpDevice();
 
         WinsWindow* GetTargetWindow() const;
@@ -77,23 +81,27 @@ namespace sb
         FrameContext* WaitForPreviousFrame();
 
         class Direct3dContext* m_direct3dContext = nullptr;
-        class DirectXShader* m_directdShader = nullptr; // delete?
         class ShaderResource* _shaderResource = nullptr; // temp
 
         ComPtr<ID3D12Debug> m_debugController;
         ComPtr<IDXGIFactory4> m_dxgi;
         ComPtr<ID3D12Device> m_device;
+        ComPtr<IDXGISwapChain3> _swapChain3 = nullptr;
+
+        ComPtr<ID3D12DescriptorHeap> _mainRtvHeap = nullptr;
+        D3D12_CPU_DESCRIPTOR_HANDLE _mainRtvCpuHandle[SWAP_CHAIN_BUFFER_COUNT] = {};
+        ID3D12Resource* _mainRtvResource[SWAP_CHAIN_BUFFER_COUNT] = {};
+        
+        ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
 
         D3D12_VIEWPORT _viewport;
         D3D12_RECT _scissorRect;
 
         Camera m_camera;
-        
-        UPtr<CommandQueue> m_commandQueue = nullptr;
-        UPtr<SwapChain> m_swapChain = nullptr;
-        UPtr<TableDescriptorHeap> m_DescriptorHeap = nullptr;
 
-        ComPtr<ID3D12Fence> m_fence; // fence도 객체화 되는 것이??
+        UPtr<CommandQueue> m_commandQueue = nullptr;
+
+        ComPtr<ID3D12Fence> m_fence;
         HANDLE m_fenceEvent = INVALID_HANDLE_VALUE;
         HANDLE m_hSwapChainWaitableObject = nullptr;
 
@@ -105,4 +113,4 @@ namespace sb
 
         std::vector<ImGuiPropertyPlaceHolder> m_ImGuiProperties;
     };
-};
+}; // namespace sb

@@ -29,7 +29,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 sg_d3dDriver->WaitForLastSubmittedFrame();
                 sg_d3dDriver->CleanUpRenderTarget();
 
-                HRESULT result = sg_d3dDriver->GetSwapChain()->GetSwapChain3()->ResizeBuffers(
+                HRESULT result = sg_d3dDriver->GetSwapChain()->ResizeBuffers(
                     0, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam), DXGI_FORMAT_UNKNOWN,
                     DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
 

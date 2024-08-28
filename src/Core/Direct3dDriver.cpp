@@ -46,11 +46,10 @@ namespace sb
         DEVICE_VALID_CHECK(m_device);
         DEVICE_VALID_CHECK(m_dxgi);
         DEVICE_VALID_CHECK(m_commandQueue);
-        DEVICE_VALID_CHECK(m_DescriptorHeap);
 
-        // SwapChain need hwnd.
-        m_swapChain = CreateUPtr<SwapChain>();
-        m_swapChain->Init(sg_d3dDevice, m_dxgi, m_commandQueue->GetCmdQueue(), in_hwnd);
+        CreateSwapChain(in_hwnd);
+        CreateRtvDescriptorHeap();
+        CreateRenderTarget();
 
         // WndProc에서 swapChain 사용.
         ::ShowWindow(in_hwnd, SW_SHOWDEFAULT);
@@ -58,9 +57,9 @@ namespace sb
 
         ImGui_ImplWin32_Init(in_hwnd);
         ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM,
-                            m_DescriptorHeap->GetSrvHeap(),
-                            m_DescriptorHeap->GetSrvHeap()->GetCPUDescriptorHandleForHeapStart(),
-                            m_DescriptorHeap->GetSrvHeap()->GetGPUDescriptorHandleForHeapStart());
+                            _srvHeap.Get(),
+                            _srvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
+                            _srvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
 
         return true;
     }
@@ -79,17 +78,13 @@ namespace sb
         }
 
         // Render things..
-        auto mainRenderTargetDescriptor = m_DescriptorHeap->GetRenderTargetDescriptors();
-        auto mainRenderTargetResource = m_swapChain->GetMainRenderTargetResources();
         auto commandList = m_commandQueue->GetCmdList().Get();
         auto commandQueue = m_commandQueue->GetCmdQueue();
-        auto swapChain = m_swapChain->GetSwapChain3();
-        auto srvDescHeap = m_DescriptorHeap->GetSrvHeap();
 
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
         // FrameContext* frameCtx = WaitForPreviousFrame();
-        uint32 backBufferIdx = m_swapChain->GetSwapChain3()->GetCurrentBackBufferIndex();
+        uint32 backBufferIdx = _swapChain3->GetCurrentBackBufferIndex();
 
         // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
         // reset으로 메모리 초기화 줌(저장된 commandList)
@@ -99,7 +94,7 @@ namespace sb
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Transition.pResource = mainRenderTargetResource[backBufferIdx];
+        barrier.Transition.pResource = _mainRtvResource[backBufferIdx];
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -114,13 +109,12 @@ namespace sb
             m_DescriptorHeap->Clear();*/
 
         // CBV
-        ID3D12DescriptorHeap* descriptorHeaps[] = {srvDescHeap};
+        ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
 
         const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
-        commandList->ClearRenderTargetView(mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0,
+        commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0,
                                            nullptr);
-        commandList->SetDescriptorHeaps(1, &srvDescHeap);
-        // commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+         commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
         ImDrawData* DrawData = ImGui::GetDrawData();
         _viewport.Height = DrawData->DisplaySize.y;
@@ -136,7 +130,7 @@ namespace sb
         commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
         commandList->DrawInstanced(3, 1, 0, 0);
 
-        commandList->OMSetRenderTargets(1, &mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
+        commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
@@ -150,7 +144,7 @@ namespace sb
 
         commandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&commandList);
 
-        swapChain->Present(1, 0); // 1이면 vsync
+        _swapChain3->Present(1, 0); // 1이면 vsync
 
         uint64 fenceValue = m_fenceLastSignaledValue + 1;
         commandQueue->Signal(m_fence.Get(), fenceValue);
@@ -274,10 +268,19 @@ namespace sb
 #endif
 
         m_commandQueue = CreateUPtr<CommandQueue>();
-        m_DescriptorHeap = CreateUPtr<TableDescriptorHeap>();
-
         m_commandQueue->Init(sg_d3dDevice);
-        m_DescriptorHeap->Init(256);
+
+        // SRV
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            desc.NumDescriptors = 1;
+            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_srvHeap)) != S_OK)
+            {
+                return;
+            }
+        }
 
         HRESULT hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
         if (FAILED(hr))
@@ -302,13 +305,67 @@ namespace sb
         m_ImGuiProperties.emplace_back(std::move(in_property));
     }
 
+    void Direct3dDriver::CreateSwapChain(const HWND in_hwnd)
+    {
+        DXGI_SWAP_CHAIN_DESC1 sd;
+        ZeroMemory(&sd, sizeof(sd));
+        sd.BufferCount = SWAP_CHAIN_BUFFER_COUNT;
+        sd.Width = 0;
+        sd.Height = 0;
+        sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.SampleDesc.Count = 1;
+        sd.SampleDesc.Quality = 0;
+        sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+        sd.Scaling = DXGI_SCALING_STRETCH;
+        sd.Stereo = FALSE;
+
+        IDXGISwapChain1* _swapChain1 = nullptr;
+        HRESULT hr = m_dxgi->CreateSwapChainForHwnd(m_commandQueue->GetCmdQueue().Get(), in_hwnd, &sd, nullptr, nullptr,
+                                       &_swapChain1);
+
+        if (FAILED(hr))
+        {
+            return;
+        }
+
+        _swapChain1->QueryInterface(IID_PPV_ARGS(&_swapChain3));
+        _swapChain1->Release();
+        _swapChain3->SetMaximumFrameLatency(SWAP_CHAIN_BUFFER_COUNT);
+        SetSwapChainWaitableObject(_swapChain3->GetFrameLatencyWaitableObject()); // ?
+    }
+
+    void Direct3dDriver::CreateRtvDescriptorHeap()
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        desc.NumDescriptors = SWAP_CHAIN_BUFFER_COUNT; // num of backBuffers
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        desc.NodeMask = 1;
+
+        if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_mainRtvHeap)) != S_OK)
+        {
+            return;
+        }
+
+        uint32 rtvHandleIncrementSize = sg_d3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuRtvHandleBegin = _mainRtvHeap->GetCPUDescriptorHandleForHeapStart();
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = cpuRtvHandleBegin;
+        for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
+        {
+            _mainRtvCpuHandle[i] = rtvHandle;
+            rtvHandle.ptr += rtvHandleIncrementSize;
+        }
+    }
+
     void Direct3dDriver::CleanUpDevice()
     {
         CleanUpRenderTarget();
-        if (m_swapChain->GetSwapChain3())
+        if (_swapChain3)
         {
-            m_swapChain->Clear();
-            m_swapChain.reset();
+            _swapChain3.Reset();
         }
 
         if (m_hSwapChainWaitableObject != nullptr)
@@ -335,18 +392,6 @@ namespace sb
             cmdList.Reset();
         }
 
-        if (ID3D12DescriptorHeap* rtvHeap = m_DescriptorHeap->GetRtvHeap())
-        {
-            rtvHeap->Release();
-            rtvHeap = nullptr;
-        }
-
-        if (ID3D12DescriptorHeap* srvHeap = m_DescriptorHeap->GetSrvHeap())
-        {
-            srvHeap->Release();
-            srvHeap = nullptr;
-        }
-
         if (m_fence)
         {
             m_fence.Reset();
@@ -361,11 +406,6 @@ namespace sb
         if (m_device)
         {
             m_device.Reset();
-        }
-
-        if (m_DescriptorHeap)
-        {
-            m_DescriptorHeap.release();
         }
 
         m_commandQueue.reset();
@@ -449,9 +489,9 @@ namespace sb
         for (int i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
         {
             ID3D12Resource* pBackBuffer = nullptr;
-            m_swapChain->GetSwapChain3()->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-            m_device->CreateRenderTargetView(pBackBuffer, nullptr, m_DescriptorHeap->GetRenderTargetDescriptors()[i]);
-            m_swapChain->GetMainRenderTargetResources()[i] = pBackBuffer;
+            _swapChain3->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
+            m_device->CreateRenderTargetView(pBackBuffer, nullptr, _mainRtvCpuHandle[i]);
+            _mainRtvResource[i] = pBackBuffer;
         }
     }
 
@@ -461,10 +501,10 @@ namespace sb
 
         for (int i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
         {
-            if (m_swapChain->GetMainRenderTargetResources()[i])
+            if (_mainRtvResource[i])
             {
-                m_swapChain->GetMainRenderTargetResources()[i]->Release();
-                m_swapChain->GetMainRenderTargetResources()[i] = nullptr;
+                _mainRtvResource[i]->Release();
+                _mainRtvResource[i] = nullptr;
             }
         }
     }
