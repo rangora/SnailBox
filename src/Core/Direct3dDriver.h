@@ -2,7 +2,6 @@
 
 #include "Driver.h"
 #include "Render/Camera.h"
-#include "Render/DirectX12/CommandQueue.h"
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
@@ -83,9 +82,11 @@ namespace sb
         class Direct3dContext* m_direct3dContext = nullptr;
         class ShaderResource* _shaderResource = nullptr; // temp
 
-        ComPtr<ID3D12Debug> m_debugController;
-        ComPtr<IDXGIFactory4> m_dxgi;
-        ComPtr<ID3D12Device> m_device;
+        ComPtr<ID3D12CommandQueue> _commandQueue = nullptr;
+        ComPtr<ID3D12GraphicsCommandList> _commandList = nullptr;
+        ComPtr<ID3D12Debug> m_debugController = nullptr;
+        ComPtr<IDXGIFactory4> m_dxgi = nullptr;
+        ComPtr<ID3D12Device> m_device = nullptr;
         ComPtr<IDXGISwapChain3> _swapChain3 = nullptr;
 
         ComPtr<ID3D12DescriptorHeap> _mainRtvHeap = nullptr;
@@ -98,8 +99,6 @@ namespace sb
         D3D12_RECT _scissorRect;
 
         Camera m_camera;
-
-        UPtr<CommandQueue> m_commandQueue = nullptr;
 
         ComPtr<ID3D12Fence> m_fence;
         HANDLE m_fenceEvent = INVALID_HANDLE_VALUE;

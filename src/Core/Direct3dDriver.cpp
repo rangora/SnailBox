@@ -45,7 +45,8 @@ namespace sb
         // Check device
         DEVICE_VALID_CHECK(m_device);
         DEVICE_VALID_CHECK(m_dxgi);
-        DEVICE_VALID_CHECK(m_commandQueue);
+        DEVICE_VALID_CHECK(_commandQueue);
+        DEVICE_VALID_CHECK(_commandList);
 
         CreateSwapChain(in_hwnd);
         CreateRtvDescriptorHeap();
@@ -56,8 +57,7 @@ namespace sb
         ::UpdateWindow(in_hwnd);
 
         ImGui_ImplWin32_Init(in_hwnd);
-        ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM,
-                            _srvHeap.Get(),
+        ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM, _srvHeap.Get(),
                             _srvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
                             _srvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
 
@@ -77,13 +77,8 @@ namespace sb
             }
         }
 
-        // Render things..
-        auto commandList = m_commandQueue->GetCmdList().Get();
-        auto commandQueue = m_commandQueue->GetCmdQueue();
-
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
-        // FrameContext* frameCtx = WaitForPreviousFrame();
         uint32 backBufferIdx = _swapChain3->GetCurrentBackBufferIndex();
 
         // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
@@ -100,21 +95,16 @@ namespace sb
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
         // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
-        commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
+        _commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
         // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
 
-        commandList->ResourceBarrier(1, &barrier);
+        _commandList->ResourceBarrier(1, &barrier);
 
-        /*    m_constantBuffer->Clear();
-            m_DescriptorHeap->Clear();*/
-
-        // CBV
         ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
 
         const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
-        commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0,
-                                           nullptr);
-         commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
+        _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
         ImDrawData* DrawData = ImGui::GetDrawData();
         _viewport.Height = DrawData->DisplaySize.y;
@@ -123,31 +113,31 @@ namespace sb
         _scissorRect.right = DrawData->DisplaySize.x;
 
         // 여기 또는
-        commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
-        commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
-        commandList->RSSetViewports(1, &_viewport);
-        commandList->RSSetScissorRects(1, &_scissorRect);
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
-        commandList->DrawInstanced(3, 1, 0, 0);
+        _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
+        _commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
+        _commandList->RSSetViewports(1, &_viewport);
+        _commandList->RSSetScissorRects(1, &_scissorRect);
+        _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
+        _commandList->DrawInstanced(3, 1, 0, 0);
 
-
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
 
         // 여기
 
         // RenderEnd
         barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-        commandList->ResourceBarrier(1, &barrier);
-        commandList->Close();
+        _commandList->ResourceBarrier(1, &barrier);
+        _commandList->Close();
 
-        commandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&commandList);
+        ID3D12CommandList* ppCmdLists[] = {_commandList.Get()};
+        _commandQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
 
         _swapChain3->Present(1, 0); // 1이면 vsync
 
         uint64 fenceValue = m_fenceLastSignaledValue + 1;
-        commandQueue->Signal(m_fence.Get(), fenceValue);
+        _commandQueue->Signal(m_fence.Get(), fenceValue);
         m_fenceLastSignaledValue = fenceValue;
         frameCtx->FenceValue = fenceValue;
 
@@ -201,8 +191,7 @@ namespace sb
         _shaderResource = new ShaderResource;
         _shaderResource->Init();
 
-        auto cmdList = m_commandQueue->GetCmdList();
-        UpdateSubresources(cmdList.Get(), _shaderResource->GetVertexBuffer().Get(),
+        UpdateSubresources(_commandList.Get(), _shaderResource->GetVertexBuffer().Get(),
                            _shaderResource->GetVertexBufferUploadHeap().Get(), 0, 0, 1,
                            _shaderResource->GetVertexBufferData());
 
@@ -212,19 +201,18 @@ namespace sb
         ID3D12Resource* vResource = _shaderResource->GetVertexBuffer().Get();
         D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             vResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        cmdList->ResourceBarrier(1, &barrier);
+        _commandList->ResourceBarrier(1, &barrier);
 
-        cmdList->Close();
-        auto cmdQueue = m_commandQueue->GetCmdQueue();
-        ID3D12CommandList* ppCmdLists[] = {cmdList.Get()};
-        cmdQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
+        _commandList->Close();
+        ID3D12CommandList* ppCmdLists[] = {_commandList.Get()};
+        _commandQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
 
         uint64 fenceValue = m_fenceLastSignaledValue + 1;
         auto& frameCtx = m_frameContexts[m_frameIndex];
         frameCtx.FenceValue = fenceValue;
         m_fenceLastSignaledValue = fenceValue;
 
-        HRESULT hr = cmdQueue->Signal(m_fence.Get(), fenceValue);
+        HRESULT hr = _commandQueue->Signal(m_fence.Get(), fenceValue);
         if (FAILED(hr))
         {
             return;
@@ -267,8 +255,26 @@ namespace sb
         m_debugController.Reset();
 #endif
 
-        m_commandQueue = CreateUPtr<CommandQueue>();
-        m_commandQueue->Init(sg_d3dDevice);
+        // Create CommandList and CommandQueue.
+        {
+            D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+            queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+            queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+            queueDesc.NodeMask = 1;
+
+            // 분석 필
+            m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(_commandQueue.GetAddressOf()));
+
+            for (int32 i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+            {
+                m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                 IID_PPV_ARGS(&sg_d3dDriver->GetFrameContexts()[i].CommandAllocator));
+            }
+
+            m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                        sg_d3dDriver->GetFrameContexts()[0].CommandAllocator, nullptr,
+                                        IID_PPV_ARGS(_commandList.GetAddressOf()));
+        }
 
         // SRV
         {
@@ -323,8 +329,7 @@ namespace sb
         sd.Stereo = FALSE;
 
         IDXGISwapChain1* _swapChain1 = nullptr;
-        HRESULT hr = m_dxgi->CreateSwapChainForHwnd(m_commandQueue->GetCmdQueue().Get(), in_hwnd, &sd, nullptr, nullptr,
-                                       &_swapChain1);
+        HRESULT hr = m_dxgi->CreateSwapChainForHwnd(_commandQueue.Get(), in_hwnd, &sd, nullptr, nullptr, &_swapChain1);
 
         if (FAILED(hr))
         {
@@ -382,14 +387,14 @@ namespace sb
             }
         }
 
-        if (ComPtr<ID3D12CommandQueue> cmdQueue = m_commandQueue->GetCmdQueue())
+        if (_commandList)
         {
-            cmdQueue.Reset();
+            _commandList.Reset();
         }
 
-        if (ComPtr<ID3D12GraphicsCommandList> cmdList = m_commandQueue->GetCmdList())
+        if (_commandQueue)
         {
-            cmdList.Reset();
+            _commandQueue.Reset();
         }
 
         if (m_fence)
@@ -407,8 +412,6 @@ namespace sb
         {
             m_device.Reset();
         }
-
-        m_commandQueue.reset();
 
 #ifdef _DEBUG
         // 이거 안되는데 나중에 한 번 다시 보기
