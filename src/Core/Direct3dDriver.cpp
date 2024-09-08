@@ -123,6 +123,7 @@ namespace sb
         _scissorRect.right = DrawData->DisplaySize.x;
 
         // 여기 또는
+        commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
         commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
         commandList->RSSetViewports(1, &_viewport);
         commandList->RSSetScissorRects(1, &_scissorRect);
@@ -130,7 +131,6 @@ namespace sb
         commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
         commandList->DrawInstanced(3, 1, 0, 0);
 
-        commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 

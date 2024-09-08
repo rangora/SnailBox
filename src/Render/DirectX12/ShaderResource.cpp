@@ -3,11 +3,6 @@
 
 namespace sb
 {
-    struct Vertex1
-    {
-        XMFLOAT3 _pos;
-    };
-
     void ShaderResource::Init()
     {
         CreateRootSignature();
@@ -111,8 +106,6 @@ namespace sb
         {
             return;
         }
-
-        Vertex1 vList[] = {{{0.0f, 0.5f, 0.5f}}, {{0.5f, -0.5f, 0.5f}}, {{-0.5f, -0.5f, 0.5f}}};
 
         _vBufferSize = sizeof(vList);
 

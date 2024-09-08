@@ -4,6 +4,11 @@
 
 namespace sb
 {
+    struct Vertex1
+    {
+        XMFLOAT3 _pos;
+    };
+
     class ShaderResource
     {
     public:
@@ -22,13 +27,15 @@ namespace sb
         void CreateRootSignature();
         void CreateShader();
 
+        Vertex1 vList[3] = {{{0.0f, 0.5f, 0.5f}}, {{0.5f, -0.5f, 0.5f}}, {{-0.5f, -0.5f, 0.5f}}};
+
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
         ComPtr<ID3D12Resource> _vBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _vBuffer = nullptr;
 
         D3D12_SUBRESOURCE_DATA _vData = {};
-        D3D12_VERTEX_BUFFER_VIEW _vBufferView;
+        D3D12_VERTEX_BUFFER_VIEW _vBufferView = {};
         int32 _vBufferSize = 0;
     };
 }; // namespace sb
