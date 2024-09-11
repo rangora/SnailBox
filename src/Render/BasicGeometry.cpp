@@ -2,6 +2,18 @@
 
 namespace sb
 {
+    // 2D
+    Vector3f squareVertices[4] = 
+    {
+        Vector3f(-0.5f, 0.5f, 0.5f),  // top left
+        Vector3f(0.5f, -0.5f, 0.5f),  // bottom right
+        Vector3f(-0.5f, -0.5f, 0.5f), // bottom left
+        Vector3f(0.5f, 0.5f, 0.5f)    // top right
+    };
+
+    uint32 squareIndex[6] = {0, 1, 2, 0, 3, 1};
+
+    // 3D
     Vector3f cubeVertices[24] =
     {
         // 앞면

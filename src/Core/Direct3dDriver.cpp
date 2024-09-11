@@ -119,7 +119,8 @@ namespace sb
         _commandList->RSSetScissorRects(1, &_scissorRect);
         _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
-        _commandList->DrawInstanced(3, 1, 0, 0);
+        _commandList->IASetIndexBuffer(&_shaderResource->GetIndexBufferView());
+        _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
 
@@ -191,34 +192,11 @@ namespace sb
         _shaderResource = new ShaderResource;
         _shaderResource->Init();
 
-        UpdateSubresources(_commandList.Get(), _shaderResource->GetVertexBuffer().Get(),
-                           _shaderResource->GetVertexBufferUploadHeap().Get(), 0, 0, 1,
-                           _shaderResource->GetVertexBufferData());
-
-        // resource 만들 때 defaultHeap을 COPY_DEST로 사용했다.
-        // 그리고 VertexBuffer 값을 복사해 넣었다.
-        // 이젠 VertexBufferState로 바꿔 사용할 것이다.
-        ID3D12Resource* vResource = _shaderResource->GetVertexBuffer().Get();
-        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            vResource, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        _commandList->ResourceBarrier(1, &barrier);
-
-        _commandList->Close();
-        ID3D12CommandList* ppCmdLists[] = {_commandList.Get()};
-        _commandQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
-
-        uint64 fenceValue = m_fenceLastSignaledValue + 1;
-        auto& frameCtx = m_frameContexts[m_frameIndex];
-        frameCtx.FenceValue = fenceValue;
-        m_fenceLastSignaledValue = fenceValue;
-
-        HRESULT hr = _commandQueue->Signal(m_fence.Get(), fenceValue);
+        HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
         if (FAILED(hr))
         {
             return;
         }
-
-        _shaderResource->CreateVertexBufferView();
 
         // Fill out the Viewport
         _viewport.TopLeftX = 0;
@@ -422,6 +400,12 @@ namespace sb
              pDebug->Release();
          }*/
 #endif
+    }
+
+    void Direct3dDriver::UpdateFenceValue()
+    {
+        FrameContext& frameCtx = m_frameContexts[m_frameIndex];
+        frameCtx.FenceValue = ++m_fenceLastSignaledValue;
     }
 
     WinsWindow* Direct3dDriver::GetTargetWindow() const

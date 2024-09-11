@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DxFormat.h"
 #include "corepch.h"
 
 namespace sb
@@ -20,14 +21,22 @@ namespace sb
         ComPtr<ID3D12Resource> GetVertexBufferUploadHeap() const { return _vBufferUploadHeap; }
         D3D12_SUBRESOURCE_DATA* GetVertexBufferData() { return &_vData; }
         D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &_vBufferView; }
-
-        void CreateVertexBufferView();
+        D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
 
     private:
         void CreateRootSignature();
         void CreateShader();
 
-        Vertex1 vList[3] = {{{0.0f, 0.5f, 0.5f}}, {{0.5f, -0.5f, 0.5f}}, {{-0.5f, -0.5f, 0.5f}}};
+        //Vertex1 vList[3] = {{{0.0f, 0.5f, 0.5f}}, {{0.5f, -0.5f, 0.5f}}, {{-0.5f, -0.5f, 0.5f}}};
+        dxFormat::Vertex vList2[4] = 
+        {
+            XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+            XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+            XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+            XMFLOAT3(0.5f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)
+        };
+        DWORD iList[6] = {0, 1, 2, 0, 3, 1};
+
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
@@ -37,5 +46,10 @@ namespace sb
         D3D12_SUBRESOURCE_DATA _vData = {};
         D3D12_VERTEX_BUFFER_VIEW _vBufferView = {};
         int32 _vBufferSize = 0;
+
+        ComPtr<ID3D12Resource> _iBufferUploadHeap = nullptr;
+        ComPtr<ID3D12Resource> _iBuffer = nullptr;
+        D3D12_INDEX_BUFFER_VIEW _iBufferView = {};
+        D3D12_SUBRESOURCE_DATA _iData = {};
     };
 }; // namespace sb

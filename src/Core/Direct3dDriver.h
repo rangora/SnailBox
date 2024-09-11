@@ -49,22 +49,27 @@ namespace sb
 
         // TEMP RenderFunc
         void InitRenderInfo();
-
         void InitD3dDevice();
+
+        void UpdateFenceValue();
+
         ComPtr<ID3D12Device> GetDevice() const { return m_device; }
         IDXGISwapChain3* GetSwapChain() const { return _swapChain3.Get(); }
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
+        ComPtr<ID3D12GraphicsCommandList> GetCommandList() const { return _commandList; }
+        ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return _commandQueue; }
+        
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
 
         void SetSwapChainWaitableObject(HANDLE in_handle) { m_hSwapChainWaitableObject = in_handle; }
 
         Camera& GetCameraRef() { return m_camera; }
+        FrameContext* GetFrameContexts() { return m_frameContexts; }
 
         void WaitForLastSubmittedFrame();
         void CreateRenderTarget();
         void CleanUpRenderTarget();
-        FrameContext* GetFrameContexts() { return m_frameContexts; }
 
         // ImGui Interface
         void EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property);
