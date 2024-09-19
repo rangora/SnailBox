@@ -98,91 +98,89 @@ namespace sb
         hr = sg_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&_pipelineState));
         if (FAILED(hr))
         {
+            assert(false);
             return;
         }
 
-        _vBufferSize = sizeof(vList2);
+        const uint32 _vBufferSize = sizeof(vList2); // vertex
+        const int32 iBufferSize = sizeof(iList);    // index
 
-        // Create defaultHeap
+        // Vertex Buffer
         {
-            D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-            D3D12_RESOURCE_DESC resoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
+            // Create defaultHeap
+            D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+            D3D12_RESOURCE_DESC defaultResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
 
-            sg_d3dDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resoourceDesc,
+            sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &defaultResourceDesc,
                                                   D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_vBuffer));
             _vBuffer->SetName(L"VertexBuffer DefaultResourceHeap");
-        }
 
-        // CreateUploadHeap
-        {
-            D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            D3D12_RESOURCE_DESC resoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
+            // CreateUploadHeap
+            D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
 
-            sg_d3dDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resoourceDesc,
+            sg_d3dDevice->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &uploadResoourceDesc,
                                                   D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                   IID_PPV_ARGS(&_vBufferUploadHeap));
             _vBufferUploadHeap->SetName(L"VertexBuffer UploadeResourceHeap");
         }
 
-        // Store vertexBuffer in uploadHeap
-        _vData.pData = reinterpret_cast<BYTE*>(vList2);
-        _vData.RowPitch = _vBufferSize;
-        _vData.SlicePitch = _vBufferSize;
 
-        auto commandList = sg_d3dDriver->GetCommandList();
-        auto commandQueue = sg_d3dDriver->GetCommandQueue();
-
-        UpdateSubresources(commandList.Get(), _vBuffer.Get(), _vBufferUploadHeap.Get(), 0, 0, 1, &_vData);
-
-        D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            _vBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        commandList->ResourceBarrier(1, &barrier);
-
-        _vBufferView.BufferLocation = _vBuffer->GetGPUVirtualAddress();
-        _vBufferView.StrideInBytes = sizeof(dxFormat::Vertex);
-        _vBufferView.SizeInBytes = _vBufferSize;
-
-        // index
-        const int32 iBufferSize = sizeof(iList);
-
-        // Create default heap
+        // Index Buffer
         {
-            D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-            D3D12_RESOURCE_DESC resoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
-            sg_d3dDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resoourceDesc,
+            // Create default heap
+            D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+            D3D12_RESOURCE_DESC defaultResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
+            sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &defaultResoourceDesc,
                                                   D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
                                                   IID_PPV_ARGS(_iBuffer.GetAddressOf()));
             _iBuffer->SetName(L"Index Buffer Upload Resource Heap");
-        }
 
-        // Create upload heap
-        {
-            D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            D3D12_RESOURCE_DESC resoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
-            sg_d3dDevice->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resoourceDesc,
+            // Create upload heap
+            D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
+            sg_d3dDevice->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &uploadResoourceDesc,
                                                   D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                   IID_PPV_ARGS(_iBufferUploadHeap.GetAddressOf()));
             _iBufferUploadHeap->SetName(L"Index Buffer Upload Resource Heap");
         }
 
-        _iData.pData = reinterpret_cast<BYTE*>(iList);
-        _iData.RowPitch = iBufferSize;
-        _iData.SlicePitch = iBufferSize;
+        D3D12_SUBRESOURCE_DATA vData = {};
+        vData.pData = reinterpret_cast<BYTE*>(vList2);
+        vData.RowPitch = _vBufferSize;
+        vData.SlicePitch = _vBufferSize;
 
-        UpdateSubresources(commandList.Get(), _iBuffer.Get(), _iBufferUploadHeap.Get(), 0, 0, 1, &_iData);
+        D3D12_SUBRESOURCE_DATA iData = {};
+        iData.pData = reinterpret_cast<BYTE*>(iList);
+        iData.RowPitch = iBufferSize;
+        iData.SlicePitch = iBufferSize;
+  
+        auto commandList = sg_d3dDriver->GetCommandList();
+        auto commandQueue = sg_d3dDriver->GetCommandQueue();
 
-         D3D12_RESOURCE_BARRIER barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
-            _iBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        commandList->ResourceBarrier(1, &barrier2);
-        commandList->Close();
-        ID3D12CommandList* ppCmdLists2[] = {commandList.Get()};
-        commandQueue->ExecuteCommandLists(_countof(ppCmdLists2), ppCmdLists2);
+        UpdateSubresources(commandList.Get(), _vBuffer.Get(), _vBufferUploadHeap.Get(), 0, 0, 1, &vData);
+        UpdateSubresources(commandList.Get(), _iBuffer.Get(), _iBufferUploadHeap.Get(), 0, 0, 1, &iData);
 
-        sg_d3dDriver->UpdateFenceValue();
+        _vBufferView.BufferLocation = _vBuffer->GetGPUVirtualAddress();
+        _vBufferView.StrideInBytes = sizeof(dxFormat::Vertex);
+        _vBufferView.SizeInBytes = _vBufferSize;
 
         _iBufferView.BufferLocation = _iBuffer->GetGPUVirtualAddress();
         _iBufferView.Format = DXGI_FORMAT_R32_UINT;
         _iBufferView.SizeInBytes = iBufferSize;
 
+        D3D12_RESOURCE_BARRIER barriers[] = {
+            CD3DX12_RESOURCE_BARRIER::Transition(_vBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+            CD3DX12_RESOURCE_BARRIER::Transition(_iBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
+
+        commandList->ResourceBarrier(_countof(barriers), barriers);
+        commandList->Close();
+
+        ID3D12CommandList* ppCmdLists2[] = {commandList.Get()};
+        commandQueue->ExecuteCommandLists(_countof(ppCmdLists2), ppCmdLists2);
+
+        sg_d3dDriver->UpdateFenceValue();
     }
 } // namespace sb
