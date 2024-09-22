@@ -120,7 +120,11 @@ namespace sb
                     }
                 }
 
+                // Window update
+
                 // Imgui update
+                WindowUpdate();
+
                 ImGui_ImplDX12_NewFrame();
                 ImGui_ImplWin32_NewFrame();
                 ImGui::NewFrame();
@@ -169,8 +173,8 @@ namespace sb
                 nullptr,      nullptr,    nullptr, nullptr, menuWidStr.c_str(), nullptr};
         ::RegisterClassExW(&m_wc);
 
-        m_hwnd = ::CreateWindowW(m_wc.lpszClassName, classWidStr.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr,
-                                 nullptr, m_wc.hInstance, nullptr);
+        m_hwnd = ::CreateWindowW(m_wc.lpszClassName, classWidStr.c_str(), WS_OVERLAPPEDWINDOW, 100, 100,
+                                 m_windowData.width, m_windowData.height, nullptr, nullptr, m_wc.hInstance, nullptr);
 
         SetupImGuiContext();
 
@@ -216,6 +220,14 @@ namespace sb
     void WinsWindow::AttachLayout(Layout* in_layout)
     {
         m_layouts.emplace_back(in_layout);
+    }
+
+    void WinsWindow::WindowUpdate()
+    {
+        ::GetClientRect(m_hwnd, &_rcClient);
+
+        _clientWidth = _rcClient.right - _rcClient.left;
+        _clientHeight = _rcClient.bottom - _rcClient.top;
     }
 
     void WinsWindow::SetupImGuiContext()

@@ -37,10 +37,9 @@ namespace sb
 
         void AttachLayout(Layout* in_layout) final;
 
-        const WindowData& GetWindowData()
-        {
-            return m_windowData;
-        }
+        const WindowData& GetWindowData() { return m_windowData; }
+        int GetClientWidth() const { return _clientWidth; }
+        int GetClientHeight() const { return _clientHeight; }
 
         // camera 애매.. 뺴야할거 같음
         bool m_cameraTranslation = false;
@@ -55,6 +54,9 @@ namespace sb
         // Windows
         WNDCLASSEXW m_wc;
         HWND m_hwnd;
+        RECT _rcClient;
+        int _clientWidth = 0;
+        int _clientHeight = 0;
 
         // Render properties
         float m_f = 0.f;
@@ -62,6 +64,8 @@ namespace sb
         Vector3f m_clearColor = {0.45f, 0.55f, 0.60f};
 
     private:
+        void WindowUpdate();
+
         void SetupImGuiContext();
         void ReadyWindowShutdown() final;
 
