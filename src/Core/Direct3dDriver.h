@@ -38,6 +38,7 @@ namespace sb
         }; // ??
 
         bool BindWinWindow(const HWND in_hwnd) final;
+        bool InitializeResources() final;
         void Update() final;
         void OnUpdate(float in_delta) final;
         void Render() final
@@ -47,8 +48,6 @@ namespace sb
         bool IsWindowShouldClosed() final;
         void CleanDriver() final;
 
-        // TEMP RenderFunc
-        void InitRenderInfo();
         void InitD3dDevice();
 
         void UpdateFenceValue();

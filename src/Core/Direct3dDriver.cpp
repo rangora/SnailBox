@@ -64,6 +64,34 @@ namespace sb
         return true;
     }
 
+    bool Direct3dDriver::InitializeResources()
+    {
+        _shaderResource = new ShaderResource;
+        _shaderResource->Init();
+
+        HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
+        if (FAILED(hr))
+        {
+            return false;
+        }
+
+        // Fill out the Viewport
+        _viewport.TopLeftX = 0;
+        _viewport.TopLeftY = 0;
+        _viewport.Width = 800;
+        _viewport.Height = 600;
+        _viewport.MinDepth = 0.0f;
+        _viewport.MaxDepth = 1.0f;
+
+        // Fill out a scissor rect
+        _scissorRect.left = 0;
+        _scissorRect.top = 0;
+        _scissorRect.right = 800;
+        _scissorRect.bottom = 600;
+
+        return true;
+    }
+
     void Direct3dDriver::Update()
     {
         // Render imgui graphics
@@ -187,32 +215,6 @@ namespace sb
         CleanUpDevice();
     }
 
-    void Direct3dDriver::InitRenderInfo()
-    {
-        _shaderResource = new ShaderResource;
-        _shaderResource->Init();
-
-        HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
-        if (FAILED(hr))
-        {
-            return;
-        }
-
-        // Fill out the Viewport
-        _viewport.TopLeftX = 0;
-        _viewport.TopLeftY = 0;
-        _viewport.Width = 800;
-        _viewport.Height = 600;
-        _viewport.MinDepth = 0.0f;
-        _viewport.MaxDepth = 1.0f;
-
-        // Fill out a scissor rect
-        _scissorRect.left = 0;
-        _scissorRect.top = 0;
-        _scissorRect.right = 800;
-        _scissorRect.bottom = 600;
-    }
-
     void Direct3dDriver::InitD3dDevice()
     {
 #ifdef _DEBUG
@@ -277,11 +279,6 @@ namespace sb
         {
             return;
         }
-
-        // TEMP
-        InitRenderInfo();
-
-        // m_commandQueue->GetCmdList()->Close();
     }
 
     void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)

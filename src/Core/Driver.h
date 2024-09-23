@@ -21,6 +21,7 @@ namespace sb
 
         virtual void* GetNativeWindow() = 0; // 제거 예정
         virtual bool InitDriver(const WindowData* in_windowData) { return false; } // 제거 예정
+        virtual bool InitializeResources() { return false; }
         virtual bool BindWinWindow(const HWND in_hwnd) { return false; };
         virtual bool BindglfwWindow() { return false; };
         virtual void Render() = 0;

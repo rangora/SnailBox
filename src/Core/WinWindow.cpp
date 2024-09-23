@@ -183,16 +183,23 @@ namespace sb
 
     bool WinsWindow::BindGraphicsDriver()
     {
-        if (!InitializeWindows("dirct3d menu", "direct3d window"))
+        if (!InitializeWindows("dirct3d menu", "direct3d window")) // stage 02
         {
-            spdlog::error("Failed to init winswindows.");
+            spdlog::error("Failed to init winsWindows.");
             return false;
         }
 
         m_driver = sg_d3dDriver;
-        if (!m_driver->BindWinWindow(m_hwnd))
+        if (!m_driver->BindWinWindow(m_hwnd)) // stage 03
         {
             spdlog::error("Failed init Direct3dDriver.");
+            return false;
+        }
+
+        if (!m_driver->InitializeResources())
+        {
+            spdlog::error("Failed initialize dx12 resources.");
+            assert(false);
             return false;
         }
 

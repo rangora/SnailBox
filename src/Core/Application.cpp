@@ -67,14 +67,15 @@ namespace sb
         else if (in_windowContext.graphicsDevice == GraphicsDevice::DirectX12)
         {
             m_isRunningDirectXWindow = true;
-            InitializeDirect3dDriver();
-            auto WinWindow = CreateUPtr<WinsWindow>(in_windowContext);
-            m_windows.insert({in_windowContext.title, std::move(WinWindow)});
-            if (!m_windows[in_windowContext.title]->BindGraphicsDriver())
+            InitializeDirect3dDriver(); // stage 01
+            auto winsWindow = CreateUPtr<WinsWindow>(in_windowContext);
+            if (!winsWindow->BindGraphicsDriver())
             {
                 spdlog::error("Failed to createWindow during initDirectXDevice.");
                 return;
             }
+
+            m_windows.insert({in_windowContext.title, std::move(winsWindow)});
         }
 
         m_runningWindowCount++;
