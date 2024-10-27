@@ -2,11 +2,13 @@
 #include "Application.h"
 #include "Direct3dDriver.h"
 #include "Input.h"
+#include "Core/Event/Event.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include "spdlog/spdlog.h"
 #include <tchar.h>
 #include <vector>
+
 
 sb::Window* destroy_marked_window = nullptr;
 
@@ -145,6 +147,8 @@ namespace sb
 
     void WinsWindow::ImGuiUpdate()
     {
+        Window::ImGuiUpdate();
+
         static ImVec4 clearColor;
 
         ImGui::Begin("Hello, world!");
@@ -160,8 +164,17 @@ namespace sb
         ImGui::End();
 
         m_clearColor = {clearColor.x, clearColor.y, clearColor.z};
+        
+        Vector4f vectorColor = {clearColor.x, clearColor.y, clearColor.z, 1.f};
+        ClearColorChangedEvent clearColorEvent(vectorColor);
 
-        sg_d3dDriver->EnqueueImGuiProperty({m_clearColor});
+        EventDisaptcher dispatcher(clearColorEvent);
+        dispatcher.Dispatch<ClearColorChangedEvent>([this](ClearColorChangedEvent& e) 
+            {
+
+                m_driver->UpdateClearColor(e);
+                return true; 
+            });
     }
 
     bool WinsWindow::InitializeWindows(const std::string& in_menuName, const std::string& in_className)

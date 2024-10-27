@@ -94,17 +94,6 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
-        // Render imgui graphics
-        const float w = 1.f; // TEMP
-        Vector3f clearColor{0.45f, 0.55f, 0.60f};
-        if (m_ImGuiProperties.size())
-        {
-            if (auto colorVector = std::get_if<Vector3f>(&m_ImGuiProperties[0].m_property))
-            {
-                clearColor = {colorVector->X, colorVector->Y, colorVector->Z};
-            }
-        }
-
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
         uint32 backBufferIdx = _swapChain3->GetCurrentBackBufferIndex();
@@ -130,7 +119,8 @@ namespace sb
 
         ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
 
-        const float clear_color_with_alpha[4] = {clearColor.X * w, clearColor.Y * w, clearColor.Z * w, w};
+        const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
+                                                 _clearColor.Z * _clearColor.W, _clearColor.W};
         _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
         _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
@@ -171,8 +161,6 @@ namespace sb
         frameCtx->FenceValue = fenceValue;
 
         ImGui::UpdatePlatformWindows();
-
-        m_ImGuiProperties.clear();
     }
 
     void Direct3dDriver::OnUpdate(float in_delta)
@@ -279,11 +267,6 @@ namespace sb
         {
             return;
         }
-    }
-
-    void Direct3dDriver::EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property)
-    {
-        m_ImGuiProperties.emplace_back(std::move(in_property));
     }
 
     void Direct3dDriver::CreateSwapChain(const HWND in_hwnd)

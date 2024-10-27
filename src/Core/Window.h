@@ -43,6 +43,7 @@ namespace sb
         virtual ~Window() {}
 
         virtual void Update() = 0;
+        virtual void ImGuiUpdate();
         virtual void ReadyWindowShutdown() { m_isReadyWindowShutdown = true; }
 
         virtual bool BindGraphicsDriver() = 0;

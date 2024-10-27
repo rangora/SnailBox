@@ -25,7 +25,7 @@ namespace sb
         ~WinsWindow();
 
         void Update() override;
-        virtual void ImGuiUpdate();
+        void ImGuiUpdate() override;
 
         bool InitializeWindows(const std::string& in_menuName, const std::string& in_className);
         bool InitializeDriver() final;

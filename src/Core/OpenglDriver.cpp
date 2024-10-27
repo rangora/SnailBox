@@ -53,11 +53,11 @@ namespace sb
 
     void OpenglDriver::Update()
     {
-        ImGui_ImplOpenGL3_NewFrame();
+       /* ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        ImGui::NewFrame();*/
         Render();
-        ImGui::Render();
+        //ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

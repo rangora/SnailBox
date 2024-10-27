@@ -13,6 +13,7 @@ namespace sb
         ~GlfwWindow();
 
         void Update() final;
+        void ImGuiUpdate() final;
         bool BindGraphicsDriver() final; // virtual??
         void ReadyWindowShutdown() final;
         void ProcessGlfwInput();

@@ -2,6 +2,7 @@
 
 #include "Actor/Actor.h"
 #include "Common.h"
+#include "Event/Event.h"
 #include "Layout.h"
 #include "Render/Camera.h"
 #include "Render/GraphicsContext.h"
@@ -30,6 +31,8 @@ namespace sb
         virtual bool IsWindowShouldClosed() = 0;
         virtual void CleanDriver() {};
 
+        virtual void UpdateClearColor(ClearColorChangedEvent& e) { _clearColor = e.GetValue(); }
+
         GraphicsContext* GetGraphcisContext() const { return m_graphicContext.get(); }
 
         std::vector<UPtr<Actor>> m_actors;
@@ -38,5 +41,7 @@ namespace sb
         Window* m_window = nullptr;
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Camera m_camera;
+
+        Vector4f _clearColor = Vector4f::zeroVector;
     };
 };

@@ -18,13 +18,6 @@ namespace sb
         uint64 FenceValue;
     };
 
-    struct ImGuiPropertyPlaceHolder
-    {
-        using ImGuiProperty = std::variant<float, int32, Vector3f>;
-
-        ImGuiProperty m_property;
-    };
-
     class Direct3dDriver : public Driver
     {
     public:
@@ -70,9 +63,6 @@ namespace sb
         void CreateRenderTarget();
         void CleanUpRenderTarget();
 
-        // ImGui Interface
-        void EnqueueImGuiProperty(ImGuiPropertyPlaceHolder in_property);
-
     private:
         void CreateSwapChain(const HWND in_hwnd);
         void CreateRtvDescriptorHeap();
@@ -113,7 +103,5 @@ namespace sb
         uint32 m_fenceLastSignaledValue = 0;
 
         bool bShutDownCalled = false;
-
-        std::vector<ImGuiPropertyPlaceHolder> m_ImGuiProperties;
     };
 }; // namespace sb

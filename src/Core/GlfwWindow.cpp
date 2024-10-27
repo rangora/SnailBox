@@ -29,6 +29,12 @@ namespace sb
             glfwPollEvents();
             ProcessGlfwInput();
 
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGuiUpdate();
+            ImGui::Render();
+
             m_driver->Update();
             m_driver->SwapBuffers();
         }
@@ -37,6 +43,12 @@ namespace sb
             ReadyWindowShutdown();
         }
     }
+
+    void GlfwWindow::ImGuiUpdate()
+    {
+        Window::ImGuiUpdate();
+    }
+
     void GlfwWindow::ProcessGlfwInput()
     {
         if (!m_cameraTranslation)
