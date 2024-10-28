@@ -171,7 +171,6 @@ namespace sb
         EventDisaptcher dispatcher(clearColorEvent);
         dispatcher.Dispatch<ClearColorChangedEvent>([this](ClearColorChangedEvent& e) 
             {
-
                 m_driver->UpdateClearColor(e);
                 return true; 
             });

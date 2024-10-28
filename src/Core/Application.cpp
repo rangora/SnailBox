@@ -16,12 +16,16 @@ namespace sb
     ShaderArchive Application::s_staticShaderArchive(GraphicsDevice::OpenGL);
     GraphicsDevice Application::s_currentGraphicsDevice = GraphicsDevice::None;
 
-    Application::Application()
+    Application::Application(const ApplicationSpec& spec)
     {
-        HMODULE hModule = LoadLibraryA("C:/Program Files/Microsoft PIX/2405.15.002-OneBranch_release/WinPixGpuCapturer.dll");
-        if (hModule == nullptr)
+        if (spec._pix)
         {
-            assert(false);
+            HMODULE hModule =
+                LoadLibraryA("C:/Program Files/Microsoft PIX/2405.15.002-OneBranch_release/WinPixGpuCapturer.dll");
+            if (hModule == nullptr)
+            {
+                spdlog::warn("Failed to load pix library.");
+            }
         }
 
         // s_instance에 assert 필요!

@@ -15,10 +15,15 @@ namespace sb
 {
     class FrontWindow;
 
+    struct ApplicationSpec
+    {
+        bool _pix = false;
+    };
+
     class Application
     {
     public:
-        Application();
+        Application(const ApplicationSpec& spec);
         Application(const Application&) = delete;
         Application& operator=(const Application&) = delete;
         virtual ~Application();
