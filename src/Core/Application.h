@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Direct3dDriver.h"
-#include "FrontWindow.h"
 #include "Render/ShaderArchive.h"
 #include "Window.h"
 #include "corepch.h"
@@ -13,8 +12,6 @@
 
 namespace sb
 {
-    class FrontWindow;
-
     struct ApplicationSpec
     {
         bool _pix = false;
@@ -44,8 +41,6 @@ namespace sb
         static GraphicsDevice s_currentGraphicsDevice;
 
     private:
-        void OpenFrontWindow(WindowContext& OutWindowContext);
-
         void InitializeDirect3dDriver();
         void CleanGraphicsDriver();
 
@@ -56,12 +51,9 @@ namespace sb
         static int32_t m_runningWindowCount;
         static Application* s_instance;
 
-        bool m_isRunningFrontWindow = false;
         bool m_isRunningDirectXWindow = false;
 
         // Graphics drivers
         UPtr<Direct3dDriver> m_d3dDriver = nullptr;
-
-        UPtr<FrontWindow> m_frontWindow = nullptr;
     };
 } // namespace sb
