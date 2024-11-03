@@ -10,12 +10,6 @@ namespace sb
         CreateShader(initializeData);
     }
 
-    void ShaderResource::Init()
-    {
-        //CreateRootSignature();
-        //CreateShader(TODO);
-    }
-
     void ShaderResource::CreateRootSignature()
     {
         CD3DX12_ROOT_SIGNATURE_DESC desc = {};
@@ -40,6 +34,13 @@ namespace sb
 
     void ShaderResource::CreateShader(const ShaderResourceInitializeData& initializeData)
     {
+        auto sDataPtr = sg_d3dDriver->GetShaderData(initializeData._shaderKey);
+        if (sDataPtr == nullptr)
+        {
+            spdlog::error("There is so shaderGeometry data named : {}", initializeData._shaderKey);
+            return;
+        }
+
         // Compile shader
         std::string stringVsPath = initializeData._parameters._vsPath;
         std::wstring wstringVsPath(stringVsPath.size(), L'\0');
@@ -108,12 +109,9 @@ namespace sb
             assert(false);
             return;
         }
-
-        auto sDataPtr = sg_d3dDriver->GetShaderData(initializeData._shaderKey);
         
         const uint32 _vBufferSize = sDataPtr->GetVertexByteSize();
         const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
-
 
         // Vertex Buffer
         {

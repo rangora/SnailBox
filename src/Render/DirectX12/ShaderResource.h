@@ -19,9 +19,10 @@ namespace sb
     class ShaderResource
     {
     public:
-        ShaderResource() = default;
+        ShaderResource() = delete;
+        ShaderResource(const ShaderResource&) = delete;
+        ShaderResource& operator=(const ShaderResource&) = delete;
         ShaderResource(const ShaderResourceInitializeData& initializeData);
-        void Init(); // will be deprecated
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
