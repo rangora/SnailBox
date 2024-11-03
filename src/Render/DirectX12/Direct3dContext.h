@@ -2,6 +2,7 @@
 
 #include "Render/GraphicsContext.h"
 #include "Render/RenderResource.h"
+#include "Render/Vertex.h"
 #include "corepch.h"
 
 namespace sb

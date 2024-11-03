@@ -1,12 +1,19 @@
 #include "ShaderResource.h"
 #include "Core/Application.h"
+#include "Render/ShaderGeometry.h"
 
 namespace sb
 {
-    void ShaderResource::Init()
+    ShaderResource::ShaderResource(const ShaderResourceInitializeData& initializeData)
     {
         CreateRootSignature();
-        CreateShader();
+        CreateShader(initializeData);
+    }
+
+    void ShaderResource::Init()
+    {
+        //CreateRootSignature();
+        //CreateShader(TODO);
     }
 
     void ShaderResource::CreateRootSignature()
@@ -31,13 +38,13 @@ namespace sb
         }
     }
 
-    void ShaderResource::CreateShader()
+    void ShaderResource::CreateShader(const ShaderResourceInitializeData& initializeData)
     {
         // Compile shader
-        std::string stringVsPath = projectPath + "/resources/shader/sample.vs.hlsl";
+        std::string stringVsPath = initializeData._parameters._vsPath;
         std::wstring wstringVsPath(stringVsPath.size(), L'\0');
         std::mbstowcs(&wstringVsPath[0], stringVsPath.c_str(), stringVsPath.size());
-        std::string stringPsPath = projectPath + "/resources/shader/sample.fs.hlsl";
+        std::string stringPsPath = initializeData._parameters._fsPath;
         std::wstring wstringPsPath(stringPsPath.size(), L'\0');
         std::mbstowcs(&wstringPsPath[0], stringPsPath.c_str(), stringPsPath.size());
 
@@ -102,8 +109,11 @@ namespace sb
             return;
         }
 
-        const uint32 _vBufferSize = sizeof(vList2); // vertex
-        const int32 iBufferSize = sizeof(iList);    // index
+        auto sDataPtr = sg_d3dDriver->GetShaderData(initializeData._shaderKey);
+        
+        const uint32 _vBufferSize = sDataPtr->GetVertexByteSize();
+        const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
+
 
         // Vertex Buffer
         {
@@ -125,7 +135,6 @@ namespace sb
             _vBufferUploadHeap->SetName(L"VertexBuffer UploadeResourceHeap");
         }
 
-
         // Index Buffer
         {
             // Create default heap
@@ -146,12 +155,12 @@ namespace sb
         }
 
         D3D12_SUBRESOURCE_DATA vData = {};
-        vData.pData = reinterpret_cast<BYTE*>(vList2);
+        vData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetVertexPointer());
         vData.RowPitch = _vBufferSize;
         vData.SlicePitch = _vBufferSize;
 
         D3D12_SUBRESOURCE_DATA iData = {};
-        iData.pData = reinterpret_cast<BYTE*>(iList);
+        iData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetIndexPointer());
         iData.RowPitch = iBufferSize;
         iData.SlicePitch = iBufferSize;
   
@@ -162,7 +171,7 @@ namespace sb
         UpdateSubresources(commandList.Get(), _iBuffer.Get(), _iBufferUploadHeap.Get(), 0, 0, 1, &iData);
 
         _vBufferView.BufferLocation = _vBuffer->GetGPUVirtualAddress();
-        _vBufferView.StrideInBytes = sizeof(dxFormat::Vertex);
+        _vBufferView.StrideInBytes = sizeof(DxVertex);
         _vBufferView.SizeInBytes = _vBufferSize;
 
         _iBufferView.BufferLocation = _iBuffer->GetGPUVirtualAddress();

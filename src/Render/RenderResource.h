@@ -13,12 +13,6 @@ namespace sb
 {
     class GraphicsContext;
 
-    struct Vertex
-    {
-        Vector3d m_pos;
-        Vector4d m_color;
-    };
-
     class RenderResource
     {
     public:

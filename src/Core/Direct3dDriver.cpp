@@ -4,6 +4,7 @@
 #include "Core/Input.h"
 #include "Render/DirectX12/Direct3dContext.h"
 #include "Render/DirectX12/ShaderResource.h"
+#include "Render/ShaderGeometry.h"
 #include "Render/RenderResource.h"
 #include "WinWindow.h"
 #include "corepch.h"
@@ -24,6 +25,10 @@
 namespace sb
 {
     Direct3dDriver::Direct3dDriver(Window* in_window) : Driver(in_window)
+    {
+    }
+
+    Direct3dDriver::Direct3dDriver()
     {
     }
 
@@ -66,8 +71,25 @@ namespace sb
 
     bool Direct3dDriver::InitializeResources()
     {
-        _shaderResource = new ShaderResource;
-        _shaderResource->Init();
+        // Process raw data.
+        ShaderGeometryRawData rawData;
+        rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}),
+                                Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                Vertex({0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f})});
+        rawData._index.assign({0, 1, 2, 0, 3, 1});
+
+        UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
+        UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
+
+        _shaderGeoData.insert({"sample1", std::move(geo)});
+
+        ShaderResourceInitializeData data;
+        data._shaderKey = "sample1";
+        data._parameters._vsPath = projectPath + "/resources/shader/sample.vs.hlsl";
+        data._parameters._fsPath = projectPath + "/resources/shader/sample.fs.hlsl";
+        
+        _shaderResource = new ShaderResource(data);
 
         HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
         if (FAILED(hr))
@@ -428,6 +450,12 @@ namespace sb
         m_frameIndex++;
 
         return frameCtx;
+    }
+
+    ShaderGeometry* Direct3dDriver::GetShaderData(const std::string& key) const
+    {
+        auto geo =_shaderGeoData.find(key);
+        return geo.get_ptr() ? geo->second.get() : nullptr;
     }
 
     void Direct3dDriver::WaitForLastSubmittedFrame()

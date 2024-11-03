@@ -1,15 +1,27 @@
 #pragma once
 
-#include "DxFormat.h"
 #include "corepch.h"
 
 namespace sb
 {
+    struct ShaderParameters
+    {
+        std::string _vsPath;
+        std::string _fsPath;
+    };
+
+    struct ShaderResourceInitializeData
+    {
+        std::string _shaderKey;
+        ShaderParameters _parameters;
+    };
+
     class ShaderResource
     {
     public:
         ShaderResource() = default;
-        void Init();
+        ShaderResource(const ShaderResourceInitializeData& initializeData);
+        void Init(); // will be deprecated
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
@@ -18,17 +30,7 @@ namespace sb
 
     private:
         void CreateRootSignature();
-        void CreateShader();
-
-        dxFormat::Vertex vList2[4] = 
-        {
-            XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-            XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-            XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-            XMFLOAT3(0.5f,  0.5f, 0.5f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)
-        };
-        DWORD iList[6] = {0, 1, 2, 0, 3, 1};
-
+        void CreateShader(const ShaderResourceInitializeData& initializeData);
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;

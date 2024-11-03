@@ -5,13 +5,10 @@
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
-
-struct GLFWwindow;
+#include "boost/container/flat_map.hpp"
 
 namespace sb
 {
-    class WinsWindow;
-
     struct FrameContext
     {
         ID3D12CommandAllocator* CommandAllocator;
@@ -22,7 +19,7 @@ namespace sb
     {
     public:
         Direct3dDriver(Window* in_window);
-        Direct3dDriver() = default;
+        Direct3dDriver();
         ~Direct3dDriver();
 
         void* GetNativeWindow() final
@@ -53,6 +50,7 @@ namespace sb
         
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
+        struct ShaderGeometry* GetShaderData(const std::string& key) const;
 
         void SetSwapChainWaitableObject(HANDLE in_handle) { m_hSwapChainWaitableObject = in_handle; }
 
@@ -68,7 +66,7 @@ namespace sb
         void CreateRtvDescriptorHeap();
         void CleanUpDevice();
 
-        WinsWindow* GetTargetWindow() const;
+        class WinsWindow* GetTargetWindow() const;
 
         FrameContext* WaitForNextFrameResources();
         FrameContext* WaitForPreviousFrame();
@@ -76,6 +74,7 @@ namespace sb
         class Direct3dContext* m_direct3dContext = nullptr;
         class ShaderResource* _shaderResource = nullptr; // temp
 
+        // Direct objects
         ComPtr<ID3D12CommandQueue> _commandQueue = nullptr;
         ComPtr<ID3D12GraphicsCommandList> _commandList = nullptr;
         ComPtr<ID3D12Debug> m_debugController = nullptr;
@@ -89,8 +88,12 @@ namespace sb
         
         ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
 
+        // Viewport
         D3D12_VIEWPORT _viewport;
         D3D12_RECT _scissorRect;
+
+        // Shaders
+        boost::container::flat_map<std::string, UPtr<struct ShaderGeometry>> _shaderGeoData;
 
         Camera m_camera;
 
