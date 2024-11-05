@@ -71,6 +71,10 @@ namespace sb
 
     bool Direct3dDriver::InitializeResources()
     {
+        // 이거 이전에 다른대서 설정되어야 함
+        _vpWidth = 800;
+        _vpHeight = 600;
+
         // Process raw data.
         ShaderGeometryRawData rawData;
         rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
@@ -143,7 +147,24 @@ namespace sb
 
         const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
                                                  _clearColor.Z * _clearColor.W, _clearColor.W};
+        
+        {
+            D3D12_RESOURCE_DESC rtvDesc = _mainRtvResource[backBufferIdx]->GetDesc();
+            uint32 rw = rtvDesc.Width;
+            uint32 rh = rtvDesc.Height;
+
+            D3D12_DESCRIPTOR_HEAP_DESC dsvDesc = _shaderResource->_dsDescriptorHeap->GetDesc();
+            uint32 dw = rtvDesc.Width;
+            uint32 dh = rtvDesc.Height;
+
+            spdlog::info("rw:{}, rh:{}", rw, rh);
+            spdlog::info("dw:{}, dh:{}", dw, dh);
+        }
+        // GetDsvHandle()은 임시 사용임.
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_shaderResource->GetDsvHandle());
+        
         _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
+        _commandList->ClearDepthStencilView(_shaderResource->GetDsvHandle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
         _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
         ImDrawData* DrawData = ImGui::GetDrawData();
@@ -151,9 +172,10 @@ namespace sb
         _viewport.Width = DrawData->DisplaySize.x;
         _scissorRect.bottom = DrawData->DisplaySize.y;
         _scissorRect.right = DrawData->DisplaySize.x;
+        _vpHeight = DrawData->DisplaySize.y;
+        _vpWidth = DrawData->DisplaySize.x;
 
-        // 여기 또는
-        _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, nullptr);
+        _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
         _commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
         _commandList->RSSetViewports(1, &_viewport);
         _commandList->RSSetScissorRects(1, &_scissorRect);

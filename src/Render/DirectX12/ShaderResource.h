@@ -29,6 +29,9 @@ namespace sb
         D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &_vBufferView; }
         D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
 
+        // 이거 여기 있으면 안될거 같음
+        D3D12_CPU_DESCRIPTOR_HANDLE GetDsvHandle() const { return _dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart(); }
+
     private:
         void CreateRootSignature();
         void CreateShader(const ShaderResourceInitializeData& initializeData);
@@ -43,5 +46,10 @@ namespace sb
         ComPtr<ID3D12Resource> _iBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _iBuffer = nullptr;
         D3D12_INDEX_BUFFER_VIEW _iBufferView = {};
+
+        ComPtr<ID3D12Resource> _dsBuffer = nullptr;
+
+    public:
+        ComPtr<ID3D12DescriptorHeap> _dsDescriptorHeap = nullptr;
     };
 }; // namespace sb

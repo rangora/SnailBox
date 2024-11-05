@@ -51,6 +51,8 @@ namespace sb
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
         struct ShaderGeometry* GetShaderData(const std::string& key) const;
+        uint32 GetViewportWidth() const { return _vpWidth; }
+        uint32 GetViewportHeight() const { return _vpHeight; }
 
         void SetSwapChainWaitableObject(HANDLE in_handle) { m_hSwapChainWaitableObject = in_handle; }
 
@@ -91,6 +93,8 @@ namespace sb
         // Viewport
         D3D12_VIEWPORT _viewport;
         D3D12_RECT _scissorRect;
+        uint32 _vpWidth = 0;
+        uint32 _vpHeight = 0;
 
         // Shaders
         boost::container::flat_map<std::string, UPtr<struct ShaderGeometry>> _shaderGeoData;
