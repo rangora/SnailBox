@@ -90,6 +90,8 @@ namespace sb
         ID3D12Resource* _mainRtvResource[SWAP_CHAIN_BUFFER_COUNT] = {};
         
         ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
+        ComPtr<ID3D12DescriptorHeap> _dsHeap = nullptr;
+        ComPtr<ID3D12Resource> _dsBuffer = nullptr;
 
         // Viewport
         D3D12_VIEWPORT _viewport;

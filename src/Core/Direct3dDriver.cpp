@@ -168,24 +168,11 @@ namespace sb
 
         const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
                                                  _clearColor.Z * _clearColor.W, _clearColor.W};
-        
-        {
-            D3D12_RESOURCE_DESC rtvDesc = _mainRtvResource[backBufferIdx]->GetDesc();
-            uint32 rw = rtvDesc.Width;
-            uint32 rh = rtvDesc.Height;
 
-            D3D12_DESCRIPTOR_HEAP_DESC dsvDesc = _shaderResource->_dsDescriptorHeap->GetDesc();
-            uint32 dw = rtvDesc.Width;
-            uint32 dh = rtvDesc.Height;
-
-            spdlog::info("rw:{}, rh:{}", rw, rh);
-            spdlog::info("dw:{}, dh:{}", dw, dh);
-        }
-        // GetDsvHandle()은 임시 사용임.
-        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_shaderResource->GetDsvHandle());
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         
         _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
-        _commandList->ClearDepthStencilView(_shaderResource->GetDsvHandle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+        _commandList->ClearDepthStencilView(_dsHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
         _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
         ImDrawData* DrawData = ImGui::GetDrawData();
@@ -392,6 +379,17 @@ namespace sb
     void Direct3dDriver::CleanUpDevice()
     {
         CleanUpRenderTarget();
+
+        if (_dsBuffer)
+        {
+            _dsBuffer.Reset();
+        }
+
+        if (_dsHeap)
+        {
+            _dsHeap.Reset();
+        }
+
         if (_swapChain3)
         {
             _swapChain3.Reset();
@@ -550,5 +548,44 @@ namespace sb
 
     void Direct3dDriver::CreateDepthStencil()
     {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.NumDescriptors = 1;
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        HRESULT hr = sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_dsHeap));
+        if (FAILED(hr))
+        {
+            spdlog::error("Failed to create depth/stencil descriptor heap.");
+        }
+
+        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+        D3D12_CLEAR_VALUE clearValue = {};
+        clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+        clearValue.DepthStencil.Depth = 1.f;
+        clearValue.DepthStencil.Stencil = 0.f;
+
+        const uint32 backBufferIndex = _swapChain3->GetCurrentBackBufferIndex();
+        const D3D12_RESOURCE_DESC rtvDesc = _mainRtvResource[backBufferIndex]->GetDesc();
+        const uint32 rw = rtvDesc.Width;
+        const uint32 rh = rtvDesc.Height;
+
+        D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, rw, rh, 1, 0, 1, 0,
+                                                                          D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+                                              D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue, IID_PPV_ARGS(&_dsBuffer));
+
+        hr = sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_dsHeap));
+        if (FAILED(hr))
+        {
+            spdlog::error("Failed to create depth/stencil descriptor heap after commit.");
+        }
+        _dsHeap->SetName(L"depth/stencil resource heap");
+
+        sg_d3dDevice->CreateDepthStencilView(_dsBuffer.Get(), &dsvDesc, _dsHeap->GetCPUDescriptorHandleForHeapStart());
     }
 } // namespace sb

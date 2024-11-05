@@ -154,49 +154,6 @@ namespace sb
             _iBufferUploadHeap->SetName(L"Index Buffer Upload Resource Heap");
         }
 
-        // Depth/Stencil Buffer
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-            desc.NumDescriptors = 1;
-            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            hr = sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_dsDescriptorHeap));
-            if (FAILED(hr))
-            {
-                spdlog::error("Failed to create depth/stencil descriptor heap.");
-            }
-
-            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-            dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-            dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-
-            D3D12_CLEAR_VALUE clearValue = {};
-            clearValue.Format = DXGI_FORMAT_D32_FLOAT;
-            clearValue.DepthStencil.Depth = 1.f;
-            clearValue.DepthStencil.Stencil = 0.f;
-
-            uint32 width = sg_d3dDriver->GetViewportWidth();
-            uint32 height = sg_d3dDriver->GetViewportHeight();
-
-            D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-            CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
-                DXGI_FORMAT_D32_FLOAT, 984, 561, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-            sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
-                                                  D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue,
-                                                  IID_PPV_ARGS(&_dsBuffer));
-            
-            hr = sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_dsDescriptorHeap));
-            if (FAILED(hr))
-            {
-                spdlog::error("Failed to create depth/stencil descriptor heap after commit.");
-            }
-            _dsDescriptorHeap->SetName(L"depth/stencil resource heap");
-
-            sg_d3dDevice->CreateDepthStencilView(_dsBuffer.Get(), &dsvDesc,
-                                                 _dsDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-        }
-
         D3D12_SUBRESOURCE_DATA vData = {};
         vData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetVertexPointer());
         vData.RowPitch = _vBufferSize;
