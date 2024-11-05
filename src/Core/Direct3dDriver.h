@@ -62,6 +62,7 @@ namespace sb
         void WaitForLastSubmittedFrame();
         void CreateRenderTarget();
         void CleanUpRenderTarget();
+        void CreateDepthStencil();
 
     private:
         void CreateSwapChain(const HWND in_hwnd);

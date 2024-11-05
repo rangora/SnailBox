@@ -56,6 +56,7 @@ namespace sb
         CreateSwapChain(in_hwnd);
         CreateRtvDescriptorHeap();
         CreateRenderTarget();
+        CreateDepthStencil();
 
         // WndProc에서 swapChain 사용.
         ::ShowWindow(in_hwnd, SW_SHOWDEFAULT);
@@ -76,20 +77,40 @@ namespace sb
         _vpHeight = 600;
 
         // Process raw data.
-        ShaderGeometryRawData rawData;
-        rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}),
-                                Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                Vertex({0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f})});
-        rawData._index.assign({0, 1, 2, 0, 3, 1});
+        {
+            ShaderGeometryRawData rawData;
+            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                    Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}),
+                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f})});
+            rawData._index.assign({0, 1, 2, 0, 3, 1});
 
-        UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
-        UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
+            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
+            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
+            _shaderGeoData.insert({"sample1", std::move(geo)});
+        }
 
-        _shaderGeoData.insert({"sample1", std::move(geo)});
+        {
+            ShaderGeometryRawData rawData;
+            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+
+                                    Vertex({-0.75f, 0.75f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                    Vertex({0.0f, 0.f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                    Vertex({-0.75f, 0.f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                    Vertex({0.f, 0.75f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f})});
+            rawData._index.assign({0, 1, 2, 0, 3, 1});
+
+            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
+            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
+            _shaderGeoData.insert({"sample2", std::move(geo)});
+        }
+
 
         ShaderResourceInitializeData data;
-        data._shaderKey = "sample1";
+        data._shaderKey = "sample2";
         data._parameters._vsPath = projectPath + "/resources/shader/sample.vs.hlsl";
         data._parameters._fsPath = projectPath + "/resources/shader/sample.fs.hlsl";
         
@@ -182,7 +203,8 @@ namespace sb
         _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
         _commandList->IASetIndexBuffer(&_shaderResource->GetIndexBufferView());
-        _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+        _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
+        _commandList->DrawIndexedInstanced(6, 1, 0, 4, 0); // second quad
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
 
@@ -524,5 +546,9 @@ namespace sb
                 _mainRtvResource[i] = nullptr;
             }
         }
+    }
+
+    void Direct3dDriver::CreateDepthStencil()
+    {
     }
 } // namespace sb
