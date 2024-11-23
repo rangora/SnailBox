@@ -47,7 +47,8 @@ namespace sb
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
         ComPtr<ID3D12GraphicsCommandList> GetCommandList() const { return _commandList; }
         ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return _commandQueue; }
-        
+        ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
+
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
         struct ShaderGeometry* GetShaderData(const std::string& key) const;
@@ -91,6 +92,7 @@ namespace sb
         
         ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
         ComPtr<ID3D12DescriptorHeap> _dsHeap = nullptr;
+        ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;
         ComPtr<ID3D12Resource> _dsBuffer = nullptr;
 
         // Viewport

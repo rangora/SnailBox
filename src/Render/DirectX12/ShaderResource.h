@@ -4,6 +4,12 @@
 
 namespace sb
 {
+    // TEMP
+    struct ConstantBuffer
+    {
+        XMFLOAT4 _colorMultiplier;
+    };
+
     struct ShaderParameters
     {
         std::string _vsPath;
@@ -26,8 +32,12 @@ namespace sb
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
+        ComPtr<ID3D12PipelineState> GetPipelineState2() const { return _pipelineState2; }
         D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &_vBufferView; }
         D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
+
+        // TEMP
+        void Tick();
 
     private:
         void CreateRootSignature();
@@ -35,6 +45,7 @@ namespace sb
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
+        ComPtr<ID3D12PipelineState> _pipelineState2 = nullptr;
 
         ComPtr<ID3D12Resource> _vBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _vBuffer = nullptr;
@@ -43,5 +54,11 @@ namespace sb
         ComPtr<ID3D12Resource> _iBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _iBuffer = nullptr;
         D3D12_INDEX_BUFFER_VIEW _iBufferView = {};
+
+        // constnat buffer data
+        ComPtr<ID3D12DescriptorHeap> _cbDescHeap = nullptr;
+        ComPtr<ID3D12Resource> _cbUploadHeap = nullptr;
+        UINT8* _cbGPUAddress = nullptr;
+        ConstantBuffer _cbData;
     };
 }; // namespace sb

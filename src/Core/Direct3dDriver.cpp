@@ -108,9 +108,22 @@ namespace sb
             _shaderGeoData.insert({"sample2", std::move(geo)});
         }
 
+        {
+            ShaderGeometryRawData rawData;
+            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
+                                    Vertex({0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
+                                    Vertex({0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 1.0f, 1.0f})});
+
+            rawData._index.assign({0, 1, 2, 0, 3, 1});
+
+            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
+            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
+            _shaderGeoData.insert({"sample3", std::move(geo)});
+        }
 
         ShaderResourceInitializeData data;
-        data._shaderKey = "sample2";
+        data._shaderKey = "sample3";
         data._parameters._vsPath = projectPath + "/resources/shader/sample.vs.hlsl";
         data._parameters._fsPath = projectPath + "/resources/shader/sample.fs.hlsl";
         
@@ -141,6 +154,9 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
+        // Tick shaderResource
+        _shaderResource->Tick();
+
         // RenderBegin
         FrameContext* frameCtx = WaitForNextFrameResources();
         uint32 backBufferIdx = _swapChain3->GetCurrentBackBufferIndex();
@@ -164,36 +180,66 @@ namespace sb
 
         _commandList->ResourceBarrier(1, &barrier);
 
+        //ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
         ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
+        ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
 
         const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
                                                  _clearColor.Z * _clearColor.W, _clearColor.W};
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         
-        _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
-        _commandList->ClearDepthStencilView(_dsHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
-        _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        // Settings
+        {
+            ImDrawData* DrawData = ImGui::GetDrawData();
+            _viewport.Height = DrawData->DisplaySize.y;
+            _viewport.Width = DrawData->DisplaySize.x;
+            _scissorRect.bottom = DrawData->DisplaySize.y;
+            _scissorRect.right = DrawData->DisplaySize.x;
+            _vpHeight = DrawData->DisplaySize.y;
+            _vpWidth = DrawData->DisplaySize.x;
 
-        ImDrawData* DrawData = ImGui::GetDrawData();
-        _viewport.Height = DrawData->DisplaySize.y;
-        _viewport.Width = DrawData->DisplaySize.x;
-        _scissorRect.bottom = DrawData->DisplaySize.y;
-        _scissorRect.right = DrawData->DisplaySize.x;
-        _vpHeight = DrawData->DisplaySize.y;
-        _vpWidth = DrawData->DisplaySize.x;
+            _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
+            _commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+        }
 
-        _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
-        _commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
         _commandList->RSSetViewports(1, &_viewport);
         _commandList->RSSetScissorRects(1, &_scissorRect);
-        _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
-        _commandList->IASetIndexBuffer(&_shaderResource->GetIndexBufferView());
-        _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
-        _commandList->DrawIndexedInstanced(6, 1, 0, 4, 0); // second quad
+        
+        // descTable
+        {
+            _commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
+            _commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
+            _commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+            
+            // draw mesh
+            {
+                //_commandList->ResourceBarrier(1, &barrier);
+                _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
+                
+                _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
+                _commandList->IASetIndexBuffer(&_shaderResource->GetIndexBufferView());
+                _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
+                _commandList->SetPipelineState(_shaderResource->GetPipelineState().Get());
+            }
+        }
 
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
+        // imgui
+        {
+            _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+            _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
+
+            ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
+        }
+        
+
+
+
+
+
+        //_commandList->DrawIndexedInstanced(6, 1, 0, 4, 0); // second quad
+        
 
         // 여기
 
@@ -303,7 +349,18 @@ namespace sb
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             desc.NumDescriptors = 1;
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&_srvHeap)) != S_OK)
+            if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_srvHeap.GetAddressOf())) != S_OK)
+            {
+                return;
+            }
+        }
+
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            desc.NumDescriptors = 1;
+            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_cbvHeap.GetAddressOf())) != S_OK)
             {
                 return;
             }

@@ -10,10 +10,65 @@ namespace sb
         CreateShader(initializeData);
     }
 
+    void ShaderResource::Tick()
+    {
+        static float rIncrement = 0.02f;
+        static float gIncrement = 0.06f;
+        static float bIncrement = 0.09f;
+
+        _cbData._colorMultiplier.x += rIncrement;
+        _cbData._colorMultiplier.y += gIncrement;
+        _cbData._colorMultiplier.z += bIncrement;
+
+        if (_cbData._colorMultiplier.x >= 1.f || _cbData._colorMultiplier.x <= 0.f)
+        {
+            _cbData._colorMultiplier.x = _cbData._colorMultiplier.x >= 1.f ? 1.f : 0.f;
+            rIncrement = -rIncrement;
+        }
+        if (_cbData._colorMultiplier.y >= 1.f || _cbData._colorMultiplier.y <= 0.f)
+        {
+            _cbData._colorMultiplier.y = _cbData._colorMultiplier.y >= 1.f ? 1.f : 0.f;
+            gIncrement = -gIncrement;
+        }
+        if (_cbData._colorMultiplier.z >= 1.f || _cbData._colorMultiplier.z <= 0.f)
+        {
+            _cbData._colorMultiplier.z = _cbData._colorMultiplier.z >= 1.f ? 1.f : 0.f;
+            bIncrement = -bIncrement;
+        }
+
+        ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+    }
+
     void ShaderResource::CreateRootSignature()
     {
+        D3D12_DESCRIPTOR_RANGE descTableRanges[1];
+        descTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+        descTableRanges[0].NumDescriptors = 1;
+        descTableRanges[0].BaseShaderRegister = 0;
+        descTableRanges[0].RegisterSpace = 0;
+        descTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+        D3D12_ROOT_DESCRIPTOR_TABLE descTable;
+        descTable.NumDescriptorRanges = _countof(descTableRanges);
+        descTable.pDescriptorRanges = &descTableRanges[0];
+
+        D3D12_ROOT_PARAMETER rootParams[1];
+        rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        rootParams[0].DescriptorTable = descTable;
+        rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+        // old
+        /*CD3DX12_ROOT_SIGNATURE_DESC desc = {};
+        desc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);*/
+
         CD3DX12_ROOT_SIGNATURE_DESC desc = {};
-        desc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        desc.Init(_countof(rootParams), rootParams, 0, nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+
 
         ID3DBlob* signature;
 
@@ -112,6 +167,14 @@ namespace sb
             return;
         }
         
+        hr = sg_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&_pipelineState2));
+        if (FAILED(hr))
+        {
+            assert(false);
+            return;
+        }
+        
+
         const uint32 _vBufferSize = sDataPtr->GetVertexByteSize();
         const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
 
@@ -185,6 +248,38 @@ namespace sb
                                                  D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
 
         commandList->ResourceBarrier(_countof(barriers), barriers);
+        // cb
+        {
+            auto srvDescHeap = sg_d3dDriver->GetCbvHeap().Get();
+            {
+                CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+                CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
+
+                hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+                                                           D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                           IID_PPV_ARGS(_cbUploadHeap.GetAddressOf()));
+                _cbUploadHeap->SetName(L"Constant Buffer Upload Resource Heap");
+
+                if (FAILED(hr))
+                {
+                    assert(false);
+                    spdlog::error("Failed to create constant buffer upload resource heap");
+                    return;
+                }
+
+                // Create Constant Buffer View
+                D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+                cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
+                cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
+                sg_d3dDevice->CreateConstantBufferView(&cbvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
+
+                ZeroMemory(&_cbData, sizeof(_cbData));
+                CD3DX12_RANGE readRange(0, 0);
+                hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
+                ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+            }
+        }
+
         commandList->Close();
 
         ID3D12CommandList* ppCmdLists2[] = {commandList.Get()};
