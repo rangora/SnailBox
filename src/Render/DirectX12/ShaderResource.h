@@ -16,6 +16,13 @@ namespace sb
         std::string _fsPath;
     };
 
+    struct ShaderHeapInstruction
+    {
+        D3D12_DESCRIPTOR_RANGE_TYPE _rangeType;
+        int32 _numDescriptors = 0;
+        bool _bTable = false;
+    };
+
     struct ShaderResourceInitializeData
     {
         std::string _shaderKey;
@@ -28,24 +35,25 @@ namespace sb
         ShaderResource() = delete;
         ShaderResource(const ShaderResource&) = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
-        ShaderResource(const ShaderResourceInitializeData& initializeData);
+        ShaderResource(const ShaderResourceInitializeData& initializeData, const ShaderHeapInstruction& instruction);
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
-        ComPtr<ID3D12PipelineState> GetPipelineState2() const { return _pipelineState2; }
         D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &_vBufferView; }
         D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
+        ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
         // TEMP
         void Tick();
+        void Render(ComPtr<ID3D12GraphicsCommandList> commandList);
 
     private:
+        void CreateHeap(const ShaderHeapInstruction& instruction);
         void CreateRootSignature();
         void CreateShader(const ShaderResourceInitializeData& initializeData);
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
-        ComPtr<ID3D12PipelineState> _pipelineState2 = nullptr;
 
         ComPtr<ID3D12Resource> _vBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _vBuffer = nullptr;
@@ -56,9 +64,10 @@ namespace sb
         D3D12_INDEX_BUFFER_VIEW _iBufferView = {};
 
         // constnat buffer data
-        ComPtr<ID3D12DescriptorHeap> _cbDescHeap = nullptr;
+        ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;
         ComPtr<ID3D12Resource> _cbUploadHeap = nullptr;
         UINT8* _cbGPUAddress = nullptr;
         ConstantBuffer _cbData;
+
     };
 }; // namespace sb

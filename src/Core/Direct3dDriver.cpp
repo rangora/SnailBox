@@ -127,7 +127,12 @@ namespace sb
         data._parameters._vsPath = projectPath + "/resources/shader/sample.vs.hlsl";
         data._parameters._fsPath = projectPath + "/resources/shader/sample.fs.hlsl";
         
-        _shaderResource = new ShaderResource(data);
+        ShaderHeapInstruction instruction;
+        instruction._bTable = true;
+        instruction._numDescriptors = 1;
+        instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+        _shaderResource = new ShaderResource(data, instruction);
 
         HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
         if (FAILED(hr))
@@ -154,116 +159,28 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
-        // Tick shaderResource
-        _shaderResource->Tick();
-
-        // RenderBegin
-        FrameContext* frameCtx = WaitForNextFrameResources();
-        uint32 backBufferIdx = _swapChain3->GetCurrentBackBufferIndex();
-
-        // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
-        // reset으로 메모리 초기화 줌(저장된 commandList)
-        // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
-        frameCtx->CommandAllocator->Reset();
-
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Transition.pResource = _mainRtvResource[backBufferIdx];
-        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-        // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
-        _commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
-        // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
-
-        _commandList->ResourceBarrier(1, &barrier);
-
-        //ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
-        ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
-        ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
-
-        const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
-                                                 _clearColor.Z * _clearColor.W, _clearColor.W};
-
-        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
-        
-        // Settings
-        {
-            ImDrawData* DrawData = ImGui::GetDrawData();
-            _viewport.Height = DrawData->DisplaySize.y;
-            _viewport.Width = DrawData->DisplaySize.x;
-            _scissorRect.bottom = DrawData->DisplaySize.y;
-            _scissorRect.right = DrawData->DisplaySize.x;
-            _vpHeight = DrawData->DisplaySize.y;
-            _vpWidth = DrawData->DisplaySize.x;
-
-            _commandList->ClearRenderTargetView(_mainRtvCpuHandle[backBufferIdx], clear_color_with_alpha, 0, nullptr);
-            _commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
-        }
-
-        _commandList->RSSetViewports(1, &_viewport);
-        _commandList->RSSetScissorRects(1, &_scissorRect);
-        
-        // descTable
-        {
-            _commandList->SetGraphicsRootSignature(_shaderResource->GetRootSignature().Get());
-            _commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
-            _commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
-            
-            // draw mesh
-            {
-                //_commandList->ResourceBarrier(1, &barrier);
-                _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
-                
-                _commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                _commandList->IASetVertexBuffers(0, 1, _shaderResource->GetVertexBufferView());
-                _commandList->IASetIndexBuffer(&_shaderResource->GetIndexBufferView());
-                _commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
-                _commandList->SetPipelineState(_shaderResource->GetPipelineState().Get());
-            }
-        }
-
-        // imgui
-        {
-            _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-            _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[backBufferIdx], FALSE, &dsvHandle);
-
-            ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
-        }
-        
-
-
-
-
-
-        //_commandList->DrawIndexedInstanced(6, 1, 0, 4, 0); // second quad
-        
-
-        // 여기
-
-        // RenderEnd
-        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-        _commandList->ResourceBarrier(1, &barrier);
-        _commandList->Close();
-
-        ID3D12CommandList* ppCmdLists[] = {_commandList.Get()};
-        _commandQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
-
-        _swapChain3->Present(1, 0); // 1이면 vsync
-
-        uint64 fenceValue = m_fenceLastSignaledValue + 1;
-        _commandQueue->Signal(m_fence.Get(), fenceValue);
-        m_fenceLastSignaledValue = fenceValue;
-        frameCtx->FenceValue = fenceValue;
-
-        ImGui::UpdatePlatformWindows();
+        RenderBegin();
+        Render();
+        RenderEnd();
     }
 
     void Direct3dDriver::OnUpdate(float in_delta)
     {
+    }
+
+    void Direct3dDriver::Render()
+    {
+        // Tick shaderResource
+        _shaderResource->Tick();
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
+        _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[_backBufferIndex], FALSE, &dsvHandle);
+
+        // render stuff..
+        _shaderResource->Render(_commandList);
+
+        // render imgui
+        RenderImgui();
     }
 
     void Direct3dDriver::SwapBuffers()
@@ -350,17 +267,6 @@ namespace sb
             desc.NumDescriptors = 1;
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_srvHeap.GetAddressOf())) != S_OK)
-            {
-                return;
-            }
-        }
-
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1;
-            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            if (m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_cbvHeap.GetAddressOf())) != S_OK)
             {
                 return;
             }
@@ -503,6 +409,87 @@ namespace sb
 #endif
     }
 
+    void Direct3dDriver::RenderBegin()
+    {
+        FrameContext* frameCtx = WaitForNextFrameResources();
+        _backBufferIndex = _swapChain3->GetCurrentBackBufferIndex();
+
+        // gpu에서 처리가 끝난 allocator를 reset 해줘야 함
+        // reset으로 메모리 초기화 줌(저장된 commandList)
+        // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
+        frameCtx->CommandAllocator->Reset();
+        // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
+        _commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
+        // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
+
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource = _mainRtvResource[_backBufferIndex];
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+        _commandList->ResourceBarrier(1, &barrier);
+
+        const float clear_color_with_alpha[4] = {_clearColor.X * _clearColor.W, _clearColor.Y * _clearColor.W,
+                                                 _clearColor.Z * _clearColor.W, _clearColor.W};
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
+
+        // Settings
+        {
+            ImDrawData* DrawData = ImGui::GetDrawData();
+            _viewport.Height = DrawData->DisplaySize.y;
+            _viewport.Width = DrawData->DisplaySize.x;
+            _scissorRect.bottom = DrawData->DisplaySize.y;
+            _scissorRect.right = DrawData->DisplaySize.x;
+            _vpHeight = DrawData->DisplaySize.y;
+            _vpWidth = DrawData->DisplaySize.x;
+
+            _commandList->RSSetViewports(1, &_viewport);
+            _commandList->RSSetScissorRects(1, &_scissorRect);
+
+            _commandList->ClearRenderTargetView(_mainRtvCpuHandle[_backBufferIndex], clear_color_with_alpha, 0, nullptr);
+            _commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+        }
+    }
+
+    void Direct3dDriver::RenderEnd()
+    {
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource = _mainRtvResource[_backBufferIndex];
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+        _commandList->ResourceBarrier(1, &barrier);
+        _commandList->Close();
+
+        ID3D12CommandList* ppCmdLists[] = {_commandList.Get()};
+        _commandQueue->ExecuteCommandLists(_countof(ppCmdLists), ppCmdLists);
+
+        _swapChain3->Present(1, 0); // 1이면 vsync
+
+        // sync
+        FrameContext* frameCtx = &m_frameContexts[m_frameIndex];
+        uint64 fenceValue = m_fenceLastSignaledValue + 1;
+        _commandQueue->Signal(m_fence.Get(), fenceValue);
+        m_fenceLastSignaledValue = fenceValue;
+        frameCtx->FenceValue = fenceValue;
+
+        ImGui::UpdatePlatformWindows();
+    }
+
+    void Direct3dDriver::RenderImgui()
+    {
+        ID3D12DescriptorHeap* descriptorHeaps[] = {_srvHeap.Get()};
+        _commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), _commandList.Get());
+    }
+
     void Direct3dDriver::UpdateFenceValue()
     {
         FrameContext& frameCtx = m_frameContexts[m_frameIndex];
@@ -643,6 +630,6 @@ namespace sb
         }
         _dsHeap->SetName(L"depth/stencil resource heap");
 
-        sg_d3dDevice->CreateDepthStencilView(_dsBuffer.Get(), &dsvDesc, _dsHeap->GetCPUDescriptorHandleForHeapStart());
+       sg_d3dDevice->CreateDepthStencilView(_dsBuffer.Get(), &dsvDesc, _dsHeap->GetCPUDescriptorHandleForHeapStart());
     }
 } // namespace sb

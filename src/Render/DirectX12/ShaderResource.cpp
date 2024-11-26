@@ -4,9 +4,71 @@
 
 namespace sb
 {
-    ShaderResource::ShaderResource(const ShaderResourceInitializeData& initializeData)
+    ShaderResource::ShaderResource(const ShaderResourceInitializeData& initializeData,
+                                   const ShaderHeapInstruction& instruction)
     {
-        CreateRootSignature();
+        // create desc for CBV.
+        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+            desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            desc.NumDescriptors = 1;
+            desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_cbvHeap.GetAddressOf())) != S_OK)
+            {
+                spdlog::error("Failed to create constant buffer heap");
+                return;
+            }
+        }
+
+        // create root signature.
+        CD3DX12_ROOT_SIGNATURE_DESC rdc;
+        if (instruction._bTable)
+        {
+            D3D12_DESCRIPTOR_RANGE descTableRanges[1]; // TODO : PARAM??
+            descTableRanges[0].RangeType = instruction._rangeType;
+            descTableRanges[0].NumDescriptors = instruction._numDescriptors;
+            descTableRanges[0].BaseShaderRegister = 0;
+            descTableRanges[0].RegisterSpace = 0;
+            descTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+            D3D12_ROOT_DESCRIPTOR_TABLE descTable;
+            descTable.NumDescriptorRanges = _countof(descTableRanges);
+            descTable.pDescriptorRanges = &descTableRanges[0];
+
+            D3D12_ROOT_PARAMETER rootParams[1];
+            rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            rootParams[0].DescriptorTable = descTable;
+            rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+            rdc.Init(_countof(rootParams), rootParams, 0, nullptr,
+                      D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+                          D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                          D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                          D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+                          D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+        }
+        else
+        {
+            rdc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        }
+
+        ID3DBlob* signature;
+
+        HRESULT hr = D3D12SerializeRootSignature(&rdc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, nullptr);
+        if (FAILED(hr))
+        {
+            return;
+        }
+
+        sg_d3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
+                                          IID_PPV_ARGS(&_rootSignature));
+
+        if (FAILED(hr))
+        {
+            return;
+        }
+
         CreateShader(initializeData);
     }
 
@@ -37,6 +99,34 @@ namespace sb
         }
 
         ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+    }
+
+    void ShaderResource::Render(ComPtr<ID3D12GraphicsCommandList> commandList)
+    {
+        ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
+
+        commandList->SetGraphicsRootSignature(_rootSignature.Get());
+        commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
+
+        commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        commandList->IASetVertexBuffers(0, 1, &_vBufferView);
+        commandList->IASetIndexBuffer(&_iBufferView);
+        commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
+        commandList->SetPipelineState(_pipelineState.Get());
+    }
+
+    void ShaderResource::CreateHeap(const ShaderHeapInstruction& instruction)
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors = 1;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_cbvHeap.GetAddressOf())) != S_OK)
+        {
+            spdlog::error("Failed to create constant buffer heap");
+            return;
+        }
     }
 
     void ShaderResource::CreateRootSignature()
@@ -166,14 +256,6 @@ namespace sb
             assert(false);
             return;
         }
-        
-        hr = sg_d3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&_pipelineState2));
-        if (FAILED(hr))
-        {
-            assert(false);
-            return;
-        }
-        
 
         const uint32 _vBufferSize = sDataPtr->GetVertexByteSize();
         const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
@@ -250,7 +332,6 @@ namespace sb
         commandList->ResourceBarrier(_countof(barriers), barriers);
         // cb
         {
-            auto srvDescHeap = sg_d3dDriver->GetCbvHeap().Get();
             {
                 CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
                 CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
@@ -271,7 +352,7 @@ namespace sb
                 D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
                 cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
                 cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
-                sg_d3dDevice->CreateConstantBufferView(&cbvDesc, srvDescHeap->GetCPUDescriptorHandleForHeapStart());
+                sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
 
                 ZeroMemory(&_cbData, sizeof(_cbData));
                 CD3DX12_RANGE readRange(0, 0);

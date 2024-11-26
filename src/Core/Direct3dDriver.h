@@ -31,9 +31,7 @@ namespace sb
         bool InitializeResources() final;
         void Update() final;
         void OnUpdate(float in_delta) final;
-        void Render() final
-        {
-        } // ??
+        void Render() final;
         void SwapBuffers() final;
         bool IsWindowShouldClosed() final;
         void CleanDriver() final;
@@ -47,7 +45,6 @@ namespace sb
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
         ComPtr<ID3D12GraphicsCommandList> GetCommandList() const { return _commandList; }
         ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return _commandQueue; }
-        ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
@@ -69,6 +66,10 @@ namespace sb
         void CreateSwapChain(const HWND in_hwnd);
         void CreateRtvDescriptorHeap();
         void CleanUpDevice();
+
+        void RenderBegin();
+        void RenderEnd();
+        void RenderImgui();
 
         class WinsWindow* GetTargetWindow() const;
 
@@ -92,7 +93,6 @@ namespace sb
         
         ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
         ComPtr<ID3D12DescriptorHeap> _dsHeap = nullptr;
-        ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;
         ComPtr<ID3D12Resource> _dsBuffer = nullptr;
 
         // Viewport
@@ -111,6 +111,7 @@ namespace sb
         HANDLE m_hSwapChainWaitableObject = nullptr;
 
         FrameContext m_frameContexts[NUM_FRAMES_IN_FLIGHT] = {};
+        int32 _backBufferIndex = 0;
         uint32 m_frameIndex = 0;
         uint32 m_fenceLastSignaledValue = 0;
 
