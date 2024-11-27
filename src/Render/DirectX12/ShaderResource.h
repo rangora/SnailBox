@@ -36,6 +36,7 @@ namespace sb
         ShaderResource(const ShaderResource&) = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
         ShaderResource(const ShaderResourceInitializeData& initializeData, const ShaderHeapInstruction& instruction);
+        ~ShaderResource();
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }

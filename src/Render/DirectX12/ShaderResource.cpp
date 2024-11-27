@@ -72,6 +72,49 @@ namespace sb
         CreateShader(initializeData);
     }
 
+    ShaderResource::~ShaderResource()
+    {
+        if (_rootSignature)
+        {
+            _rootSignature.Reset();
+        }
+
+        if (_pipelineState)
+        {
+            _pipelineState.Reset();
+        }
+
+        if (_vBufferUploadHeap)
+        {
+            _vBufferUploadHeap.Reset();
+        }
+
+        if (_vBuffer)
+        {
+            _vBuffer.Reset();
+        }
+
+        if (_iBufferUploadHeap)
+        {
+            _iBufferUploadHeap.Reset();
+        }
+
+        if (_iBuffer)
+        {
+            _iBuffer.Reset();
+        }
+
+        if (_cbvHeap)
+        {
+            _cbvHeap.Reset();
+        }
+
+        if (_cbUploadHeap)
+        {
+            _cbUploadHeap.Reset();
+        }
+    }
+
     void ShaderResource::Tick(float delta)
     {
         static float rIncrement = 0.02f;
