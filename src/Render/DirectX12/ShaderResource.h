@@ -44,7 +44,7 @@ namespace sb
         ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
         // TEMP
-        void Tick();
+        void Tick(float delta);
         void Render(ComPtr<ID3D12GraphicsCommandList> commandList);
 
     private:

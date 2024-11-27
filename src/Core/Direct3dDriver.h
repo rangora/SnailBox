@@ -114,6 +114,7 @@ namespace sb
         int32 _backBufferIndex = 0;
         uint32 m_frameIndex = 0;
         uint32 m_fenceLastSignaledValue = 0;
+        double _PrevTime = 0.0;
 
         bool bShutDownCalled = false;
     };

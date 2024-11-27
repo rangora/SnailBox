@@ -170,8 +170,12 @@ namespace sb
 
     void Direct3dDriver::Render()
     {
+        double currentTime = GetSystemTime();
+        const double tick = (currentTime - _PrevTime) * 0.001;
+        _PrevTime = currentTime;
+
         // Tick shaderResource
-        _shaderResource->Tick();
+        _shaderResource->Tick(tick);
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[_backBufferIndex], FALSE, &dsvHandle);

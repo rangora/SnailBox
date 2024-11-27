@@ -72,7 +72,7 @@ namespace sb
         CreateShader(initializeData);
     }
 
-    void ShaderResource::Tick()
+    void ShaderResource::Tick(float delta)
     {
         static float rIncrement = 0.02f;
         static float gIncrement = 0.06f;

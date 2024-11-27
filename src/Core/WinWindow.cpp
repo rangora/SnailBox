@@ -121,24 +121,21 @@ namespace sb
                         break;
                     }
                 }
-
-                // Window update
-
-                // Imgui update
-                WindowUpdate();
-
-                ImGui_ImplDX12_NewFrame();
-                ImGui_ImplWin32_NewFrame();
-                ImGui::NewFrame();
-                ImGuiUpdate();
-                ImGui::Render();
-
-                // Driver update
-                m_driver->Update();
-                m_driver->SwapBuffers();
             }
 
-            }
+            // window update
+            WindowUpdate();
+
+            ImGui_ImplDX12_NewFrame();
+            ImGui_ImplWin32_NewFrame();
+            ImGui::NewFrame();
+            ImGuiUpdate();
+            ImGui::Render();
+
+            // Driver update
+            m_driver->Update();
+            m_driver->SwapBuffers();
+        }
         else
         {
             ReadyWindowShutdown();
