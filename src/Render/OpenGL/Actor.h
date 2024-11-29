@@ -5,7 +5,7 @@
 #include "Core/Math/Vector.h"
 #include "Core/Math/Transform.h"
 #include "Render/Opengl/OpenGLBuffer.h"
-#include "Render/RenderResource.h"
+#include "Render/Opengl/RenderResource.h"
 #include <vector>
 
 namespace sb

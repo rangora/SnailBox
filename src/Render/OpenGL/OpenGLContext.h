@@ -6,9 +6,8 @@
 #include "OpenGLShader.h"
 #include "OpenglTexture.h"
 #include "Render/GraphicsContext.h"
-#include "Render/Light.h"
-#include "Render/Material.h"
-#include "Render/ShaderArchive.h"
+#include "Render/Opengl/Light.h"
+#include "Render/Opengl/Material.h"
 
 struct GLFWwindow;
 

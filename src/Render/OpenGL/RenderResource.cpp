@@ -1,8 +1,8 @@
 ﻿#include "RenderResource.h"
-#include "GraphicsContext.h"
-#include "Opengl/OpenGLContext.h"
+#include "Render/GraphicsContext.h"
+#include "Render/Opengl/OpenGLContext.h"
+#include "Render/BasicGeometry.h"
 #include "spdlog/spdlog.h"
-#include "BasicGeometry.h"
 
 namespace sb
 {

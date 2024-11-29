@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Actor/Actor.h"
+#include "Render/Opengl/Actor.h"
 #include "Common.h"
 #include "Event/Event.h"
 #include "Layout.h"

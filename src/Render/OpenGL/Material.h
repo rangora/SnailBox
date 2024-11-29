@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Core/Common.h"
-#include "Opengl/OpenGLTexture.h"
+#include "Render/Opengl/OpenGLTexture.h"
 
 namespace sb
 {

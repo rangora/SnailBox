@@ -2,7 +2,6 @@
 #include "Core/Application.h"
 #include "Core/Driver.h"
 #include "OpenGL/OpenGLContext.h"
-#include "DirectX12/Direct3dContext.h"
 
 namespace sb
 {
@@ -14,9 +13,6 @@ namespace sb
         {
             case GraphicsDevice::OpenGL:
                 return CreateUPtr<OpenglContext>(static_cast<GLFWwindow*>(in_userPointer), in_drvier);
-                break;
-            case GraphicsDevice::DirectX12:
-                return CreateUPtr<Direct3dContext>(in_drvier);
                 break;
             case GraphicsDevice::None:
             default:

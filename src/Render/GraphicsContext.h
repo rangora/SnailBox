@@ -1,8 +1,8 @@
 #pragma once
 
 #include "corepch.h"
-#include "Enums.h"
-#include "RenderBuffer.h"
+#include "GraphicsEnum.h"
+#include "Render/Opengl/RenderBuffer.h"
 #include <queue>
 #include <vector>
 

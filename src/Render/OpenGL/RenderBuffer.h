@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Enums.h"
+#include "Render/GraphicsEnum.h"
 
 namespace sb
 {

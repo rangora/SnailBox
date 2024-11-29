@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "BaseComponent.h"
-#include "Render/RenderResource.h"
+#include "Render/Opengl/RenderResource.h"
 
 namespace sb
 {

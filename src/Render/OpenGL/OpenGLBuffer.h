@@ -2,8 +2,8 @@
 
 #include <glad/gl.h>
 #include "Core/Common.h"
-#include "Render/RenderBuffer.h"
-#include <Enums.h>
+#include "Render/Opengl/RenderBuffer.h"
+#include "Render/GraphicsEnum.h"
 #include <vector>
 
 namespace sb

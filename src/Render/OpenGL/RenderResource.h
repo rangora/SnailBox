@@ -2,9 +2,9 @@
 
 #include "corepch.h"
 #include "Core/Math/Vector.h"
-#include "Enums.h"
-#include "Opengl/OpenGLBuffer.h"
-#include "Opengl/OpenGLContext.h"
+#include "Render/GraphicsEnum.h"
+#include "Render/Opengl/OpenGLBuffer.h"
+#include "Render/Opengl/OpenGLContext.h"
 #include "RenderBuffer.h"
 #include <map>
 #include <vector>

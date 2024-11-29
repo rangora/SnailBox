@@ -8,7 +8,6 @@
 #include "Core/Common.h"
 #include "Core/Math/Matrix.h"
 #include "Core/WinWindow.h"
-#include "Render/BasicGeometry.h"
 #include "Render/Shader.h"
 #include <boost/foreach.hpp>
 #include <glm/glm.hpp>
@@ -16,9 +15,9 @@
 #include <imgui/imgui.h>
 #include <spdlog/spdlog.h>
 #include <string>
-#include "Render/RenderResource.h"
+#include "Render/Opengl/RenderResource.h"
 
-#include "Actor/CubeActor.h"
+#include "Render/Opengl/CubeActor.h"
 
 namespace sb
 {

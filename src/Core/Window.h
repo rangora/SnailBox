@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Actor/Actor.h"
+#include "Render/Opengl/Actor.h"
 #include "Driver.h"
 #include "corepch.h"
 #include <sstream>

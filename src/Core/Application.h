@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Direct3dDriver.h"
-#include "Render/ShaderArchive.h"
 #include "Window.h"
 #include "corepch.h"
 #include <boost/container/flat_map.hpp>
@@ -37,7 +36,6 @@ namespace sb
         static ComPtr<ID3D12Device> GetD3Device();
         static class Direct3dDriver* GetDirect3dDriver();
 
-        static ShaderArchive s_staticShaderArchive;
         static GraphicsDevice s_currentGraphicsDevice;
 
     private:

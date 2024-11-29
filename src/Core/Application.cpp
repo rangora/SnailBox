@@ -2,10 +2,9 @@
 #include "Application.h"
 
 #include "Direct3dDriver.h"
-#include "Enums.h"
+#include "Render/GraphicsEnum.h"
 #include "GlfwWindow.h"
 #include "Input.h"
-#include "Render/ShaderCompiler.h"
 #include "WinWindow.h"
 #include "spdlog/spdlog.h"
 
@@ -13,7 +12,6 @@ namespace sb
 {
     int32_t Application::m_runningWindowCount = 0;
     Application* Application::s_instance = nullptr;
-    ShaderArchive Application::s_staticShaderArchive(GraphicsDevice::OpenGL);
     GraphicsDevice Application::s_currentGraphicsDevice = GraphicsDevice::None;
 
     Application::Application(const ApplicationSpec& spec)
@@ -32,13 +30,6 @@ namespace sb
         s_instance = this;
 
         InitializeDirect3dDriver();
-
-        // ShaderPreCompiler list
-        s_staticShaderArchive.Add("../resources/shader/simple.vs");
-        s_staticShaderArchive.Add("../resources/shader/simple.fs");
-
-        // 1) 쉐이더 컴파일
-        ShaderCompiler::Compile(s_staticShaderArchive);
 
         WindowContext windowCtx;
         windowCtx.graphicsDevice = GraphicsDevice::DirectX12;

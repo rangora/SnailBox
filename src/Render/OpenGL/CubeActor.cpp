@@ -1,8 +1,7 @@
 ﻿#include "CubeActor.h"
 #include "StaticMeshComponent.h"
 #include "BaseComponent.h"
-#include "Render/BasicGeometry.h"
-#include "Enums.h"
+#include "Render/GraphicsEnum.h"
 
 namespace sb
 {
