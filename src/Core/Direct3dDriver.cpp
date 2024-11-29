@@ -76,7 +76,11 @@ namespace sb
         _vpWidth = 800;
         _vpHeight = 600;
 
+        ShaderHeapInstruction instruction;
+        ShaderResourceDesc data;
+        
         // Process raw data.
+        if (1)
         {
             ShaderGeometryRawData rawData;
             rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
@@ -88,8 +92,13 @@ namespace sb
             UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
             UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
             _shaderGeoData.insert({"sample1", std::move(geo)});
+
+            data._shaderKey = "sample1";
+            data._files._vsPath = projectPath + "/resources/shader/hlsl/sample1.vs.hlsl";
+            data._files._fsPath = projectPath + "/resources/shader/hlsl/sample1.fs.hlsl";
         }
 
+        if (0)
         {
             ShaderGeometryRawData rawData;
             rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
@@ -108,6 +117,7 @@ namespace sb
             _shaderGeoData.insert({"sample2", std::move(geo)});
         }
 
+        if (0)
         {
             ShaderGeometryRawData rawData;
             rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
@@ -120,17 +130,16 @@ namespace sb
             UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
             UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
             _shaderGeoData.insert({"sample3", std::move(geo)});
+            
+            data._shaderKey = "sample3";
+            data._files._vsPath = projectPath + "/resources/shader/hlsl/sample.vs.hlsl";
+            data._files._fsPath = projectPath + "/resources/shader/hlsl/sample.fs.hlsl";
+            instruction._bTable = true;
+            instruction._numDescriptors = 1;
+            instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         }
 
-        ShaderResourceInitializeData data;
-        data._shaderKey = "sample3";
-        data._parameters._vsPath = projectPath + "/resources/shader/sample.vs.hlsl";
-        data._parameters._fsPath = projectPath + "/resources/shader/sample.fs.hlsl";
         
-        ShaderHeapInstruction instruction;
-        instruction._bTable = true;
-        instruction._numDescriptors = 1;
-        instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 
         _shaderResource = new ShaderResource(data, instruction);
 

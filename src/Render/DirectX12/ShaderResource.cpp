@@ -4,7 +4,7 @@
 
 namespace sb
 {
-    ShaderResource::ShaderResource(const ShaderResourceInitializeData& initializeData,
+    ShaderResource::ShaderResource(const ShaderResourceDesc& initializeData,
                                    const ShaderHeapInstruction& instruction)
     {
         // create desc for CBV.
@@ -54,7 +54,6 @@ namespace sb
         }
 
         ID3DBlob* signature;
-
         HRESULT hr = D3D12SerializeRootSignature(&rdc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, nullptr);
         if (FAILED(hr))
         {
@@ -69,7 +68,7 @@ namespace sb
             return;
         }
 
-        CreateShader(initializeData);
+        CreateShader(initializeData, instruction);
     }
 
     ShaderResource::~ShaderResource()
@@ -117,6 +116,11 @@ namespace sb
 
     void ShaderResource::Tick(float delta)
     {
+        if (_cbGPUAddress == nullptr) // TEMP
+        {
+            return;
+        }
+
         static float rIncrement = 0.02f;
         static float gIncrement = 0.06f;
         static float bIncrement = 0.09f;
@@ -149,9 +153,13 @@ namespace sb
         ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
 
         commandList->SetGraphicsRootSignature(_rootSignature.Get());
-        commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
 
-        commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+        if (_cbGPUAddress) // TEMP
+        {
+            commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
+            commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+        }
+
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->IASetVertexBuffers(0, 1, &_vBufferView);
         commandList->IASetIndexBuffer(&_iBufferView);
@@ -220,7 +228,8 @@ namespace sb
         }
     }
 
-    void ShaderResource::CreateShader(const ShaderResourceInitializeData& initializeData)
+    void ShaderResource::CreateShader(const ShaderResourceDesc& initializeData,
+                                      const ShaderHeapInstruction& instruction)
     {
         auto sDataPtr = sg_d3dDriver->GetShaderData(initializeData._shaderKey);
         if (sDataPtr == nullptr)
@@ -230,10 +239,10 @@ namespace sb
         }
 
         // Compile shader
-        std::string stringVsPath = initializeData._parameters._vsPath;
+        std::string stringVsPath = initializeData._files._vsPath;
         std::wstring wstringVsPath(stringVsPath.size(), L'\0');
         std::mbstowcs(&wstringVsPath[0], stringVsPath.c_str(), stringVsPath.size());
-        std::string stringPsPath = initializeData._parameters._fsPath;
+        std::string stringPsPath = initializeData._files._fsPath;
         std::wstring wstringPsPath(stringPsPath.size(), L'\0');
         std::mbstowcs(&wstringPsPath[0], stringPsPath.c_str(), stringPsPath.size());
 
@@ -373,35 +382,35 @@ namespace sb
                                                  D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
 
         commandList->ResourceBarrier(_countof(barriers), barriers);
-        // cb
+
+        // constant buffer
+        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
         {
+            CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
+
+            hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                        IID_PPV_ARGS(_cbUploadHeap.GetAddressOf()));
+            _cbUploadHeap->SetName(L"Constant Buffer Upload Resource Heap");
+
+            if (FAILED(hr))
             {
-                CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-                CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
-
-                hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
-                                                           D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                           IID_PPV_ARGS(_cbUploadHeap.GetAddressOf()));
-                _cbUploadHeap->SetName(L"Constant Buffer Upload Resource Heap");
-
-                if (FAILED(hr))
-                {
-                    assert(false);
-                    spdlog::error("Failed to create constant buffer upload resource heap");
-                    return;
-                }
-
-                // Create Constant Buffer View
-                D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-                cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
-                cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
-                sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
-
-                ZeroMemory(&_cbData, sizeof(_cbData));
-                CD3DX12_RANGE readRange(0, 0);
-                hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
-                ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+                assert(false);
+                spdlog::error("Failed to create constant buffer upload resource heap");
+                return;
             }
+
+            // Create Constant Buffer View
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+            cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
+            cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
+            sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
+
+            ZeroMemory(&_cbData, sizeof(_cbData));
+            CD3DX12_RANGE readRange(0, 0);
+            hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
+            ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
         }
 
         commandList->Close();

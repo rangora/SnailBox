@@ -10,7 +10,7 @@ namespace sb
         XMFLOAT4 _colorMultiplier;
     };
 
-    struct ShaderParameters
+    struct ShaderResourceFile
     {
         std::string _vsPath;
         std::string _fsPath;
@@ -23,10 +23,10 @@ namespace sb
         bool _bTable = false;
     };
 
-    struct ShaderResourceInitializeData
+    struct ShaderResourceDesc
     {
         std::string _shaderKey;
-        ShaderParameters _parameters;
+        ShaderResourceFile _files;
     };
 
     class ShaderResource
@@ -35,7 +35,7 @@ namespace sb
         ShaderResource() = delete;
         ShaderResource(const ShaderResource&) = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
-        ShaderResource(const ShaderResourceInitializeData& initializeData, const ShaderHeapInstruction& instruction);
+        ShaderResource(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
         ~ShaderResource();
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
@@ -51,7 +51,7 @@ namespace sb
     private:
         void CreateHeap(const ShaderHeapInstruction& instruction);
         void CreateRootSignature();
-        void CreateShader(const ShaderResourceInitializeData& initializeData);
+        void CreateShader(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
