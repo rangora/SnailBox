@@ -7,11 +7,11 @@
 #include "Input.h"
 #include "WinWindow.h"
 #include "spdlog/spdlog.h"
+#include "World/Worldinstance.h"
 
 namespace sb
 {
     int32_t Application::m_runningWindowCount = 0;
-    Application* Application::s_instance = nullptr;
     GraphicsDevice Application::s_currentGraphicsDevice = GraphicsDevice::None;
 
     Application::Application(const ApplicationSpec& spec)
@@ -35,6 +35,16 @@ namespace sb
         windowCtx.graphicsDevice = GraphicsDevice::DirectX12;
         windowCtx.title = directXWindowTitle;
         CreateAppWindow(windowCtx);
+
+        // create world instance
+        if (!CheckWorldCreationReady())
+        {
+            assert(false);
+            spdlog::error("Can't create world.");
+            return;
+        }
+
+        s_worldInstnace = new WorldInstance;
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -104,6 +114,11 @@ namespace sb
     {
         Input::ClearReleasedKeys();
         Input::TransitionPressedButtons();
+    }
+
+    bool Application::CheckWorldCreationReady()
+    {
+        return m_runningWindowCount > 0;
     }
 
     Application::~Application()

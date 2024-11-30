@@ -44,14 +44,18 @@ namespace sb
 
         void PreProcessOnFrame();
 
+        bool CheckWorldCreationReady();
+
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
         static int32_t m_runningWindowCount;
-        static Application* s_instance;
 
         bool m_isRunningDirectXWindow = false;
 
         // Graphics drivers
         UPtr<Direct3dDriver> m_d3dDriver = nullptr;
+
+        inline static Application* s_instance = nullptr;
+        inline static class WorldInstance* s_worldInstnace = nullptr;
     };
 } // namespace sb
