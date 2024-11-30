@@ -2,6 +2,7 @@
 
 #include "Window.h"
 #include "corepch.h"
+#include <glm/glm.hpp>
 
 namespace sb
 {

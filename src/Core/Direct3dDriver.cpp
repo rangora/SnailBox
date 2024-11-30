@@ -4,7 +4,6 @@
 #include "Core/Input.h"
 #include "Render/DirectX12/ShaderResource.h"
 #include "Render/ShaderGeometry.h"
-#include "Render/Opengl/RenderResource.h"
 #include "WinWindow.h"
 #include "corepch.h"
 #include "imgui.h"

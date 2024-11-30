@@ -2,7 +2,6 @@
 
 #include "corepch.h"
 #include "GraphicsEnum.h"
-#include "Render/Opengl/RenderBuffer.h"
 #include <queue>
 #include <vector>
 
@@ -30,7 +29,7 @@ namespace sb
         static UPtr<GraphicsContext> Create(void * in_userPointer, Driver* in_driver);
 
         std::vector<class RenderResource*> m_targetRenderResources;
-        std::vector<SPtr<RenderBuffer>> m_renderbuffers;
+        //std::vector<SPtr<RenderBuffer>> m_renderbuffers;
 
         static GraphicsDevice s_currentDevice;
 

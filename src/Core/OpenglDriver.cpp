@@ -1,7 +1,7 @@
 ﻿#define GLFW_INCLUDE_NONE
 
 #include "OpenglDriver.h"
-#include "Render/OpenGL/OpenGLContext.h"
+//#include "Render/OpenGL/OpenGLContext.h"
 #include "Window.h"
 #include "spdlog/spdlog.h"
 #include <GLFW/glfw3.h>

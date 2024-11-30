@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "Render/Opengl/Actor.h"
 #include "Common.h"
 #include "Event/Event.h"
 #include "Layout.h"
@@ -35,7 +34,7 @@ namespace sb
 
         GraphicsContext* GetGraphcisContext() const { return m_graphicContext.get(); }
 
-        std::vector<UPtr<Actor>> m_actors;
+        //std::vector<UPtr<Actor>> m_actors;
 
     protected:
         Window* m_window = nullptr;

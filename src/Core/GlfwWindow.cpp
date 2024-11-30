@@ -2,11 +2,12 @@
 #include "GlfwWindow.h"
 #include "Input.h"
 #include "OpenglDriver.h"
-#include "Render/OpenGL/OpenGLContext.h"
+//#include "Render/OpenGL/OpenGLContext.h"
 #include "spdlog/spdlog.h"
 #include <GLFW/glfw3.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <gl/GL.h>
 
 namespace sb
 {
@@ -145,7 +146,7 @@ namespace sb
     {
         Window::OnWindowSizeChanged(in_width, in_height);
 
-        glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
+        //glViewport(0.f, 0.f, m_windowData.width, m_windowData.height);
     }
 
     void GlfwWindow::OnKeyEvent(GLFWwindow* in_window, int in_key, int in_scancode, int in_action, int in_modifier)
