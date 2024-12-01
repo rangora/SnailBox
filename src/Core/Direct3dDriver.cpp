@@ -3,6 +3,7 @@
 #include "Core/Application.h"
 #include "Core/Input.h"
 #include "Render/DirectX12/ShaderResource.h"
+#include "Render/RenderResourceStorage.h"
 #include "Render/ShaderGeometry.h"
 #include "WinWindow.h"
 #include "corepch.h"
@@ -45,6 +46,9 @@ namespace sb
         return false;                                                                                                  \
     }
 
+        _vpWidth = 800;
+        _vpHeight = 600;
+
         // Check device
         DEVICE_VALID_CHECK(m_device);
         DEVICE_VALID_CHECK(m_dxgi);
@@ -64,102 +68,6 @@ namespace sb
         ImGui_ImplDX12_Init(sg_d3dDevice.Get(), NUM_FRAMES_IN_FLIGHT, DXGI_FORMAT_R8G8B8A8_UNORM, _srvHeap.Get(),
                             _srvHeap.Get()->GetCPUDescriptorHandleForHeapStart(),
                             _srvHeap.Get()->GetGPUDescriptorHandleForHeapStart());
-
-        return true;
-    }
-
-    bool Direct3dDriver::InitializeResources()
-    {
-        // 이거 이전에 다른대서 설정되어야 함
-        _vpWidth = 800;
-        _vpHeight = 600;
-
-        ShaderHeapInstruction instruction;
-        ShaderResourceDesc data;
-        
-        // Process raw data.
-        if (1)
-        {
-            ShaderGeometryRawData rawData;
-            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                    Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}),
-                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f})});
-            rawData._index.assign({0, 1, 2, 0, 3, 1});
-
-            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
-            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
-            _shaderGeoData.insert({"sample1", std::move(geo)});
-
-            data._shaderKey = "sample1";
-            data._files._vsPath = projectPath + "/resources/shader/hlsl/sample1.vs.hlsl";
-            data._files._fsPath = projectPath + "/resources/shader/hlsl/sample1.fs.hlsl";
-        }
-
-        if (0)
-        {
-            ShaderGeometryRawData rawData;
-            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-
-                                    Vertex({-0.75f, 0.75f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                    Vertex({0.0f, 0.f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                    Vertex({-0.75f, 0.f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                    Vertex({0.f, 0.75f, 0.7f}, {1.0f, 0.0f, 0.0f, 1.0f})});
-            rawData._index.assign({0, 1, 2, 0, 3, 1});
-
-            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
-            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
-            _shaderGeoData.insert({"sample2", std::move(geo)});
-        }
-
-        if (0)
-        {
-            ShaderGeometryRawData rawData;
-            rawData._vertex.assign({Vertex({-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}),
-                                    Vertex({0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}),
-                                    Vertex({0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 1.0f, 1.0f})});
-
-            rawData._index.assign({0, 1, 2, 0, 3, 1});
-
-            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
-            UPtr<ShaderGeometry> geo = factory->CreateGeometry(rawData);
-            _shaderGeoData.insert({"sample3", std::move(geo)});
-            
-            data._shaderKey = "sample3";
-            data._files._vsPath = projectPath + "/resources/shader/hlsl/sample.vs.hlsl";
-            data._files._fsPath = projectPath + "/resources/shader/hlsl/sample.fs.hlsl";
-            instruction._bTable = true;
-            instruction._numDescriptors = 1;
-            instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-        }
-
-        
-
-        _shaderResource = new ShaderResource(data, instruction);
-
-        HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
-        if (FAILED(hr))
-        {
-            return false;
-        }
-
-        // Fill out the Viewport
-        _viewport.TopLeftX = 0;
-        _viewport.TopLeftY = 0;
-        _viewport.Width = 800;
-        _viewport.Height = 600;
-        _viewport.MinDepth = 0.0f;
-        _viewport.MaxDepth = 1.0f;
-
-        // Fill out a scissor rect
-        _scissorRect.left = 0;
-        _scissorRect.top = 0;
-        _scissorRect.right = 800;
-        _scissorRect.bottom = 600;
 
         return true;
     }
@@ -228,6 +136,60 @@ namespace sb
         ImGui_ImplWin32_Shutdown();
 
         CleanUpDevice();
+    }
+
+    bool Direct3dDriver::InitializeResources()
+    {
+        RenderResourceStorage& handler = RenderResourceStorage::Get();
+        
+        for (const auto& resource : handler._customData)
+        {
+            UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
+            UPtr<ShaderGeometry> geo = factory->CreateGeometry(resource._RawData);
+            _shaderGeoData.insert({resource.GetName(), std::move(geo)});
+
+            ShaderHeapInstruction instruction;
+            ShaderResourceDesc data;
+
+            data._shaderKey = resource.GetName();
+            data._files._vsPath = resource._vsPath;
+            data._files._fsPath = resource._psPath;
+
+            if (data._shaderKey._Equal("sample3"))
+            {
+                instruction._bTable = true;
+                instruction._numDescriptors = 1;
+                instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+            }
+
+            _shaderData.insert({data._shaderKey, CreateUPtr<ShaderResource>(ShaderResource(data, instruction))});
+        }
+
+        _shaderResource = _shaderData.find("sample3")->second.get(); // temp
+
+        _commandList->Close();
+
+        HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
+        if (FAILED(hr))
+        {
+            return false;
+        }
+
+        // Fill out the Viewport
+        _viewport.TopLeftX = 0;
+        _viewport.TopLeftY = 0;
+        _viewport.Width = 800;
+        _viewport.Height = 600;
+        _viewport.MinDepth = 0.0f;
+        _viewport.MaxDepth = 1.0f;
+
+        // Fill out a scissor rect
+        _scissorRect.left = 0;
+        _scissorRect.top = 0;
+        _scissorRect.right = 800;
+        _scissorRect.bottom = 600;
+
+        return true;
     }
 
     void Direct3dDriver::InitD3dDevice()

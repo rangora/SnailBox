@@ -419,5 +419,8 @@ namespace sb
         commandQueue->ExecuteCommandLists(_countof(ppCmdLists2), ppCmdLists2);
 
         sg_d3dDriver->UpdateFenceValue();
+
+        auto ctx = sg_d3dDriver->GetCurrentFrameContexts();
+        commandList->Reset(ctx->CommandAllocator, _pipelineState.Get());
     }
 } // namespace sb

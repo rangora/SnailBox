@@ -41,10 +41,12 @@ namespace sb
     private:
         void InitializeDirect3dDriver();
         void CleanGraphicsDriver();
+           
+        bool CheckWorldCreationReady();
+        
+        void ReadyBaseResources();
 
         void PreProcessOnFrame();
-
-        bool CheckWorldCreationReady();
 
         boost::container::flat_map<std::string, UPtr<Window>> m_windows;
 
@@ -57,5 +59,6 @@ namespace sb
 
         inline static Application* s_instance = nullptr;
         inline static class WorldInstance* s_worldInstnace = nullptr;
+        inline static class RenderResourceStorage* s_renderResourceStorage = nullptr;
     };
 } // namespace sb

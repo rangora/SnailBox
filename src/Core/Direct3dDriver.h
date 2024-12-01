@@ -5,6 +5,7 @@
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
+#include "Render/RenderResource.h"
 #include "boost/container/flat_map.hpp"
 
 namespace sb
@@ -56,6 +57,7 @@ namespace sb
 
         Camera& GetCameraRef() { return m_camera; }
         FrameContext* GetFrameContexts() { return m_frameContexts; }
+        FrameContext* GetCurrentFrameContexts() { return &m_frameContexts[m_frameIndex]; }
 
         void WaitForLastSubmittedFrame();
         void CreateRenderTarget();
@@ -101,8 +103,11 @@ namespace sb
         uint32 _vpWidth = 0;
         uint32 _vpHeight = 0;
 
-        // Shaders
+        // geometry
         boost::container::flat_map<std::string, UPtr<struct ShaderGeometry>> _shaderGeoData;
+
+        // Shaders
+        boost::container::flat_map<std::string, UPtr<ShaderResource>> _shaderData;
 
         Camera m_camera;
 

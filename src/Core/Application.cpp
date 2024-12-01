@@ -3,6 +3,7 @@
 
 #include "Direct3dDriver.h"
 #include "Render/GraphicsEnum.h"
+#include "Render/RenderResourceStorage.h"
 #include "GlfwWindow.h"
 #include "Input.h"
 #include "WinWindow.h"
@@ -35,6 +36,8 @@ namespace sb
         windowCtx.graphicsDevice = GraphicsDevice::DirectX12;
         windowCtx.title = directXWindowTitle;
         CreateAppWindow(windowCtx);
+
+        ReadyBaseResources();
 
         // create world instance
         if (!CheckWorldCreationReady())
@@ -119,6 +122,16 @@ namespace sb
     bool Application::CheckWorldCreationReady()
     {
         return m_runningWindowCount > 0;
+    }
+
+    void Application::ReadyBaseResources()
+    {
+        s_renderResourceStorage = new RenderResourceStorage();
+
+        if (s_currentGraphicsDevice == GraphicsDevice::DirectX12)
+        {
+            m_d3dDriver->InitializeResources();
+        }
     }
 
     Application::~Application()

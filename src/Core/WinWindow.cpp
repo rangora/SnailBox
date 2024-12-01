@@ -205,13 +205,6 @@ namespace sb
             return false;
         }
 
-        if (!m_driver->InitializeResources())
-        {
-            spdlog::error("Failed initialize dx12 resources.");
-            assert(false);
-            return false;
-        }
-
         AttachLayout(m_driver);
 
         return true;
