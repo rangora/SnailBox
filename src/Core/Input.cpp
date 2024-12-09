@@ -45,6 +45,13 @@ namespace sb
             int state = glfwGetMouseButton(glfwWindow, static_cast<int32>(in_button));
             return state == GLFW_PRESS;
         }
+        else
+        {
+            if (s_mouseData[in_button].m_button == in_button)
+            {
+                return s_mouseData[in_button].m_state == KeyState::Pressed;
+            }
+        }
 
         return false;
     }

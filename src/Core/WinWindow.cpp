@@ -77,6 +77,25 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             break;
         }
+
+        // Mouse
+        case WM_RBUTTONUP:
+        {
+            sb::Input::UpdateButtonState(sb::MouseButton::Right, sb::KeyState::Released);
+            break;
+        }
+
+        case WM_RBUTTONDOWN:
+        {
+            if (sb::Input::IsMouseButtonDown(sb::MouseButton::Right))
+            {
+                break;
+            }
+
+            sb::Input::UpdateButtonState(sb::MouseButton::Right, sb::KeyState::Pressed);
+            break;
+        }
+
         case WM_DESTROY:
         {
             destroy_marked_window = &sb::Application::Get().GetFocusWindow();
@@ -161,15 +180,15 @@ namespace sb
         ImGui::End();
 
         m_clearColor = {clearColor.x, clearColor.y, clearColor.z};
-        
+
         Vector4f vectorColor = {clearColor.x, clearColor.y, clearColor.z, 1.f};
         ClearColorChangedEvent clearColorEvent(vectorColor);
 
         EventDisaptcher dispatcher(clearColorEvent);
-        dispatcher.Dispatch<ClearColorChangedEvent>([this](ClearColorChangedEvent& e) 
+        dispatcher.Dispatch<ClearColorChangedEvent>([this](ClearColorChangedEvent& e)
             {
                 m_driver->UpdateClearColor(e);
-                return true; 
+                return true;
             });
     }
 
