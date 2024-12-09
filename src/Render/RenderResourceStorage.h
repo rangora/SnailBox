@@ -11,9 +11,9 @@ namespace sb
         RenderResourceStorage(const RenderResourceStorage&) = delete;
         RenderResourceStorage& operator=(const RenderResourceStorage&) = delete;
         ~RenderResourceStorage() = default;
-    
+
         static RenderResourceStorage& Get() { return *s_instnace; }
-        
+
         std::vector<CustomRenderResource> _customData;
 
     private:

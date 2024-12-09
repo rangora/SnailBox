@@ -52,6 +52,7 @@ namespace sb
         struct ShaderGeometry* GetShaderData(const std::string& key) const;
         uint32 GetViewportWidth() const { return _vpWidth; }
         uint32 GetViewportHeight() const { return _vpHeight; }
+        uint32 GetCurrentFrameIndex() const { return m_frameIndex; }
 
         void SetSwapChainWaitableObject(HANDLE in_handle) { m_hSwapChainWaitableObject = in_handle; }
 
@@ -92,7 +93,7 @@ namespace sb
         ComPtr<ID3D12DescriptorHeap> _mainRtvHeap = nullptr;
         D3D12_CPU_DESCRIPTOR_HANDLE _mainRtvCpuHandle[SWAP_CHAIN_BUFFER_COUNT] = {};
         ID3D12Resource* _mainRtvResource[SWAP_CHAIN_BUFFER_COUNT] = {};
-        
+
         ComPtr<ID3D12DescriptorHeap> _srvHeap = nullptr;
         ComPtr<ID3D12DescriptorHeap> _dsHeap = nullptr;
         ComPtr<ID3D12Resource> _dsBuffer = nullptr;
@@ -122,5 +123,25 @@ namespace sb
         double _PrevTime = 0.0;
 
         bool bShutDownCalled = false;
+
+        public:
+        // [TEMP] camera data
+        XMFLOAT4X4 _cameraProjMat;
+        XMFLOAT4X4 _cameraViewMat;
+
+        XMFLOAT4 _cameraPosition;
+        XMFLOAT4 _cameraTarget;
+        XMFLOAT4 _cameraUp;
+
+        XMFLOAT4X4 _cube1WorldMat;
+        XMFLOAT4X4 _cube1RotMat;
+        XMFLOAT4 _cube1Position;
+
+        XMFLOAT4X4 _cube2WorldMat;
+        XMFLOAT4X4 _cube2RotMat;
+        XMFLOAT4 _cube2PositionOffset;
+
+        int _numCubeIndices = 36;
+        // ~[TEMP]
     };
 }; // namespace sb

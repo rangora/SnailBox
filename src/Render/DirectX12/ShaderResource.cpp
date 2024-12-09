@@ -23,7 +23,27 @@ namespace sb
 
         // create root signature.
         CD3DX12_ROOT_SIGNATURE_DESC rdc;
-        if (instruction._bTable)
+        if (instruction._rootSignType == RootSignatureType::Descriptor)
+        {
+            D3D12_ROOT_DESCRIPTOR rootCBVDescriptor;
+            rootCBVDescriptor.RegisterSpace = 0;
+            rootCBVDescriptor.ShaderRegister = 0;
+
+            D3D12_ROOT_PARAMETER rootParameters[1];
+            rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+            rootParameters[0].Descriptor = rootCBVDescriptor;
+            rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+            rdc.Init(_countof(rootParameters), rootParameters, 0, nullptr,
+                                   D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+
+
+        }
+        else if (instruction._bTable)
         {
             D3D12_DESCRIPTOR_RANGE descTableRanges[1]; // TODO : PARAM??
             descTableRanges[0].RangeType = instruction._rangeType;
@@ -60,7 +80,7 @@ namespace sb
             return;
         }
 
-        sg_d3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
+        hr = sg_d3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
                                           IID_PPV_ARGS(&_rootSignature));
 
         if (FAILED(hr))
@@ -118,34 +138,102 @@ namespace sb
     {
         if (_cbGPUAddress == nullptr) // TEMP
         {
+            int32 frameIndex = sg_d3dDriver->GetCurrentFrameIndex();
+
+            // update app logic, such as moving the camera or figuring out what objects are in view
+            // create rotation matrices
+            XMMATRIX rotXMat = XMMatrixRotationX(0.0005f);
+            XMMATRIX rotYMat = XMMatrixRotationY(0.0010f);
+            XMMATRIX rotZMat = XMMatrixRotationZ(0.0015f);
+
+            // add rotation to cube1's rotation matrix and store it
+            XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat) * rotXMat * rotYMat * rotZMat;
+            XMStoreFloat4x4(&sg_d3dDriver->_cube1RotMat, rotMat);
+
+            // create translation matrix for cube 1 from cube 1's position vector
+            XMMATRIX translationMat = XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube1Position));
+
+            // create cube1's world matrix by first rotating the cube, then positioning the rotated cube
+            XMMATRIX worldMat = rotMat * translationMat;
+
+            // store cube1's world matrix
+            XMStoreFloat4x4(&sg_d3dDriver->_cube1WorldMat, worldMat);
+
+            // update constant buffer for cube1
+            // create the wvp matrix and store in constant buffer
+            XMMATRIX viewMat = XMLoadFloat4x4(&sg_d3dDriver->_cameraViewMat);     // load view matrix
+            XMMATRIX projMat = XMLoadFloat4x4(&sg_d3dDriver->_cameraProjMat);     // load projection matrix
+            XMMATRIX wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1WorldMat) * viewMat * projMat; // create wvp matrix
+            XMMATRIX transposed = XMMatrixTranspose(wvpMat);  // must transpose wvp matrix for the gpu
+            XMStoreFloat4x4(&_cbData._wvpMat, transposed);    // store transposed wvp matrix in constant buffer
+
+            // copy our ConstantBuffer instance to the mapped constant buffer resource
+            memcpy(_cbGPUAddresses[frameIndex], &_cbData, sizeof(_cbData));
+
+            // now do cube2's world matrix
+            // create rotation matrices for cube2
+            rotXMat = XMMatrixRotationX(0.0003f);
+            rotYMat = XMMatrixRotationY(0.0002f);
+            rotZMat = XMMatrixRotationZ(0.0001f);
+
+            // add rotation to cube2's rotation matrix and store it
+            rotMat = rotZMat * (XMLoadFloat4x4(&sg_d3dDriver->_cube2RotMat) * (rotXMat * rotYMat));
+            XMStoreFloat4x4(&sg_d3dDriver->_cube2RotMat, rotMat);
+
+            // create translation matrix for cube 2 to offset it from cube 1 (its position relative to cube1
+            XMMATRIX translationOffsetMat =
+                XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube2PositionOffset));
+
+            // we want cube 2 to be half the size of cube 1, so we scale it by .5 in all dimensions
+            XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+
+            // reuse worldMat.
+            // first we scale cube2. scaling happens relative to point 0,0,0, so you will almost always want to scale
+            // first then we translate it. then we rotate it. rotation always rotates around point 0,0,0 finally we move
+            // it to cube 1's position, which will cause it to rotate around cube 1
+            worldMat = scaleMat * translationOffsetMat * rotMat * translationMat;
+
+            wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube2WorldMat) * viewMat * projMat; // create wvp matrix
+            transposed = XMMatrixTranspose(wvpMat);                      // must transpose wvp matrix for the gpu
+            XMStoreFloat4x4(&_cbData._wvpMat, transposed); // store transposed wvp matrix in constant buffer
+
+            // copy our ConstantBuffer instance to the mapped constant buffer resource
+            memcpy(_cbGPUAddresses[frameIndex] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
+
+            // store cube2's world matrix
+            XMStoreFloat4x4(&sg_d3dDriver->_cube2WorldMat, worldMat);
+
             return;
         }
-
-        static float rIncrement = 0.02f;
-        static float gIncrement = 0.06f;
-        static float bIncrement = 0.09f;
-
-        _cbData._colorMultiplier.x += rIncrement;
-        _cbData._colorMultiplier.y += gIncrement;
-        _cbData._colorMultiplier.z += bIncrement;
-
-        if (_cbData._colorMultiplier.x >= 1.f || _cbData._colorMultiplier.x <= 0.f)
+        else
         {
-            _cbData._colorMultiplier.x = _cbData._colorMultiplier.x >= 1.f ? 1.f : 0.f;
-            rIncrement = -rIncrement;
-        }
-        if (_cbData._colorMultiplier.y >= 1.f || _cbData._colorMultiplier.y <= 0.f)
-        {
-            _cbData._colorMultiplier.y = _cbData._colorMultiplier.y >= 1.f ? 1.f : 0.f;
-            gIncrement = -gIncrement;
-        }
-        if (_cbData._colorMultiplier.z >= 1.f || _cbData._colorMultiplier.z <= 0.f)
-        {
-            _cbData._colorMultiplier.z = _cbData._colorMultiplier.z >= 1.f ? 1.f : 0.f;
-            bIncrement = -bIncrement;
-        }
 
-        ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+            /*static float rIncrement = 0.02f;
+            static float gIncrement = 0.06f;
+            static float bIncrement = 0.09f;
+
+            _cbData._colorMultiplier.x += rIncrement;
+            _cbData._colorMultiplier.y += gIncrement;
+            _cbData._colorMultiplier.z += bIncrement;
+
+            if (_cbData._colorMultiplier.x >= 1.f || _cbData._colorMultiplier.x <= 0.f)
+            {
+                _cbData._colorMultiplier.x = _cbData._colorMultiplier.x >= 1.f ? 1.f : 0.f;
+                rIncrement = -rIncrement;
+            }
+            if (_cbData._colorMultiplier.y >= 1.f || _cbData._colorMultiplier.y <= 0.f)
+            {
+                _cbData._colorMultiplier.y = _cbData._colorMultiplier.y >= 1.f ? 1.f : 0.f;
+                gIncrement = -gIncrement;
+            }
+            if (_cbData._colorMultiplier.z >= 1.f || _cbData._colorMultiplier.z <= 0.f)
+            {
+                _cbData._colorMultiplier.z = _cbData._colorMultiplier.z >= 1.f ? 1.f : 0.f;
+                bIncrement = -bIncrement;
+            }
+
+            ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));*/
+        }
     }
 
     void ShaderResource::Render(ComPtr<ID3D12GraphicsCommandList> commandList)
@@ -154,77 +242,33 @@ namespace sb
 
         commandList->SetGraphicsRootSignature(_rootSignature.Get());
 
-        if (_cbGPUAddress) // TEMP
+        if (false)
         {
-            commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
-            commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+            if (_cbGPUAddress) // TEMP
+            {
+                commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
+                commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
+            }
+
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->IASetVertexBuffers(0, 1, &_vBufferView);
+            commandList->IASetIndexBuffer(&_iBufferView);
+            commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
+            commandList->SetPipelineState(_pipelineState.Get());
+
+            {
+                commandList->SetGraphicsRootSignature(_rootSignature.Get());
+            }
         }
-
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->IASetVertexBuffers(0, 1, &_vBufferView);
-        commandList->IASetIndexBuffer(&_iBufferView);
-        commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
-        commandList->SetPipelineState(_pipelineState.Get());
-    }
-
-    void ShaderResource::CreateHeap(const ShaderHeapInstruction& instruction)
-    {
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors = 1;
-        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        if (sg_d3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(_cbvHeap.GetAddressOf())) != S_OK)
+        else
         {
-            spdlog::error("Failed to create constant buffer heap");
-            return;
-        }
-    }
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->IASetVertexBuffers(0, 1, &_vBufferView);
+            commandList->IASetIndexBuffer(&_iBufferView);
 
-    void ShaderResource::CreateRootSignature()
-    {
-        D3D12_DESCRIPTOR_RANGE descTableRanges[1];
-        descTableRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-        descTableRanges[0].NumDescriptors = 1;
-        descTableRanges[0].BaseShaderRegister = 0;
-        descTableRanges[0].RegisterSpace = 0;
-        descTableRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-        D3D12_ROOT_DESCRIPTOR_TABLE descTable;
-        descTable.NumDescriptorRanges = _countof(descTableRanges);
-        descTable.pDescriptorRanges = &descTableRanges[0];
-
-        D3D12_ROOT_PARAMETER rootParams[1];
-        rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        rootParams[0].DescriptorTable = descTable;
-        rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-
-        // old
-        /*CD3DX12_ROOT_SIGNATURE_DESC desc = {};
-        desc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);*/
-
-        CD3DX12_ROOT_SIGNATURE_DESC desc = {};
-        desc.Init(_countof(rootParams), rootParams, 0, nullptr,
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-            D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
-
-
-        ID3DBlob* signature;
-
-        HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, nullptr);
-        if (FAILED(hr))
-        {
-            return;
-        }
-
-        sg_d3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
-                                          IID_PPV_ARGS(&_rootSignature));
-
-        if (FAILED(hr))
-        {
-            return;
+            const int32 index = sg_d3dDriver->GetCurrentFrameIndex();
+            commandList->SetGraphicsRootConstantBufferView(0, _cbUploadHeaps[index]->GetGPUVirtualAddress());
+            commandList->DrawIndexedInstanced(36, 1, 0, 0, 0); // first quad
         }
     }
 
@@ -276,7 +320,7 @@ namespace sb
 
         // Create inputLayout
         D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}, 
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
             {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
 
         D3D12_INPUT_LAYOUT_DESC inputLayoutDesc = {};
@@ -360,7 +404,7 @@ namespace sb
         iData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetIndexPointer());
         iData.RowPitch = iBufferSize;
         iData.SlicePitch = iBufferSize;
-  
+
         auto commandList = sg_d3dDriver->GetCommandList();
         auto commandQueue = sg_d3dDriver->GetCommandQueue();
 
@@ -384,6 +428,33 @@ namespace sb
         commandList->ResourceBarrier(_countof(barriers), barriers);
 
         // constant buffer
+        if (instruction._rootSignType == RootSignatureType::Descriptor)
+        {
+            _cbUploadHeaps.resize(SWAP_CHAIN_BUFFER_COUNT);
+            _cbGPUAddresses.resize(SWAP_CHAIN_BUFFER_COUNT);
+
+
+            for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
+            {
+                CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+                CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
+
+                hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+                                                           D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                           IID_PPV_ARGS(&_cbUploadHeaps[i]));
+                _cbUploadHeaps[i]->SetName(L"Constant Buffer Upload Resource Heap");
+
+                ZeroMemory(&_cbData, sizeof(_cbData));
+
+                CD3DX12_RANGE readRange(0, 0);
+
+                hr = _cbUploadHeaps[i]->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddresses[i]));
+
+                memcpy(_cbGPUAddresses[i], &_cbData, sizeof(_cbData));
+                memcpy(_cbGPUAddresses[i] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
+            }
+        }
+
         if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
         {
             CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);

@@ -1,13 +1,16 @@
 #pragma once
 
 #include "corepch.h"
+#include "Render/GraphicsEnum.h"
+#include <vector>
 
 namespace sb
 {
     // TEMP
     struct ConstantBuffer
     {
-        XMFLOAT4 _colorMultiplier;
+        //XMFLOAT4 _colorMultiplier;
+        XMFLOAT4X4 _wvpMat;
     };
 
     struct ShaderResourceFile
@@ -21,6 +24,7 @@ namespace sb
         D3D12_DESCRIPTOR_RANGE_TYPE _rangeType;
         int32 _numDescriptors = 0;
         bool _bTable = false;
+        RootSignatureType _rootSignType;
     };
 
     struct ShaderResourceDesc
@@ -33,7 +37,7 @@ namespace sb
     {
     public:
         ShaderResource() = delete;
-        ShaderResource(const ShaderResource&) = delete;
+        //ShaderResource(const ShaderResource&) = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
         ShaderResource(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
         ~ShaderResource();
@@ -49,8 +53,6 @@ namespace sb
         void Render(ComPtr<ID3D12GraphicsCommandList> commandList);
 
     private:
-        void CreateHeap(const ShaderHeapInstruction& instruction);
-        void CreateRootSignature();
         void CreateShader(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
@@ -67,8 +69,11 @@ namespace sb
         // constnat buffer data
         ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;
         ComPtr<ID3D12Resource> _cbUploadHeap = nullptr;
+        std::vector<ComPtr<ID3D12Resource>> _cbUploadHeaps;
         UINT8* _cbGPUAddress = nullptr;
+        std::vector<UINT8*> _cbGPUAddresses;
         ConstantBuffer _cbData;
 
+        int32 _cBufferObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
     };
 }; // namespace sb

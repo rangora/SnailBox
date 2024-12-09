@@ -27,4 +27,11 @@ namespace sb
         Color,
     };
 
+    enum class RootSignatureType : uint8
+    {
+        None,
+        Descriptor,
+        DescriptorTable,
+    };
+
 }; // namespace sb

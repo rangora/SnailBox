@@ -23,9 +23,9 @@ namespace sb
         CustomRenderResource();
         CustomRenderResource(std::string name);
         ~CustomRenderResource() = default;
-    
+
         ShaderGeometryRawData _RawData;
         std::string _vsPath;
-        std::string _psPath;           
+        std::string _psPath;
     };
 } // namespace sb

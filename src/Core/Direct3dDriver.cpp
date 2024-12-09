@@ -141,9 +141,14 @@ namespace sb
     bool Direct3dDriver::InitializeResources()
     {
         RenderResourceStorage& handler = RenderResourceStorage::Get();
-        
-        for (const auto& resource : handler._customData)
+
+       for (const auto& resource : handler._customData)
         {
+           if (!resource.GetName()._Equal("sample4"))
+           {
+               continue;
+           }
+
             UPtr<DxShaderGeometryFactory> factory = CreateUPtr<DxShaderGeometryFactory>();
             UPtr<ShaderGeometry> geo = factory->CreateGeometry(resource._RawData);
             _shaderGeoData.insert({resource.GetName(), std::move(geo)});
@@ -161,11 +166,15 @@ namespace sb
                 instruction._numDescriptors = 1;
                 instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
             }
+            else if (data._shaderKey._Equal("sample4"))
+            {
+                instruction._rootSignType = RootSignatureType::Descriptor;
+            }
 
             _shaderData.insert({data._shaderKey, CreateUPtr<ShaderResource>(ShaderResource(data, instruction))});
         }
 
-        _shaderResource = _shaderData.find("sample3")->second.get(); // temp
+        _shaderResource = _shaderData.find("sample4")->second.get(); // temp
 
         _commandList->Close();
 
@@ -189,6 +198,40 @@ namespace sb
         _scissorRect.right = 800;
         _scissorRect.bottom = 600;
 
+        // camera init [TEMP]
+        // build projection and view matrix
+        XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f * (3.14f / 180.0f), (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.0f);
+        XMStoreFloat4x4(&_cameraProjMat, tmpMat);
+
+        _cameraPosition = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
+        _cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+        _cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+
+        // build view matrix
+        XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
+        XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
+        XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
+        tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+        XMStoreFloat4x4(&_cameraViewMat, tmpMat);
+
+            // set starting cubes position
+        // first cube
+        _cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
+        XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
+
+        tmpMat = XMMatrixTranslationFromVector(posVec);    // create translation matrix from cube1's position vector
+        XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity()); // initialize cube1's rotation matrix to identity matrix
+        XMStoreFloat4x4(&_cube1WorldMat, tmpMat);           // store cube1's world matrix
+
+        // second cube
+        _cube2PositionOffset = XMFLOAT4(1.5f, 0.0f, 0.0f, 0.0f);
+        posVec = XMLoadFloat4(&_cube2PositionOffset) + XMLoadFloat4(&_cube1Position); // create xmvector for cube2's position
+        // we are rotating around cube1 here, so add cube2's position to cube1
+
+        tmpMat = XMMatrixTranslationFromVector(posVec); // create translation matrix from cube2's position offset vector
+        XMStoreFloat4x4(&_cube2RotMat, XMMatrixIdentity()); // initialize cube2's rotation matrix to identity matrix
+        XMStoreFloat4x4(&_cube2WorldMat, tmpMat);           // store cube2's world matrix
+
         return true;
     }
 
@@ -203,12 +246,27 @@ namespace sb
         ::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device));
 
 #ifdef _DEBUG
+
         ID3D12InfoQueue* pInfoQueue = nullptr;
         m_device->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
         pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
         pInfoQueue->Release();
+
+        D3D12_MESSAGE_ID hide[] = {
+            D3D12_MESSAGE_ID_CREATERESOURCE_STATE_IGNORED,
+            // D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,
+            // D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE,
+            //// Workarounds for debug layer issues on hybrid-graphics systems
+            // D3D12_MESSAGE_ID_EXECUTECOMMANDLISTS_WRONGSWAPCHAINBUFFERREFERENCE,
+            // D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE,
+        };
+        D3D12_INFO_QUEUE_FILTER filter = {};
+        filter.DenyList.NumIDs = static_cast<UINT>(std::size(hide));
+        filter.DenyList.pIDList = hide;
+
+        pInfoQueue->AddStorageFilterEntries(&filter);
         m_debugController.Reset();
 #endif
 

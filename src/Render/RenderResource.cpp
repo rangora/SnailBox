@@ -17,7 +17,7 @@ namespace sb
     CustomRenderResource::CustomRenderResource(std::string name) : RenderResource(name)
     {
     }
-    
+
     void FillBaseRenderResource()
     {
     }
