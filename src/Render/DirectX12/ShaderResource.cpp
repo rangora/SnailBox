@@ -172,36 +172,36 @@ namespace sb
 
             // now do cube2's world matrix
             // create rotation matrices for cube2
-            rotXMat = XMMatrixRotationX(0.0003f);
-            rotYMat = XMMatrixRotationY(0.0002f);
-            rotZMat = XMMatrixRotationZ(0.0001f);
+            //rotXMat = XMMatrixRotationX(0.0003f);
+            //rotYMat = XMMatrixRotationY(0.0002f);
+            //rotZMat = XMMatrixRotationZ(0.0001f);
 
-            // add rotation to cube2's rotation matrix and store it
-            rotMat = rotZMat * (XMLoadFloat4x4(&sg_d3dDriver->_cube2RotMat) * (rotXMat * rotYMat));
-            XMStoreFloat4x4(&sg_d3dDriver->_cube2RotMat, rotMat);
+            //// add rotation to cube2's rotation matrix and store it
+            //rotMat = rotZMat * (XMLoadFloat4x4(&sg_d3dDriver->_cube2RotMat) * (rotXMat * rotYMat));
+            //XMStoreFloat4x4(&sg_d3dDriver->_cube2RotMat, rotMat);
 
-            // create translation matrix for cube 2 to offset it from cube 1 (its position relative to cube1
-            XMMATRIX translationOffsetMat =
-                XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube2PositionOffset));
+            //// create translation matrix for cube 2 to offset it from cube 1 (its position relative to cube1
+            //XMMATRIX translationOffsetMat =
+            //    XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube2PositionOffset));
 
-            // we want cube 2 to be half the size of cube 1, so we scale it by .5 in all dimensions
-            XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+            //// we want cube 2 to be half the size of cube 1, so we scale it by .5 in all dimensions
+            //XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
 
-            // reuse worldMat.
-            // first we scale cube2. scaling happens relative to point 0,0,0, so you will almost always want to scale
-            // first then we translate it. then we rotate it. rotation always rotates around point 0,0,0 finally we move
-            // it to cube 1's position, which will cause it to rotate around cube 1
-            worldMat = scaleMat * translationOffsetMat * rotMat * translationMat;
+            //// reuse worldMat.
+            //// first we scale cube2. scaling happens relative to point 0,0,0, so you will almost always want to scale
+            //// first then we translate it. then we rotate it. rotation always rotates around point 0,0,0 finally we move
+            //// it to cube 1's position, which will cause it to rotate around cube 1
+            //worldMat = scaleMat * translationOffsetMat * rotMat * translationMat;
 
-            wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube2WorldMat) * viewMat * projMat; // create wvp matrix
-            transposed = XMMatrixTranspose(wvpMat);                      // must transpose wvp matrix for the gpu
-            XMStoreFloat4x4(&_cbData._wvpMat, transposed); // store transposed wvp matrix in constant buffer
+            //wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube2WorldMat) * viewMat * projMat; // create wvp matrix
+            //transposed = XMMatrixTranspose(wvpMat);                      // must transpose wvp matrix for the gpu
+            //XMStoreFloat4x4(&_cbData._wvpMat, transposed); // store transposed wvp matrix in constant buffer
 
             // copy our ConstantBuffer instance to the mapped constant buffer resource
-            memcpy(_cbGPUAddresses[frameIndex] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
+            //memcpy(_cbGPUAddresses[frameIndex] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
 
             // store cube2's world matrix
-            XMStoreFloat4x4(&sg_d3dDriver->_cube2WorldMat, worldMat);
+            //XMStoreFloat4x4(&sg_d3dDriver->_cube2WorldMat, worldMat);
 
             return;
         }

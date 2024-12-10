@@ -74,6 +74,9 @@ namespace sb
 
     void Direct3dDriver::Update()
     {
+        UpdateTick();
+        UpdateViewMatrix();
+
         RenderBegin();
         Render();
         RenderEnd();
@@ -86,11 +89,11 @@ namespace sb
     void Direct3dDriver::Render()
     {
         double currentTime = GetSystemTime();
-        const double tick = (currentTime - _PrevTime) * 0.001;
+        _tick = (currentTime - _PrevTime) * 0.001;
         _PrevTime = currentTime;
 
         // Tick shaderResource
-        _shaderResource->Tick(tick);
+        _shaderResource->Tick(_tick);
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[_backBufferIndex], FALSE, &dsvHandle);
@@ -203,7 +206,7 @@ namespace sb
         XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f * (3.14f / 180.0f), (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.0f);
         XMStoreFloat4x4(&_cameraProjMat, tmpMat);
 
-        _cameraPosition = XMFLOAT4(0.0f, 2.0f, -4.0f, 0.0f);
+        _cameraPosition = XMFLOAT4(0.0f, 5.0f, -4.0f, 0.0f);
         _cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
         _cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -214,7 +217,7 @@ namespace sb
         tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
         XMStoreFloat4x4(&_cameraViewMat, tmpMat);
 
-            // set starting cubes position
+        // set starting cubes position
         // first cube
         _cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
         XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
@@ -222,15 +225,6 @@ namespace sb
         tmpMat = XMMatrixTranslationFromVector(posVec);    // create translation matrix from cube1's position vector
         XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity()); // initialize cube1's rotation matrix to identity matrix
         XMStoreFloat4x4(&_cube1WorldMat, tmpMat);           // store cube1's world matrix
-
-        // second cube
-        _cube2PositionOffset = XMFLOAT4(1.5f, 0.0f, 0.0f, 0.0f);
-        posVec = XMLoadFloat4(&_cube2PositionOffset) + XMLoadFloat4(&_cube1Position); // create xmvector for cube2's position
-        // we are rotating around cube1 here, so add cube2's position to cube1
-
-        tmpMat = XMMatrixTranslationFromVector(posVec); // create translation matrix from cube2's position offset vector
-        XMStoreFloat4x4(&_cube2RotMat, XMMatrixIdentity()); // initialize cube2's rotation matrix to identity matrix
-        XMStoreFloat4x4(&_cube2WorldMat, tmpMat);           // store cube2's world matrix
 
         return true;
     }
@@ -440,6 +434,23 @@ namespace sb
 #endif
     }
 
+    void Direct3dDriver::UpdateViewMatrix()
+    {
+
+        XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
+        XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
+        XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
+        XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+        XMStoreFloat4x4(&_cameraViewMat, tmpMat);
+
+        //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+        //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);
+
+        //tmpMat = XMMatrixTranslationFromVector(posVec);
+       /* XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity());
+        XMStoreFloat4x4(&_cube1WorldMat, tmpMat);*/
+    }
+
     void Direct3dDriver::RenderBegin()
     {
         FrameContext* frameCtx = WaitForNextFrameResources();
@@ -567,6 +578,18 @@ namespace sb
         m_frameIndex++;
 
         return frameCtx;
+    }
+
+    void Direct3dDriver::UpdateTick()
+    {
+        bool bDown = Input::IsMouseButtonDown(MouseButton::Right);
+        if (bDown)
+        {
+            _cameraPosition.x += 0.1f;
+            _cameraTarget.x += 0.1f;
+
+            spdlog::info("right button down..");
+        }
     }
 
     ShaderGeometry* Direct3dDriver::GetShaderData(const std::string& key) const

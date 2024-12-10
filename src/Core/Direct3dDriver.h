@@ -70,6 +70,7 @@ namespace sb
         void CreateRtvDescriptorHeap();
         void CleanUpDevice();
 
+        void UpdateViewMatrix();
         void RenderBegin();
         void RenderEnd();
         void RenderImgui();
@@ -78,6 +79,8 @@ namespace sb
 
         FrameContext* WaitForNextFrameResources();
         FrameContext* WaitForPreviousFrame();
+
+        void UpdateTick(); // temp
 
         class Direct3dContext* m_direct3dContext = nullptr;
         class ShaderResource* _shaderResource = nullptr; // temp
@@ -121,6 +124,7 @@ namespace sb
         uint32 m_frameIndex = 0;
         uint32 m_fenceLastSignaledValue = 0;
         double _PrevTime = 0.0;
+        float _tick = 0.f;
 
         bool bShutDownCalled = false;
 
