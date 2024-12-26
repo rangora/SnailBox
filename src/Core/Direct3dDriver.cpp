@@ -203,18 +203,23 @@ namespace sb
 
         // camera init [TEMP]
         // build projection and view matrix
+
+        // New Camera
+        _camera.SetPosition(0.f, 5.f, -4.f);
+        _camera.SetProjection(90.f, (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.f);
+
         XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f * (3.14f / 180.0f), (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.0f);
         XMStoreFloat4x4(&_cameraProjMat, tmpMat);
 
-        _cameraPosition = XMFLOAT4(0.0f, 5.0f, -4.0f, 0.0f);
-        _cameraTarget = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-        _cameraUp = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+        XMFLOAT3 a, b;
+        _cameraPosition = XMVectorSet(0.0f, 5.0f, -4.0f, 0.0f);
+        _cameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+        _cameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+        _cameraForward = XMVectorSubtract(_cameraTarget, _cameraPosition);
+        _cameraForward = XMVector3Normalize(_cameraForward);
 
         // build view matrix
-        XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
-        XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
-        XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
-        tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+        tmpMat = XMMatrixLookAtLH(_cameraPosition, _cameraTarget, _cameraUp);
         XMStoreFloat4x4(&_cameraViewMat, tmpMat);
 
         // set starting cubes position
@@ -437,11 +442,11 @@ namespace sb
     void Direct3dDriver::UpdateViewMatrix()
     {
 
-        XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
-        XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
-        XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
-        XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
-        XMStoreFloat4x4(&_cameraViewMat, tmpMat);
+        //XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
+        //XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
+        //XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
+        //XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
+        //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
 
         //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
         //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);
@@ -540,7 +545,7 @@ namespace sb
 
     WinsWindow* Direct3dDriver::GetTargetWindow() const
     {
-        return static_cast<WinsWindow*>(&(sb::Application::Get().GetDirectXWindow()));
+        return static_cast<WinsWindow*>(&(sb::Application::Get().GetWinWindow()));
     }
 
     FrameContext* Direct3dDriver::WaitForNextFrameResources()
@@ -585,11 +590,95 @@ namespace sb
         bool bDown = Input::IsMouseButtonDown(MouseButton::Right);
         if (bDown)
         {
-            _cameraPosition.x += 0.1f;
-            _cameraTarget.x += 0.1f;
+            //_cameraPosition.x += 0.1f;
+            //_cameraTarget.x += 0.1f;
+
+            Vector2f& mouseDiff = GetTargetWindow()->_mouseDiff;
+            float dx = mouseDiff.X * 0.0001f;
+            float dy = mouseDiff.Y * 0.000f;
+
+            if (mouseDiff.X > 0) // move right
+            {
+
+            }
+            else if (mouseDiff.X < 0) // move left
+            {
+
+            }
+
+            if (mouseDiff.Y > 0) // mouse down
+            {
+
+            }
+            else if (mouseDiff.Y < 0) // mouse up
+            {
+
+            }
+
+            float yawAngle = dx;
+            float pitchAngle = dy;
+
+            // yaw
+            XMVECTOR yawAxis = _cameraUp;
+            XMVECTOR yawRotation = XMQuaternionRotationAxis(yawAxis, yawAngle);
+
+            // pitch
+            XMVECTOR rightVector = XMVector3Normalize(XMVector3Cross(_cameraUp, _cameraForward));
+            XMVECTOR pitchRotation = XMQuaternionRotationAxis(rightVector, pitchAngle);
+
+            // combine
+            XMVECTOR combinedRotation = XMQuaternionMultiply(pitchRotation, yawRotation);
+
+            _cameraForward = XMVector3Rotate(_cameraForward, combinedRotation);
+            _cameraForward = XMVector3Normalize(_cameraForward);
+
+            _cameraUp = XMVector3Normalize(XMVector3Cross(rightVector, _cameraForward));
+
+            XMVECTOR focusPosition = XMVectorAdd(_cameraPosition, _cameraForward);
+
+            // view matrix
+            _cameraTarget = XMVectorAdd(_cameraPosition, _cameraForward);
+            XMMATRIX tmpMat = XMMatrixLookAtLH(_cameraPosition, focusPosition, _cameraUp);
+            XMStoreFloat4x4(&_cameraViewMat, tmpMat);
+
+            //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
+            //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
+
+            //tmpMat = XMMatrixTranslationFromVector(posVec); // create translation matrix from cube1's position vector
+            //XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity()); // initialize cube1's rotation matrix to identity matrix
+            //XMStoreFloat4x4(&_cube1WorldMat, tmpMat);           // store cube1's world matrix
+
+           /* XMVECTOR cameraPosVector = XMLoadFloat4(&_cameraPosition);
+             XMVECTOR cameraTargetVector = XMLoadFloat4(&_cameraTarget);
+             XMVECTOR cameraForwardVector = XMVectorSubtract(cameraTargetVector, cameraPosVector);
+             XMStoreFloat4(&_cameraForward, cameraForwardVector);
+
+             XMVECTOR forward = XMVector3Normalize(cameraForwardVector);
+             float deltaAngle = 2.f;
+
+             deltaAngle = XMConvertToRadians(deltaAngle);
+
+             XMFLOAT3 Axis(0.f, 0.f, 1.f);
+             XMVECTOR rotationAxis = XMLoadFloat3(&Axis);
+             XMVECTOR rotationQuat = XMQuaternionRotationAxis(rotationAxis, deltaAngle);
+             XMVECTOR rotatedDirection = XMVector3Rotate(forward, rotationQuat);
+             XMVECTOR newFocusPos = XMVectorAdd(cameraPosVector, rotatedDirection);
+
+             XMStoreFloat4(&_cameraTarget, newFocusPos);
+
+             XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
+             XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
+             XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
+             XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);*/
+            //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
 
             spdlog::info("right button down..");
         }
+    }
+
+    void Direct3dDriver::UpdateViewMatrix2()
+    {
+
     }
 
     ShaderGeometry* Direct3dDriver::GetShaderData(const std::string& key) const

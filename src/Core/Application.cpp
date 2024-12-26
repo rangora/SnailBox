@@ -167,8 +167,8 @@ namespace sb
         }
     }
 
-    Window& Application::GetDirectXWindow()
-    {
+    sb::Window& Application::GetWinWindow()
+{
         return *(m_windows[directXWindowTitle]);
     }
 

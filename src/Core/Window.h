@@ -41,8 +41,9 @@ namespace sb
         Window(const WindowContext& in_windowContext) {}
         virtual ~Window() {}
 
-        virtual void Update() = 0;
+        virtual void Update();
         virtual void ImGuiUpdate();
+        virtual void PostUpdate();
         virtual void ReadyWindowShutdown() { m_isReadyWindowShutdown = true; }
 
         virtual bool BindGraphicsDriver() = 0;
@@ -56,15 +57,22 @@ namespace sb
         bool IsReadyWindowShutdown() const { return m_isReadyWindowShutdown; }
         std::vector<Layout*>& GetLayoutRef() { return m_layouts; }
 
+        void UpdateMousePosition(int mouseX, int mouseY);
+
         UPtr<GraphicsContext> m_graphicContext = nullptr;
         Driver* m_driver = nullptr;
 
         bool m_bForceShutDown = false;
+        Vector2f _mouseDiff = Vector2f::zeroVector;
 
     protected:
         bool m_isOpenglWindow = false; // TEMP
         bool m_isReadyWindowShutdown = false;
         bool m_isWindowShutDownKeyPressed = false;
+        bool _bConsumeMouseInput = false;
+
+        Vector2f _preMousePos = Vector2f::zeroVector;
+        Vector2f _MousePos = Vector2f::zeroVector;
 
         ImGuiContext* m_imguiContext = nullptr;
 

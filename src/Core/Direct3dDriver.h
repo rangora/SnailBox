@@ -128,14 +128,17 @@ namespace sb
 
         bool bShutDownCalled = false;
 
-        public:
+    public:
         // [TEMP] camera data
         XMFLOAT4X4 _cameraProjMat;
         XMFLOAT4X4 _cameraViewMat;
 
-        XMFLOAT4 _cameraPosition;
-        XMFLOAT4 _cameraTarget;
-        XMFLOAT4 _cameraUp;
+        XMVECTOR _cameraPosition;
+        XMVECTOR _cameraTarget;
+        XMVECTOR _cameraUp;
+        XMVECTOR _cameraForward;
+
+        XMFLOAT4 _cameraRight;
 
         XMFLOAT4X4 _cube1WorldMat;
         XMFLOAT4X4 _cube1RotMat;
@@ -144,6 +147,10 @@ namespace sb
         XMFLOAT4X4 _cube2WorldMat;
         XMFLOAT4X4 _cube2RotMat;
         XMFLOAT4 _cube2PositionOffset;
+
+        Camera _camera;
+
+        void UpdateViewMatrix2();
 
         int _numCubeIndices = 36;
         // ~[TEMP]

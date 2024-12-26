@@ -27,9 +27,11 @@ namespace sb
         void Run();
 
         Window& GetOpenglWindow() { return *(m_windows[openglWindowTitle]); }
-        Window& GetDirectXWindow();
-        Window& GetFocusWindow();
+        Window& GetWinWindow();
+        Window& GetFocusWindow(); // will be deprecated
         static Application& Get() { return *s_instance; }
+
+        bool AnyWindowRunning() const { return m_runningWindowCount; }
 
         void CreateAppWindow(const WindowContext& in_windowContext);
 
@@ -41,9 +43,9 @@ namespace sb
     private:
         void InitializeDirect3dDriver();
         void CleanGraphicsDriver();
-           
+
         bool CheckWorldCreationReady();
-        
+
         void ReadyBaseResources();
 
         void PreProcessOnFrame();

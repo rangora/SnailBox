@@ -8,7 +8,7 @@
 #include "spdlog/spdlog.h"
 #include <tchar.h>
 #include <vector>
-
+#include <Windowsx.h>
 
 sb::Window* destroy_marked_window = nullptr;
 
@@ -20,6 +20,23 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
     {
         return true;
+    }
+
+    if (msg != WM_MOUSEMOVE)
+    {
+        POINT Point;
+        if (GetCursorPos(&Point))
+        {
+            if (ScreenToClient(hWnd, &Point))
+            {
+                if (sb::Application::Get().AnyWindowRunning())
+                {
+                    //spdlog::info("Stop");
+                    sb::Window& WinWindow = sb::Application::Get().GetWinWindow();
+                    WinWindow.UpdateMousePosition(Point.x, Point.y);
+                }
+            }
+        }
     }
 
     switch (msg)
@@ -123,6 +140,8 @@ namespace sb
 
     void WinsWindow::Update()
     {
+        Window::Update();
+
         if (!IsShutdownReserved())
         {
             ProcessWinInput();
@@ -154,6 +173,8 @@ namespace sb
             // Driver update
             m_driver->Update();
             m_driver->SwapBuffers();
+
+            PostUpdate();
         }
         else
         {
@@ -236,6 +257,15 @@ namespace sb
 
     void WinsWindow::ProcessWinInput()
     {
+        if (_mouseDiff.X < 0)
+        {
+            spdlog::info("Move Right {}", _MousePos.X - _preMousePos.X);
+        }
+        else if (_mouseDiff.X > 0)
+        {
+            spdlog::info("Move Left {}", _MousePos.X - _preMousePos.X);
+        }
+
         auto pressedAction = [this]() { m_isWindowShutDownKeyPressed = true; };
         auto heldAction = []() {};
         auto releasedAction = []() {};
@@ -243,6 +273,8 @@ namespace sb
         Input::KeyInputAction(pressedAction, KeyState::Pressed, KeyButton::Esc);
         Input::KeyInputAction(heldAction, KeyState::Held, KeyButton::Esc);
         Input::KeyInputAction(releasedAction, KeyState::Released, KeyButton::Esc);
+
+        _bConsumeMouseInput = true;
     }
 
     void WinsWindow::AttachLayout(Layout* in_layout)
