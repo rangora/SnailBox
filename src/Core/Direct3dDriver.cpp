@@ -10,6 +10,11 @@
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
+
+// Runtime
+#include "Runtime/RenderProxy.h"
+#include "Runtime/SceneComponent.h"
+
 #include <tchar.h>
 
 #ifdef _DEBUG
@@ -88,18 +93,29 @@ namespace sb
 
     void Direct3dDriver::Render()
     {
+        if (_renderInfoForUpdate.empty())
+        {
+            return;
+        }
+
         double currentTime = GetSystemTime();
         _tick = (currentTime - _PrevTime) * 0.001;
         _PrevTime = currentTime;
 
         // Tick shaderResource
-        _shaderResource->Tick(_tick);
+        for (auto& renderInfo : _renderInfoForUpdate)
+        {
+            renderInfo._shaderResource->Tick(_tick);
+        }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[_backBufferIndex], FALSE, &dsvHandle);
 
         // render stuff..
-        _shaderResource->Render(_commandList);
+        for (auto& renderInfo : _renderInfoForUpdate)
+        {
+            renderInfo._shaderResource->Render(_commandList);
+        }
 
         // render imgui
         RenderImgui();
@@ -458,6 +474,11 @@ namespace sb
 
     void Direct3dDriver::RenderBegin()
     {
+        if (_renderInfoForUpdate.empty())
+        {
+            return;
+        }
+
         FrameContext* frameCtx = WaitForNextFrameResources();
         _backBufferIndex = _swapChain3->GetCurrentBackBufferIndex();
 
@@ -465,9 +486,16 @@ namespace sb
         // reset으로 메모리 초기화 줌(저장된 commandList)
         // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
         frameCtx->CommandAllocator->Reset();
-        // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
-        _commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
-        // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
+
+        for (auto& renderInfo : _renderInfoForUpdate)
+        {
+            // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
+            //_commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
+            // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
+
+            _commandList->Reset(frameCtx->CommandAllocator, renderInfo._shaderResource->GetPipelineState().Get());
+
+        }
 
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -504,6 +532,11 @@ namespace sb
 
     void Direct3dDriver::RenderEnd()
     {
+        if (_renderInfoForUpdate.empty())
+        {
+            return;
+        }
+
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -527,6 +560,7 @@ namespace sb
         frameCtx->FenceValue = fenceValue;
 
         ImGui::UpdatePlatformWindows();
+        _renderInfoForUpdate.clear();
     }
 
     void Direct3dDriver::RenderImgui()
@@ -615,31 +649,31 @@ namespace sb
 
             }
 
-            float yawAngle = dx;
-            float pitchAngle = dy;
+            //float yawAngle = dx;
+            //float pitchAngle = dy;
 
-            // yaw
-            XMVECTOR yawAxis = _cameraUp;
-            XMVECTOR yawRotation = XMQuaternionRotationAxis(yawAxis, yawAngle);
+            //// yaw
+            //XMVECTOR yawAxis = _cameraUp;
+            //XMVECTOR yawRotation = XMQuaternionRotationAxis(yawAxis, yawAngle);
 
-            // pitch
-            XMVECTOR rightVector = XMVector3Normalize(XMVector3Cross(_cameraUp, _cameraForward));
-            XMVECTOR pitchRotation = XMQuaternionRotationAxis(rightVector, pitchAngle);
+            //// pitch
+            //XMVECTOR rightVector = XMVector3Normalize(XMVector3Cross(_cameraUp, _cameraForward));
+            //XMVECTOR pitchRotation = XMQuaternionRotationAxis(rightVector, pitchAngle);
 
-            // combine
-            XMVECTOR combinedRotation = XMQuaternionMultiply(pitchRotation, yawRotation);
+            //// combine
+            //XMVECTOR combinedRotation = XMQuaternionMultiply(pitchRotation, yawRotation);
 
-            _cameraForward = XMVector3Rotate(_cameraForward, combinedRotation);
-            _cameraForward = XMVector3Normalize(_cameraForward);
+            //_cameraForward = XMVector3Rotate(_cameraForward, combinedRotation);
+            //_cameraForward = XMVector3Normalize(_cameraForward);
 
-            _cameraUp = XMVector3Normalize(XMVector3Cross(rightVector, _cameraForward));
+            //_cameraUp = XMVector3Normalize(XMVector3Cross(rightVector, _cameraForward));
 
-            XMVECTOR focusPosition = XMVectorAdd(_cameraPosition, _cameraForward);
+            //XMVECTOR focusPosition = XMVectorAdd(_cameraPosition, _cameraForward);
 
-            // view matrix
-            _cameraTarget = XMVectorAdd(_cameraPosition, _cameraForward);
-            XMMATRIX tmpMat = XMMatrixLookAtLH(_cameraPosition, focusPosition, _cameraUp);
-            XMStoreFloat4x4(&_cameraViewMat, tmpMat);
+            //// view matrix
+            //_cameraTarget = XMVectorAdd(_cameraPosition, _cameraForward);
+            //XMMATRIX tmpMat = XMMatrixLookAtLH(_cameraPosition, focusPosition, _cameraUp);
+            //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
 
             //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
             //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
@@ -775,4 +809,23 @@ namespace sb
 
        sg_d3dDevice->CreateDepthStencilView(_dsBuffer.Get(), &dsvDesc, _dsHeap->GetCPUDescriptorHandleForHeapStart());
     }
+
+    void Direct3dDriver::BatchRenderInfo(RenderProxy* proxy)
+    {
+        RenderInfo renderInfo;
+        renderInfo._shaderKey = proxy->_shaderKey;
+        renderInfo._transform = proxy->_sceneComponent->GetTransform();
+
+        auto shader = _shaderData.find(proxy->_shaderKey).get_ptr();
+        if (shader == nullptr)
+        {
+            spdlog::error("Invalid shaderResource key. {}", proxy->_shaderKey);
+            return;
+        }
+
+        renderInfo._shaderResource = shader->second.get();
+
+        _renderInfoForUpdate.push_back(std::move(renderInfo));
+    }
+
 } // namespace sb

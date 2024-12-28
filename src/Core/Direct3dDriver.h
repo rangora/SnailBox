@@ -2,11 +2,13 @@
 
 #include "Driver.h"
 #include "Render/Camera.h"
+#include "Render/DirectX12/RenderInfo.h"
+#include "Render/RenderResource.h"
+#include "boost/container/flat_map.hpp"
+#include "coreMinimal.h"
 #include "corepch.h"
 #include "imgui.h"
 #include <variant>
-#include "Render/RenderResource.h"
-#include "boost/container/flat_map.hpp"
 
 namespace sb
 {
@@ -65,6 +67,8 @@ namespace sb
         void CleanUpRenderTarget();
         void CreateDepthStencil();
 
+        void BatchRenderInfo(struct RenderProxy* proxy);
+
     private:
         void CreateSwapChain(const HWND in_hwnd);
         void CreateRtvDescriptorHeap();
@@ -112,6 +116,8 @@ namespace sb
 
         // Shaders
         boost::container::flat_map<std::string, UPtr<ShaderResource>> _shaderData;
+
+        std::vector<RenderInfo> _renderInfoForUpdate;
 
         Camera m_camera;
 

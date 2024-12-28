@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Common.h"
+#include "World.h"
 
 namespace sb
 {
@@ -14,8 +15,14 @@ namespace sb
 
         static WorldInstance& Get() { return *s_instance; }
 
+        void Tick(float delta);
+
+        World* GetWorld() { return _world.get(); }
+
+        void TEMP_start();
+
     private:
         inline static WorldInstance* s_instance = nullptr;
-        UPtr<class World> _world = nullptr;
+        UPtr<World> _world = nullptr;
     };
 }

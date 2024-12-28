@@ -147,7 +147,8 @@ namespace sb
             XMMATRIX rotZMat = XMMatrixRotationZ(0.0015f);
 
             // add rotation to cube1's rotation matrix and store it
-            XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat) * rotXMat * rotYMat * rotZMat;
+            //XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat) * rotXMat * rotYMat * rotZMat;
+            XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat);
             XMStoreFloat4x4(&sg_d3dDriver->_cube1RotMat, rotMat);
 
             // create translation matrix for cube 1 from cube 1's position vector

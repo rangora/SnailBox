@@ -8,7 +8,7 @@
 #include "Input.h"
 #include "WinWindow.h"
 #include "spdlog/spdlog.h"
-#include "World/Worldinstance.h"
+#include "Runtime/World/Worldinstance.h"
 
 namespace sb
 {
@@ -47,7 +47,11 @@ namespace sb
             return;
         }
 
-        s_worldInstnace = new WorldInstance;
+        // world instance [TEMP]
+        {
+            s_worldInstnace = new WorldInstance;
+            s_worldInstnace->TEMP_start();
+        }
     }
 
     void Application::CreateAppWindow(const WindowContext& in_windowContext)
@@ -155,6 +159,7 @@ namespace sb
                     continue;
                 }
 
+                s_worldInstnace->Tick(0.f); // window보다 먼저 호출.
                 window->Update();
             }
 

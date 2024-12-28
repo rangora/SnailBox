@@ -23,6 +23,10 @@ namespace sb
         FORCEINLINE AlignTransform<T> operator/(const AlignTransform<T>& U) const;
         FORCEINLINE bool operator==(const AlignTransform<T>& U) const;
 
+        FORCEINLINE void SetTranslation(const T& U);
+        FORCEINLINE void SetRotation(const T& U);
+        FORCEINLINE void SetScale(const T& U);
+
         template<typename U>
         FORCEINLINE AlignTransform<T>& operator=(const AlignTransform<U>& in_other);
     };
@@ -69,6 +73,15 @@ namespace sb
     {
         return m_translation == U.m_translation && m_rotation == U.m_rotation && m_scale == U.m_scale;
     }
+
+    template <typename T>
+    FORCEINLINE void AlignTransform<T>::SetTranslation(const T& U) { m_translation = U; }
+
+    template <typename T>
+    FORCEINLINE void AlignTransform<T>::SetRotation(const T& U) { m_rotation = U; }
+
+    template <typename T>
+    FORCEINLINE void AlignTransform<T>::SetScale(const T& U) { m_scale = U; }
 
     template <typename T>
     template <typename U>
