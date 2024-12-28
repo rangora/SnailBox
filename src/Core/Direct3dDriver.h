@@ -74,7 +74,6 @@ namespace sb
         void CreateRtvDescriptorHeap();
         void CleanUpDevice();
 
-        void UpdateViewMatrix();
         void RenderBegin();
         void RenderEnd();
         void RenderImgui();
@@ -135,28 +134,7 @@ namespace sb
         bool bShutDownCalled = false;
 
     public:
-        // [TEMP] camera data
-        XMFLOAT4X4 _cameraProjMat;
-        XMFLOAT4X4 _cameraViewMat;
-
-        XMVECTOR _cameraPosition;
-        XMVECTOR _cameraTarget;
-        XMVECTOR _cameraUp;
-        XMVECTOR _cameraForward;
-
-        XMFLOAT4 _cameraRight;
-
-        XMFLOAT4X4 _cube1WorldMat;
-        XMFLOAT4X4 _cube1RotMat;
-        XMFLOAT4 _cube1Position;
-
-        XMFLOAT4X4 _cube2WorldMat;
-        XMFLOAT4X4 _cube2RotMat;
-        XMFLOAT4 _cube2PositionOffset;
-
         Camera _camera;
-
-        void UpdateViewMatrix2();
 
         int _numCubeIndices = 36;
         // ~[TEMP]

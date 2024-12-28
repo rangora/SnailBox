@@ -1,7 +1,20 @@
 #include "Actor.h"
+#include "World/Worldinstance.h"
+#include "World/World.h"
 
 namespace sb
 {
+    Actor::Actor()
+    {
+        WorldInstance& wInstance = WorldInstance::Get();
+        _world = wInstance.GetWorld();
+        _world->RegisterActor(this);
+    }
+
+    Actor::~Actor()
+    {
+    }
+
     void Actor::Tick(float delta)
     {
     }

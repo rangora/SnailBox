@@ -10,8 +10,8 @@ namespace sb
     {
         XMVECTOR _posVector;
         XMVECTOR _rotVector;
-        XMFLOAT3 _pos;
-        XMFLOAT3 _rot;
+        XMFLOAT3 _pos = {0.f, 0.f, 0.f};
+        XMFLOAT3 _rot = {0.f, 0.f, 0.f};
 
         XMMATRIX _viewMatrix;
         XMMATRIX _projMatrix;
@@ -31,8 +31,6 @@ namespace sb
         void SetRotation(float x, float y, float z);
         void AddPosition(const XMFLOAT3& delta);
         void AddRotation(const XMFLOAT3& delta);
-
-
 
         void OnUpdate(float in_delta); // will be deprecated
     };

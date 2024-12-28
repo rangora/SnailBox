@@ -8,9 +8,17 @@ namespace sb
         _staticMeshComponent = new StaticMeshComponent;
     }
 
-    void NativeActor::Tick(float dleta)
+    void NativeActor::Tick(float delta)
     {
-        _staticMeshComponent->SetPosition(Vector3d(0.0, 0.0, 6.0));
+        Actor::Tick(delta);
+
+        Vector3d NewPos = _staticMeshComponent->GetPosition() + Vector3d(0.0, 0.0, 0.1);
+        if (NewPos.Z > 3.0)
+        {
+            NewPos = _staticMeshComponent->GetPosition();
+        }
+
+        _staticMeshComponent->SetPosition(NewPos);
     }
 
 } // namespace sb

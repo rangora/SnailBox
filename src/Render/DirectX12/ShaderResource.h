@@ -2,6 +2,7 @@
 
 #include "corepch.h"
 #include "Render/GraphicsEnum.h"
+#include "coreMinimal.h"
 #include <vector>
 
 namespace sb
@@ -37,7 +38,6 @@ namespace sb
     {
     public:
         ShaderResource() = delete;
-        //ShaderResource(const ShaderResource&) = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
         ShaderResource(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
         ~ShaderResource();
@@ -48,8 +48,7 @@ namespace sb
         D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
         ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
-        // TEMP
-        void Tick(float delta);
+        void UpdateShaderRegister(const Transform& transform, const XMMATRIX& vpMatrix);
         void Render(ComPtr<ID3D12GraphicsCommandList> commandList);
 
     private:

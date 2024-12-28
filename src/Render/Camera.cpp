@@ -16,7 +16,7 @@ namespace sb
         XMMATRIX rotMatrix = XMMatrixRotationRollPitchYaw(_rot.x, _rot.y, _rot.z);
 
         XMVECTOR target = XMVector3TransformCoord(forwardVector, rotMatrix);
-        target += _posVector;
+        //target += _posVector; // ????
 
         XMVECTOR upDirection = XMVector3TransformCoord(upVector, rotMatrix);
         _viewMatrix = XMMatrixLookAtLH(_posVector, target, upDirection);

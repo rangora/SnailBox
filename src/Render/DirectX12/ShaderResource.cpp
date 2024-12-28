@@ -134,107 +134,22 @@ namespace sb
         }
     }
 
-    void ShaderResource::Tick(float delta)
+    void ShaderResource::UpdateShaderRegister(const Transform& transform, const XMMATRIX& vpMatrix)
     {
-        if (_cbGPUAddress == nullptr) // TEMP
-        {
-            int32 frameIndex = sg_d3dDriver->GetCurrentFrameIndex();
+        int32 frameIndex = sg_d3dDriver->GetCurrentFrameIndex();
 
-            // update app logic, such as moving the camera or figuring out what objects are in view
-            // create rotation matrices
-            XMMATRIX rotXMat = XMMatrixRotationX(0.0005f);
-            XMMATRIX rotYMat = XMMatrixRotationY(0.0010f);
-            XMMATRIX rotZMat = XMMatrixRotationZ(0.0015f);
+        const Vector3d& proxyPos = transform.m_translation;
+        const Vector3d& proxyRot = transform.m_rotation;
 
-            // add rotation to cube1's rotation matrix and store it
-            //XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat) * rotXMat * rotYMat * rotZMat;
-            XMMATRIX rotMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1RotMat);
-            XMStoreFloat4x4(&sg_d3dDriver->_cube1RotMat, rotMat);
+        XMMATRIX rotMat = XMMatrixRotationRollPitchYaw(proxyRot.X, proxyRot.Y, proxyRot.Z);
 
-            // create translation matrix for cube 1 from cube 1's position vector
-            XMMATRIX translationMat = XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube1Position));
+        FXMVECTOR posVector{proxyPos.X, proxyPos.Y, proxyPos.Z};
+        XMMATRIX translationMat = XMMatrixTranslationFromVector(posVector);
+        XMMATRIX worldMat = rotMat * translationMat;
+        XMMATRIX transposed = XMMatrixTranspose(worldMat * vpMatrix); // gpu¿¡¼± transpose
+        XMStoreFloat4x4(&_cbData._wvpMat, transposed);
 
-            // create cube1's world matrix by first rotating the cube, then positioning the rotated cube
-            XMMATRIX worldMat = rotMat * translationMat;
-
-            // store cube1's world matrix
-            XMStoreFloat4x4(&sg_d3dDriver->_cube1WorldMat, worldMat);
-
-            // update constant buffer for cube1
-            // create the wvp matrix and store in constant buffer
-            XMMATRIX viewMat = XMLoadFloat4x4(&sg_d3dDriver->_cameraViewMat);     // load view matrix
-            XMMATRIX projMat = XMLoadFloat4x4(&sg_d3dDriver->_cameraProjMat);     // load projection matrix
-            XMMATRIX wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube1WorldMat) * viewMat * projMat; // create wvp matrix
-            XMMATRIX transposed = XMMatrixTranspose(wvpMat);  // must transpose wvp matrix for the gpu
-            XMStoreFloat4x4(&_cbData._wvpMat, transposed);    // store transposed wvp matrix in constant buffer
-
-            // copy our ConstantBuffer instance to the mapped constant buffer resource
-            memcpy(_cbGPUAddresses[frameIndex], &_cbData, sizeof(_cbData));
-
-            // now do cube2's world matrix
-            // create rotation matrices for cube2
-            //rotXMat = XMMatrixRotationX(0.0003f);
-            //rotYMat = XMMatrixRotationY(0.0002f);
-            //rotZMat = XMMatrixRotationZ(0.0001f);
-
-            //// add rotation to cube2's rotation matrix and store it
-            //rotMat = rotZMat * (XMLoadFloat4x4(&sg_d3dDriver->_cube2RotMat) * (rotXMat * rotYMat));
-            //XMStoreFloat4x4(&sg_d3dDriver->_cube2RotMat, rotMat);
-
-            //// create translation matrix for cube 2 to offset it from cube 1 (its position relative to cube1
-            //XMMATRIX translationOffsetMat =
-            //    XMMatrixTranslationFromVector(XMLoadFloat4(&sg_d3dDriver->_cube2PositionOffset));
-
-            //// we want cube 2 to be half the size of cube 1, so we scale it by .5 in all dimensions
-            //XMMATRIX scaleMat = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-
-            //// reuse worldMat.
-            //// first we scale cube2. scaling happens relative to point 0,0,0, so you will almost always want to scale
-            //// first then we translate it. then we rotate it. rotation always rotates around point 0,0,0 finally we move
-            //// it to cube 1's position, which will cause it to rotate around cube 1
-            //worldMat = scaleMat * translationOffsetMat * rotMat * translationMat;
-
-            //wvpMat = XMLoadFloat4x4(&sg_d3dDriver->_cube2WorldMat) * viewMat * projMat; // create wvp matrix
-            //transposed = XMMatrixTranspose(wvpMat);                      // must transpose wvp matrix for the gpu
-            //XMStoreFloat4x4(&_cbData._wvpMat, transposed); // store transposed wvp matrix in constant buffer
-
-            // copy our ConstantBuffer instance to the mapped constant buffer resource
-            //memcpy(_cbGPUAddresses[frameIndex] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
-
-            // store cube2's world matrix
-            //XMStoreFloat4x4(&sg_d3dDriver->_cube2WorldMat, worldMat);
-
-            return;
-        }
-        else
-        {
-
-            /*static float rIncrement = 0.02f;
-            static float gIncrement = 0.06f;
-            static float bIncrement = 0.09f;
-
-            _cbData._colorMultiplier.x += rIncrement;
-            _cbData._colorMultiplier.y += gIncrement;
-            _cbData._colorMultiplier.z += bIncrement;
-
-            if (_cbData._colorMultiplier.x >= 1.f || _cbData._colorMultiplier.x <= 0.f)
-            {
-                _cbData._colorMultiplier.x = _cbData._colorMultiplier.x >= 1.f ? 1.f : 0.f;
-                rIncrement = -rIncrement;
-            }
-            if (_cbData._colorMultiplier.y >= 1.f || _cbData._colorMultiplier.y <= 0.f)
-            {
-                _cbData._colorMultiplier.y = _cbData._colorMultiplier.y >= 1.f ? 1.f : 0.f;
-                gIncrement = -gIncrement;
-            }
-            if (_cbData._colorMultiplier.z >= 1.f || _cbData._colorMultiplier.z <= 0.f)
-            {
-                _cbData._colorMultiplier.z = _cbData._colorMultiplier.z >= 1.f ? 1.f : 0.f;
-                bIncrement = -bIncrement;
-            }
-
-            ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));*/
-        }
+        memcpy(_cbGPUAddresses[frameIndex], &_cbData, sizeof(_cbData));
     }
 
     void ShaderResource::Render(ComPtr<ID3D12GraphicsCommandList> commandList)

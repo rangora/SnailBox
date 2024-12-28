@@ -10,7 +10,7 @@ namespace sb
     public:
         NativeActor();
 
-        void Tick(float dleta) final;
+        void Tick(float delta) final;
 
         class StaticMeshComponent* _staticMeshComponent = nullptr;
     };

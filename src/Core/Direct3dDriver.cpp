@@ -80,7 +80,6 @@ namespace sb
     void Direct3dDriver::Update()
     {
         UpdateTick();
-        UpdateViewMatrix();
 
         RenderBegin();
         Render();
@@ -101,12 +100,6 @@ namespace sb
         double currentTime = GetSystemTime();
         _tick = (currentTime - _PrevTime) * 0.001;
         _PrevTime = currentTime;
-
-        // Tick shaderResource
-        for (auto& renderInfo : _renderInfoForUpdate)
-        {
-            renderInfo._shaderResource->Tick(_tick);
-        }
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(_dsHeap->GetCPUDescriptorHandleForHeapStart());
         _commandList->OMSetRenderTargets(1, &_mainRtvCpuHandle[_backBufferIndex], FALSE, &dsvHandle);
@@ -193,8 +186,6 @@ namespace sb
             _shaderData.insert({data._shaderKey, CreateUPtr<ShaderResource>(ShaderResource(data, instruction))});
         }
 
-        _shaderResource = _shaderData.find("sample4")->second.get(); // temp
-
         _commandList->Close();
 
         HRESULT hr = _commandQueue->Signal(m_fence.Get(), m_fenceLastSignaledValue);
@@ -217,35 +208,11 @@ namespace sb
         _scissorRect.right = 800;
         _scissorRect.bottom = 600;
 
-        // camera init [TEMP]
-        // build projection and view matrix
-
-        // New Camera
+        // Camera
         _camera.SetPosition(0.f, 5.f, -4.f);
+        _camera.SetRotation(0.f, 0.f, 0.f);
         _camera.SetProjection(90.f, (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.f);
-
-        XMMATRIX tmpMat = XMMatrixPerspectiveFovLH(45.0f * (3.14f / 180.0f), (float)_vpWidth / (float)_vpHeight, 0.1f, 1000.0f);
-        XMStoreFloat4x4(&_cameraProjMat, tmpMat);
-
-        XMFLOAT3 a, b;
-        _cameraPosition = XMVectorSet(0.0f, 5.0f, -4.0f, 0.0f);
-        _cameraTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-        _cameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-        _cameraForward = XMVectorSubtract(_cameraTarget, _cameraPosition);
-        _cameraForward = XMVector3Normalize(_cameraForward);
-
-        // build view matrix
-        tmpMat = XMMatrixLookAtLH(_cameraPosition, _cameraTarget, _cameraUp);
-        XMStoreFloat4x4(&_cameraViewMat, tmpMat);
-
-        // set starting cubes position
-        // first cube
-        _cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
-        XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
-
-        tmpMat = XMMatrixTranslationFromVector(posVec);    // create translation matrix from cube1's position vector
-        XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity()); // initialize cube1's rotation matrix to identity matrix
-        XMStoreFloat4x4(&_cube1WorldMat, tmpMat);           // store cube1's world matrix
+        _camera.UpdateViewMatrix();
 
         return true;
     }
@@ -455,23 +422,6 @@ namespace sb
 #endif
     }
 
-    void Direct3dDriver::UpdateViewMatrix()
-    {
-
-        //XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
-        //XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
-        //XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
-        //XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);
-        //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
-
-        //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-        //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);
-
-        //tmpMat = XMMatrixTranslationFromVector(posVec);
-       /* XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity());
-        XMStoreFloat4x4(&_cube1WorldMat, tmpMat);*/
-    }
-
     void Direct3dDriver::RenderBegin()
     {
         if (_renderInfoForUpdate.empty())
@@ -649,70 +599,14 @@ namespace sb
 
             }
 
-            //float yawAngle = dx;
-            //float pitchAngle = dy;
-
-            //// yaw
-            //XMVECTOR yawAxis = _cameraUp;
-            //XMVECTOR yawRotation = XMQuaternionRotationAxis(yawAxis, yawAngle);
-
-            //// pitch
-            //XMVECTOR rightVector = XMVector3Normalize(XMVector3Cross(_cameraUp, _cameraForward));
-            //XMVECTOR pitchRotation = XMQuaternionRotationAxis(rightVector, pitchAngle);
-
-            //// combine
-            //XMVECTOR combinedRotation = XMQuaternionMultiply(pitchRotation, yawRotation);
-
-            //_cameraForward = XMVector3Rotate(_cameraForward, combinedRotation);
-            //_cameraForward = XMVector3Normalize(_cameraForward);
-
-            //_cameraUp = XMVector3Normalize(XMVector3Cross(rightVector, _cameraForward));
-
-            //XMVECTOR focusPosition = XMVectorAdd(_cameraPosition, _cameraForward);
-
-            //// view matrix
-            //_cameraTarget = XMVectorAdd(_cameraPosition, _cameraForward);
-            //XMMATRIX tmpMat = XMMatrixLookAtLH(_cameraPosition, focusPosition, _cameraUp);
-            //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
-
-            //_cube1Position = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f); // set cube 1's position
-            //XMVECTOR posVec = XMLoadFloat4(&_cube1Position);   // create xmvector for cube1's position
-
-            //tmpMat = XMMatrixTranslationFromVector(posVec); // create translation matrix from cube1's position vector
-            //XMStoreFloat4x4(&_cube1RotMat, XMMatrixIdentity()); // initialize cube1's rotation matrix to identity matrix
-            //XMStoreFloat4x4(&_cube1WorldMat, tmpMat);           // store cube1's world matrix
-
-           /* XMVECTOR cameraPosVector = XMLoadFloat4(&_cameraPosition);
-             XMVECTOR cameraTargetVector = XMLoadFloat4(&_cameraTarget);
-             XMVECTOR cameraForwardVector = XMVectorSubtract(cameraTargetVector, cameraPosVector);
-             XMStoreFloat4(&_cameraForward, cameraForwardVector);
-
-             XMVECTOR forward = XMVector3Normalize(cameraForwardVector);
-             float deltaAngle = 2.f;
-
-             deltaAngle = XMConvertToRadians(deltaAngle);
-
-             XMFLOAT3 Axis(0.f, 0.f, 1.f);
-             XMVECTOR rotationAxis = XMLoadFloat3(&Axis);
-             XMVECTOR rotationQuat = XMQuaternionRotationAxis(rotationAxis, deltaAngle);
-             XMVECTOR rotatedDirection = XMVector3Rotate(forward, rotationQuat);
-             XMVECTOR newFocusPos = XMVectorAdd(cameraPosVector, rotatedDirection);
-
-             XMStoreFloat4(&_cameraTarget, newFocusPos);
-
-             XMVECTOR cPos = XMLoadFloat4(&_cameraPosition);
-             XMVECTOR cTarg = XMLoadFloat4(&_cameraTarget);
-             XMVECTOR cUp = XMLoadFloat4(&_cameraUp);
-             XMMATRIX tmpMat = XMMatrixLookAtLH(cPos, cTarg, cUp);*/
-            //XMStoreFloat4x4(&_cameraViewMat, tmpMat);
-
             spdlog::info("right button down..");
         }
-    }
 
-    void Direct3dDriver::UpdateViewMatrix2()
-    {
-
+        // Tick shaderResource
+        for (auto& renderInfo : _renderInfoForUpdate)
+        {
+            renderInfo._shaderResource->UpdateShaderRegister(renderInfo._transform, _camera._viewMatrix * _camera._projMatrix);
+        }
     }
 
     ShaderGeometry* Direct3dDriver::GetShaderData(const std::string& key) const
