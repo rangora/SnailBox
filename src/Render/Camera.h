@@ -30,7 +30,9 @@ namespace sb
         void SetRotation(const XMFLOAT3& rot);
         void SetRotation(float x, float y, float z);
         void AddPosition(const XMFLOAT3& delta);
+        void AddPosition(float x, float y, float z);
         void AddRotation(const XMFLOAT3& delta);
+        void AddRotation(float x, float y, float z);
 
         void OnUpdate(float in_delta); // will be deprecated
     };

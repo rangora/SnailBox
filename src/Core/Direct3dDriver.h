@@ -86,7 +86,6 @@ namespace sb
         void UpdateTick(); // temp
 
         class Direct3dContext* m_direct3dContext = nullptr;
-        class ShaderResource* _shaderResource = nullptr; // temp
 
         // Direct objects
         ComPtr<ID3D12CommandQueue> _commandQueue = nullptr;
@@ -118,8 +117,6 @@ namespace sb
 
         std::vector<RenderInfo> _renderInfoForUpdate;
 
-        Camera m_camera;
-
         ComPtr<ID3D12Fence> m_fence;
         HANDLE m_fenceEvent = INVALID_HANDLE_VALUE;
         HANDLE m_hSwapChainWaitableObject = nullptr;
@@ -131,10 +128,11 @@ namespace sb
         double _PrevTime = 0.0;
         float _tick = 0.f;
 
+        Camera _camera; // world로 빠져야 할 듯
+
         bool bShutDownCalled = false;
 
     public:
-        Camera _camera;
 
         int _numCubeIndices = 36;
         // ~[TEMP]

@@ -16,7 +16,7 @@ namespace sb
         XMMATRIX rotMatrix = XMMatrixRotationRollPitchYaw(_rot.x, _rot.y, _rot.z);
 
         XMVECTOR target = XMVector3TransformCoord(forwardVector, rotMatrix);
-        //target += _posVector; // ????
+        target += _posVector; // ????
 
         XMVECTOR upDirection = XMVector3TransformCoord(upVector, rotMatrix);
         _viewMatrix = XMMatrixLookAtLH(_posVector, target, upDirection);
@@ -105,12 +105,30 @@ namespace sb
         UpdateViewMatrix();
     }
 
+    void Camera::AddPosition(float x, float y, float z)
+    {
+        _pos.x += x;
+        _pos.y += y;
+        _pos.z += z;
+        _posVector = XMLoadFloat3(&_pos);
+        UpdateViewMatrix();
+    }
+
     void Camera::AddRotation(const XMFLOAT3& delta)
     {
         _rot.x += delta.x;
         _rot.y += delta.y;
         _rot.z += delta.z;
-        _forward = XMLoadFloat3(&_rot);
+        _rotVector = XMLoadFloat3(&_rot);
+        UpdateViewMatrix();
+    }
+
+    void Camera::AddRotation(float x, float y, float z)
+    {
+        _rot.x += x;
+        _rot.y += y;
+        _rot.z += z;
+        _rotVector = XMLoadFloat3(&_rot);
         UpdateViewMatrix();
     }
 

@@ -143,7 +143,7 @@ namespace sb
 
         XMMATRIX rotMat = XMMatrixRotationRollPitchYaw(proxyRot.X, proxyRot.Y, proxyRot.Z);
 
-        FXMVECTOR posVector{proxyPos.X, proxyPos.Y, proxyPos.Z};
+        FXMVECTOR posVector{(float)proxyPos.X, (float)proxyPos.Y, (float)proxyPos.Z};
         XMMATRIX translationMat = XMMatrixTranslationFromVector(posVector);
         XMMATRIX worldMat = rotMat * translationMat;
         XMMATRIX transposed = XMMatrixTranspose(worldMat * vpMatrix); // gpu¿¡¼± transpose

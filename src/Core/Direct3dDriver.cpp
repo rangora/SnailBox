@@ -574,32 +574,8 @@ namespace sb
         bool bDown = Input::IsMouseButtonDown(MouseButton::Right);
         if (bDown)
         {
-            //_cameraPosition.x += 0.1f;
-            //_cameraTarget.x += 0.1f;
-
             Vector2f& mouseDiff = GetTargetWindow()->_mouseDiff;
-            float dx = mouseDiff.X * 0.0001f;
-            float dy = mouseDiff.Y * 0.000f;
-
-            if (mouseDiff.X > 0) // move right
-            {
-
-            }
-            else if (mouseDiff.X < 0) // move left
-            {
-
-            }
-
-            if (mouseDiff.Y > 0) // mouse down
-            {
-
-            }
-            else if (mouseDiff.Y < 0) // mouse up
-            {
-
-            }
-
-            spdlog::info("right button down..");
+            _camera.AddRotation(mouseDiff.Y * -0.01f, mouseDiff.X * -0.01f, 0.0);
         }
 
         // Tick shaderResource
