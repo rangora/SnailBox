@@ -103,16 +103,6 @@ namespace sb
             _pipelineState.Reset();
         }
 
-        if (_iBufferUploadHeap)
-        {
-            _iBufferUploadHeap.Reset();
-        }
-
-        if (_iBuffer)
-        {
-            _iBuffer.Reset();
-        }
-
         if (_cbvHeap)
         {
             _cbvHeap.Reset();
@@ -158,7 +148,7 @@ namespace sb
 
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
-            commandList->IASetIndexBuffer(&_iBufferView);
+            commandList->IASetIndexBuffer(_indexBuffer.GetBufferView());
             commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
             commandList->SetPipelineState(_pipelineState.Get());
 
@@ -170,7 +160,7 @@ namespace sb
         {
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
-            commandList->IASetIndexBuffer(&_iBufferView);
+            commandList->IASetIndexBuffer(_indexBuffer.GetBufferView());
 
             const int32 index = sg_d3dDriver->GetCurrentFrameIndex();
             commandList->SetGraphicsRootConstantBufferView(0, _cbUploadHeaps[index]->GetGPUVirtualAddress());
@@ -259,40 +249,8 @@ namespace sb
             return;
         }
 
-        const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
-
-        // Index Buffer
-        {
-            // Create default heap
-            D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-            D3D12_RESOURCE_DESC defaultResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
-            sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &defaultResoourceDesc,
-                                                  D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                                  IID_PPV_ARGS(_iBuffer.GetAddressOf()));
-            _iBuffer->SetName(L"Index Buffer Upload Resource Heap");
-
-            // Create upload heap
-            D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
-            sg_d3dDevice->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &uploadResoourceDesc,
-                                                  D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                  IID_PPV_ARGS(_iBufferUploadHeap.GetAddressOf()));
-            _iBufferUploadHeap->SetName(L"Index Buffer Upload Resource Heap");
-        }
-
-        D3D12_SUBRESOURCE_DATA iData = {};
-        iData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetIndexPointer());
-        iData.RowPitch = iBufferSize;
-        iData.SlicePitch = iBufferSize;
-
         auto commandList = sg_d3dDriver->GetCommandList();
         auto commandQueue = sg_d3dDriver->GetCommandQueue();
-
-        UpdateSubresources(commandList.Get(), _iBuffer.Get(), _iBufferUploadHeap.Get(), 0, 0, 1, &iData);
-
-        _iBufferView.BufferLocation = _iBuffer->GetGPUVirtualAddress();
-        _iBufferView.Format = DXGI_FORMAT_R32_UINT;
-        _iBufferView.SizeInBytes = iBufferSize;
 
         D3D12_RESOURCE_BARRIER vBarrier;
         hr = _vertexBuffer.Initialize(sg_d3dDevice.Get(), commandList.Get(), sDataPtr, vBarrier);
@@ -302,10 +260,16 @@ namespace sb
             return;
         }
 
-        D3D12_RESOURCE_BARRIER barriers[] = {
-            vBarrier,
-            CD3DX12_RESOURCE_BARRIER::Transition(_iBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
+        D3D12_RESOURCE_BARRIER iBarrier;
+        hr = _indexBuffer.Initialize(sg_d3dDevice.Get(), commandList.Get(), sDataPtr, iBarrier);
+        if (FAILED(hr))
+        {
+            spdlog::error("Failed to initialize indexBuffer");
+            return;
+        }
+
+
+        D3D12_RESOURCE_BARRIER barriers[] = {vBarrier, iBarrier};
 
         commandList->ResourceBarrier(_countof(barriers), barriers);
 

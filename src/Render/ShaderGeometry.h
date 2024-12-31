@@ -1,7 +1,7 @@
 #pragma once
 
 #include "corepch.h"
-#include "core/math/Vector.h"
+#include "coreMinimal.h"
 #include "Vertex.h"
 #include <vector>
 

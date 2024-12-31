@@ -1,6 +1,7 @@
 #pragma once
 
 #include "corepch.h"
+#include "coreMinimal.h"
 #include "Render/ShaderGeometry.h"
 
 namespace sb
@@ -25,7 +26,7 @@ namespace sb
         ComPtr<ID3D12Resource> _bufferUploadHeap = nullptr;
         D3D12_VERTEX_BUFFER_VIEW _bufferView = {};
 
-        uint32 _stride;
+        uint32 _stride = 0;
         uint32 _bufferSize = 0;
     };
 

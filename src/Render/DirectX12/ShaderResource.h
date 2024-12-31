@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Render/DirectX12/VertexBuffer.h"
+#include "Render/DirectX12/IndexBuffer.h"
 #include "Render/GraphicsEnum.h"
 #include "coreMinimal.h"
 #include "corepch.h"
@@ -44,7 +45,6 @@ namespace sb
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
-        D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
         ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
         void UpdateShaderRegister(const Transform& transform, const XMMATRIX& vpMatrix);
@@ -57,10 +57,7 @@ namespace sb
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
 
         VertexBuffer<DxVertex> _vertexBuffer;
-
-        ComPtr<ID3D12Resource> _iBufferUploadHeap = nullptr;
-        ComPtr<ID3D12Resource> _iBuffer = nullptr;
-        D3D12_INDEX_BUFFER_VIEW _iBufferView = {};
+        IndexBuffer _indexBuffer;
 
         // constnat buffer data
         ComPtr<ID3D12DescriptorHeap> _cbvHeap = nullptr;

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "corepch.h"
+#include "coreMinimal.h"
 #include "platform.h"
 #include <utility>
 #include <map>
