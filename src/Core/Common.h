@@ -27,7 +27,7 @@ namespace sb
     template <typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
     template <typename T, typename... Args>
-    constexpr UPtr<T> CreateUPtr(Args&&... args)
+    FORCEINLINE constexpr UPtr<T> CreateUPtr(Args&&... args)
     {
         return std::make_unique<T>(std::forward<Args>(args)...);
     }
@@ -36,7 +36,7 @@ namespace sb
     using SPtr = std::shared_ptr<T>;
 
     template <typename T, typename ... Args>
-    constexpr SPtr<T> CreateSPtr(Args&& ... args)
+    FORCEINLINE constexpr SPtr<T> CreateSPtr(Args&& ... args)
     {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }

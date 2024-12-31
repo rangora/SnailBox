@@ -2,7 +2,6 @@
 
 #include "corepch.h"
 #include "core/math/Vector.h"
-#include "core/Common.h"
 #include "Vertex.h"
 #include <vector>
 
@@ -11,7 +10,7 @@ namespace sb
     struct ShaderGeometryRawData
     {
         std::vector<Vertex> _vertex;
-        std::vector<int32> _index; 
+        std::vector<int32> _index;
     };
 
     struct ShaderGeometry

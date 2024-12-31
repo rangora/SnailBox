@@ -1,8 +1,9 @@
 #pragma once
 
-#include "corepch.h"
+#include "Render/DirectX12/VertexBuffer.h"
 #include "Render/GraphicsEnum.h"
 #include "coreMinimal.h"
+#include "corepch.h"
 #include <vector>
 
 namespace sb
@@ -37,14 +38,12 @@ namespace sb
     class ShaderResource
     {
     public:
-        ShaderResource() = delete;
         ShaderResource& operator=(const ShaderResource&) = delete;
         ShaderResource(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
         ~ShaderResource();
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
-        D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView() { return &_vBufferView; }
         D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return _iBufferView; }
         ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
 
@@ -57,9 +56,7 @@ namespace sb
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
 
-        ComPtr<ID3D12Resource> _vBufferUploadHeap = nullptr;
-        ComPtr<ID3D12Resource> _vBuffer = nullptr;
-        D3D12_VERTEX_BUFFER_VIEW _vBufferView = {};
+        VertexBuffer<DxVertex> _vertexBuffer;
 
         ComPtr<ID3D12Resource> _iBufferUploadHeap = nullptr;
         ComPtr<ID3D12Resource> _iBuffer = nullptr;

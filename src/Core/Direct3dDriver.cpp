@@ -183,7 +183,7 @@ namespace sb
                 instruction._rootSignType = RootSignatureType::Descriptor;
             }
 
-            _shaderData.insert({data._shaderKey, CreateUPtr<ShaderResource>(ShaderResource(data, instruction))});
+            _shaderData.emplace(data._shaderKey, CreateUPtr<ShaderResource>(data, instruction));
         }
 
         _commandList->Close();

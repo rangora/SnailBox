@@ -103,16 +103,6 @@ namespace sb
             _pipelineState.Reset();
         }
 
-        if (_vBufferUploadHeap)
-        {
-            _vBufferUploadHeap.Reset();
-        }
-
-        if (_vBuffer)
-        {
-            _vBuffer.Reset();
-        }
-
         if (_iBufferUploadHeap)
         {
             _iBufferUploadHeap.Reset();
@@ -167,7 +157,7 @@ namespace sb
             }
 
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            commandList->IASetVertexBuffers(0, 1, &_vBufferView);
+            commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
             commandList->IASetIndexBuffer(&_iBufferView);
             commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
             commandList->SetPipelineState(_pipelineState.Get());
@@ -179,7 +169,7 @@ namespace sb
         else
         {
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            commandList->IASetVertexBuffers(0, 1, &_vBufferView);
+            commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
             commandList->IASetIndexBuffer(&_iBufferView);
 
             const int32 index = sg_d3dDriver->GetCurrentFrameIndex();
@@ -269,28 +259,7 @@ namespace sb
             return;
         }
 
-        const uint32 _vBufferSize = sDataPtr->GetVertexByteSize();
         const uint32 iBufferSize = sDataPtr->GetIndexByteSize();
-
-        // Vertex Buffer
-        {
-            // Create defaultHeap
-            D3D12_HEAP_PROPERTIES defaultHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-            D3D12_RESOURCE_DESC defaultResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
-
-            sg_d3dDevice->CreateCommittedResource(&defaultHeapProps, D3D12_HEAP_FLAG_NONE, &defaultResourceDesc,
-                                                  D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&_vBuffer));
-            _vBuffer->SetName(L"VertexBuffer DefaultResourceHeap");
-
-            // CreateUploadHeap
-            D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
-
-            sg_d3dDevice->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &uploadResoourceDesc,
-                                                  D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                  IID_PPV_ARGS(&_vBufferUploadHeap));
-            _vBufferUploadHeap->SetName(L"VertexBuffer UploadeResourceHeap");
-        }
 
         // Index Buffer
         {
@@ -304,17 +273,12 @@ namespace sb
 
             // Create upload heap
             D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(_vBufferSize);
+            D3D12_RESOURCE_DESC uploadResoourceDesc = CD3DX12_RESOURCE_DESC::Buffer(iBufferSize);
             sg_d3dDevice->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &uploadResoourceDesc,
                                                   D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                   IID_PPV_ARGS(_iBufferUploadHeap.GetAddressOf()));
             _iBufferUploadHeap->SetName(L"Index Buffer Upload Resource Heap");
         }
-
-        D3D12_SUBRESOURCE_DATA vData = {};
-        vData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetVertexPointer());
-        vData.RowPitch = _vBufferSize;
-        vData.SlicePitch = _vBufferSize;
 
         D3D12_SUBRESOURCE_DATA iData = {};
         iData.pData = reinterpret_cast<BYTE*>(sDataPtr->GetIndexPointer());
@@ -324,20 +288,22 @@ namespace sb
         auto commandList = sg_d3dDriver->GetCommandList();
         auto commandQueue = sg_d3dDriver->GetCommandQueue();
 
-        UpdateSubresources(commandList.Get(), _vBuffer.Get(), _vBufferUploadHeap.Get(), 0, 0, 1, &vData);
         UpdateSubresources(commandList.Get(), _iBuffer.Get(), _iBufferUploadHeap.Get(), 0, 0, 1, &iData);
-
-        _vBufferView.BufferLocation = _vBuffer->GetGPUVirtualAddress();
-        _vBufferView.StrideInBytes = sizeof(DxVertex);
-        _vBufferView.SizeInBytes = _vBufferSize;
 
         _iBufferView.BufferLocation = _iBuffer->GetGPUVirtualAddress();
         _iBufferView.Format = DXGI_FORMAT_R32_UINT;
         _iBufferView.SizeInBytes = iBufferSize;
 
+        D3D12_RESOURCE_BARRIER vBarrier;
+        hr = _vertexBuffer.Initialize(sg_d3dDevice.Get(), commandList.Get(), sDataPtr, vBarrier);
+        if (FAILED(hr))
+        {
+            spdlog::error("Failed to initialize vertexBuffer");
+            return;
+        }
+
         D3D12_RESOURCE_BARRIER barriers[] = {
-            CD3DX12_RESOURCE_BARRIER::Transition(_vBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                                 D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+            vBarrier,
             CD3DX12_RESOURCE_BARRIER::Transition(_iBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                                  D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)};
 
