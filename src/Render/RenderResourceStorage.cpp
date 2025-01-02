@@ -94,8 +94,8 @@ namespace sb
                 12, 13, 14, 12, 15, 13,
                 16, 17, 18, 16, 19, 17,
                 20, 21, 22, 20, 24, 21});
-            resource4._vsPath = projectPath + "/resources/shader/hlsl/sample4.vs.hlsl";
-            resource4._psPath = projectPath + "/resources/shader/hlsl/sample4.fs.hlsl";
+            resource4._vsPath = projectPath + "/resources/shader/hlsl/sample4_vs.hlsl";
+            resource4._psPath = projectPath + "/resources/shader/hlsl/sample4_fs.hlsl";
 
             resources.emplace_back(std::move(resource4));
         }

@@ -1,6 +1,7 @@
 #include "ShaderResource.h"
 #include "Core/Application.h"
 #include "Render/ShaderGeometry.h"
+#include "ShaderStructure.h"
 
 namespace sb
 {
@@ -89,6 +90,7 @@ namespace sb
         }
 
         CreateShader(initializeData, instruction);
+        InitializeConstantBuffer();
     }
 
     ShaderResource::~ShaderResource()
@@ -129,7 +131,7 @@ namespace sb
         XMMATRIX transposed = XMMatrixTranspose(worldMat * vpMatrix); // gpu¿¡¼± transpose
         XMStoreFloat4x4(&_cbData._wvpMat, transposed);
 
-        memcpy(_cbGPUAddresses[frameIndex], &_cbData, sizeof(_cbData));
+        memcpy(_cbGPUAddresses[0], &_cbData, sizeof(_cbData));
     }
 
     void ShaderResource::Render(ComPtr<ID3D12GraphicsCommandList> commandList)
@@ -137,8 +139,9 @@ namespace sb
         ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
 
         commandList->SetGraphicsRootSignature(_rootSignature.Get());
+        commandList->SetPipelineState(_pipelineState.Get());
 
-        if (false)
+        if (false) // table
         {
             if (_cbGPUAddress) // TEMP
             {
@@ -150,20 +153,19 @@ namespace sb
             commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
             commandList->IASetIndexBuffer(_indexBuffer.GetBufferView());
             commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
-            commandList->SetPipelineState(_pipelineState.Get());
 
-            {
-                commandList->SetGraphicsRootSignature(_rootSignature.Get());
-            }
+            //{
+            //    commandList->SetGraphicsRootSignature(_rootSignature.Get());
+            //}
         }
-        else
+        else // descriptor
         {
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
             commandList->IASetIndexBuffer(_indexBuffer.GetBufferView());
 
             const int32 index = sg_d3dDriver->GetCurrentFrameIndex();
-            commandList->SetGraphicsRootConstantBufferView(0, _cbUploadHeaps[index]->GetGPUVirtualAddress());
+            commandList->SetGraphicsRootConstantBufferView(0, _cbUploadHeaps[0]->GetGPUVirtualAddress()); // constant buffer
             commandList->DrawIndexedInstanced(36, 1, 0, 0, 0); // first quad
         }
     }
@@ -273,12 +275,37 @@ namespace sb
 
         commandList->ResourceBarrier(_countof(barriers), barriers);
 
+        _cbUploadHeaps.resize(1);
+        _cbGPUAddresses.resize(1);
+
         // constant buffer
         if (instruction._rootSignType == RootSignatureType::Descriptor)
         {
-            _cbUploadHeaps.resize(SWAP_CHAIN_BUFFER_COUNT);
-            _cbGPUAddresses.resize(SWAP_CHAIN_BUFFER_COUNT);
+            CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
 
+            hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+                                                       D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                       IID_PPV_ARGS(&_cbUploadHeaps[0]));
+            _cbUploadHeaps[0]->SetName(L"Constant Buffer Upload Resource Heap");
+
+            ZeroMemory(&_cbData, sizeof(_cbData));
+
+            CD3DX12_RANGE readRange(0, 0);
+
+            hr = _cbUploadHeaps[0]->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddresses[0]));
+
+            memcpy(_cbGPUAddresses[0], &_cbData, sizeof(_cbData));
+            memcpy(_cbGPUAddresses[0] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
+        }
+
+        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
+        {
+            // Create Constant Buffer View
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+            cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
+            cbvDesc.SizeInBytes = (sizeof(ConstantBuffer_old) + 255) & ~255;
+            sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
 
             for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
             {
@@ -290,44 +317,19 @@ namespace sb
                                                            IID_PPV_ARGS(&_cbUploadHeaps[i]));
                 _cbUploadHeaps[i]->SetName(L"Constant Buffer Upload Resource Heap");
 
+                if (FAILED(hr))
+                {
+                    assert(false);
+                    spdlog::error("Failed to create constant buffer upload resource heap");
+                    return;
+                }
+
+
                 ZeroMemory(&_cbData, sizeof(_cbData));
-
                 CD3DX12_RANGE readRange(0, 0);
-
-                hr = _cbUploadHeaps[i]->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddresses[i]));
-
-                memcpy(_cbGPUAddresses[i], &_cbData, sizeof(_cbData));
-                memcpy(_cbGPUAddresses[i] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
+                hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
+                ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
             }
-        }
-
-        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
-        {
-            CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
-
-            hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
-                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                        IID_PPV_ARGS(_cbUploadHeap.GetAddressOf()));
-            _cbUploadHeap->SetName(L"Constant Buffer Upload Resource Heap");
-
-            if (FAILED(hr))
-            {
-                assert(false);
-                spdlog::error("Failed to create constant buffer upload resource heap");
-                return;
-            }
-
-            // Create Constant Buffer View
-            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-            cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
-            cbvDesc.SizeInBytes = (sizeof(ConstantBuffer) + 255) & ~255;
-            sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
-
-            ZeroMemory(&_cbData, sizeof(_cbData));
-            CD3DX12_RANGE readRange(0, 0);
-            hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
-            ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
         }
 
         commandList->Close();
@@ -340,4 +342,11 @@ namespace sb
         auto ctx = sg_d3dDriver->GetCurrentFrameContexts();
         commandList->Reset(ctx->CommandAllocator, _pipelineState.Get());
     }
+
+    void ShaderResource::InitializeConstantBuffer()
+    {
+        auto buffer = CreateUPtr<ConstantBuffer>();
+        buffer->Initialize(CBV_Register::b0, sizeof(TransformBuffer), 1);
+    }
+
 } // namespace sb

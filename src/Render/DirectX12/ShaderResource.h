@@ -2,6 +2,7 @@
 
 #include "Render/DirectX12/VertexBuffer.h"
 #include "Render/DirectX12/IndexBuffer.h"
+#include "Render/DirectX12/ConstantBuffer.h"
 #include "Render/GraphicsEnum.h"
 #include "coreMinimal.h"
 #include "corepch.h"
@@ -10,7 +11,7 @@
 namespace sb
 {
     // TEMP
-    struct ConstantBuffer
+    struct ConstantBuffer_old
     {
         //XMFLOAT4 _colorMultiplier;
         XMFLOAT4X4 _wvpMat;
@@ -52,10 +53,12 @@ namespace sb
 
     private:
         void CreateShader(const ShaderResourceDesc& initializeData, const ShaderHeapInstruction& instruction);
+        void InitializeConstantBuffer();
 
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
 
+        std::vector<UPtr<ConstantBuffer>> _cBuffer;
         VertexBuffer<DxVertex> _vertexBuffer;
         IndexBuffer _indexBuffer;
 
@@ -65,8 +68,8 @@ namespace sb
         std::vector<ComPtr<ID3D12Resource>> _cbUploadHeaps;
         UINT8* _cbGPUAddress = nullptr;
         std::vector<UINT8*> _cbGPUAddresses;
-        ConstantBuffer _cbData;
+        ConstantBuffer_old _cbData;
 
-        int32 _cBufferObjectAlignedSize = (sizeof(ConstantBuffer) + 255) & ~255;
+        int32 _cBufferObjectAlignedSize = (sizeof(ConstantBuffer_old) + 255) & ~255;
     };
 }; // namespace sb

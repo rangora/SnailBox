@@ -181,6 +181,9 @@ namespace sb
             else if (data._shaderKey._Equal("sample4"))
             {
                 instruction._rootSignType = RootSignatureType::Descriptor;
+                /*        instruction._bTable = true;
+                        instruction._numDescriptors = 1;
+                        instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;*/
             }
 
             _shaderData.emplace(data._shaderKey, CreateUPtr<ShaderResource>(data, instruction));
@@ -437,15 +440,10 @@ namespace sb
         // 하나의 commandList만 record 할 수 있기 때문에 다른 list는 close 상태여야 함
         frameCtx->CommandAllocator->Reset();
 
-        for (auto& renderInfo : _renderInfoForUpdate)
-        {
-            // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
-            //_commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
-            // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
-
-            _commandList->Reset(frameCtx->CommandAllocator, renderInfo._shaderResource->GetPipelineState().Get());
-
-        }
+        // reset을 해좌야 record상태로 전환되고 commandAllocator에 record 할 수 있다.
+        //_commandList->Reset(frameCtx->CommandAllocator, _shaderResource->GetPipelineState().Get());
+        // 이젠 record 시작(아래 command들은 commandAllocator에 저장됨)
+        _commandList->Reset(frameCtx->CommandAllocator, nullptr);
 
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

@@ -12,7 +12,7 @@ struct VS_OUTPUT
 
 cbuffer ConstantBuffer : register(b0)
 {
-	float4x4 wvpMat;
+    matrix wvpMat;
 };
 
 VS_OUTPUT main(VS_INPUT input)
