@@ -8,6 +8,9 @@ namespace sb
     ShaderResource::ShaderResource(const ShaderResourceDesc& initializeData,
                                    const ShaderHeapInstruction& instruction)
     {
+        _cBuffer.emplace("transform", CreateUPtr<ConstantBuffer>());
+        _cBuffer.find("transform")->second->Initialize(CBV_Register::b0, sizeof(TransformBuffer), 1);
+
         // create desc for CBV.
         if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
         {
@@ -24,27 +27,6 @@ namespace sb
 
         // create root signature.
         CD3DX12_ROOT_SIGNATURE_DESC rdc;
-        if (instruction._rootSignType == RootSignatureType::Descriptor)
-        {
-            D3D12_ROOT_DESCRIPTOR rootCBVDescriptor;
-            rootCBVDescriptor.RegisterSpace = 0;
-            rootCBVDescriptor.ShaderRegister = 0;
-
-            D3D12_ROOT_PARAMETER rootParameters[1];
-            rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-            rootParameters[0].Descriptor = rootCBVDescriptor;
-            rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
-
-            rdc.Init(_countof(rootParameters), rootParameters, 0, nullptr,
-                                   D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-                                       D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
-
-
-        }
-        else if (instruction._bTable)
         {
             D3D12_DESCRIPTOR_RANGE descTableRanges[1]; // TODO : PARAM??
             descTableRanges[0].RangeType = instruction._rangeType;
@@ -68,10 +50,6 @@ namespace sb
                           D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
                           D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
                           D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
-        }
-        else
-        {
-            rdc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
         }
 
         ID3DBlob* signature;
@@ -116,6 +94,12 @@ namespace sb
         }
     }
 
+    void ShaderResource::BindPipelineState(ID3D12GraphicsCommandList* commandList)
+    {
+        commandList->SetGraphicsRootSignature(_rootSignature.Get());
+        commandList->SetPipelineState(_pipelineState.Get());
+    }
+
     void ShaderResource::UpdateShaderRegister(const Transform& transform, const XMMATRIX& vpMatrix)
     {
         int32 frameIndex = sg_d3dDriver->GetCurrentFrameIndex();
@@ -129,34 +113,31 @@ namespace sb
         XMMATRIX translationMat = XMMatrixTranslationFromVector(posVector);
         XMMATRIX worldMat = rotMat * translationMat;
         XMMATRIX transposed = XMMatrixTranspose(worldMat * vpMatrix); // gpu에선 transpose
+
         XMStoreFloat4x4(&_cbData._wvpMat, transposed);
 
-        memcpy(_cbGPUAddresses[0], &_cbData, sizeof(_cbData));
+        _cBuffer["transform"]->PushData(&_cbData, sizeof(TransformBuffer));
+        //memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
     }
 
     void ShaderResource::Render(ComPtr<ID3D12GraphicsCommandList> commandList)
     {
         ID3D12DescriptorHeap* cbvHeaps[] = {_cbvHeap.Get()};
 
-        commandList->SetGraphicsRootSignature(_rootSignature.Get());
-        commandList->SetPipelineState(_pipelineState.Get());
+        BindPipelineState(commandList.Get());
 
-        if (false) // table
+        if (true) // table
         {
-            if (_cbGPUAddress) // TEMP
+            //if (_cbGPUAddress) // TEMP
             {
-                commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps);
+                commandList->SetDescriptorHeaps(_countof(cbvHeaps), cbvHeaps); // 아래 코드랑 분리 가능한 듯??
                 commandList->SetGraphicsRootDescriptorTable(0, _cbvHeap->GetGPUDescriptorHandleForHeapStart());
             }
 
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             commandList->IASetVertexBuffers(0, 1, _vertexBuffer.GetBufferView());
             commandList->IASetIndexBuffer(_indexBuffer.GetBufferView());
-            commandList->DrawIndexedInstanced(6, 1, 0, 0, 0); // first quad
-
-            //{
-            //    commandList->SetGraphicsRootSignature(_rootSignature.Get());
-            //}
+            commandList->DrawIndexedInstanced(36, 1, 0, 0, 0); // first quad
         }
         else // descriptor
         {
@@ -278,58 +259,34 @@ namespace sb
         _cbUploadHeaps.resize(1);
         _cbGPUAddresses.resize(1);
 
-        // constant buffer
-        if (instruction._rootSignType == RootSignatureType::Descriptor)
+        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
         {
+            // 여기서
             CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
 
             hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                       IID_PPV_ARGS(&_cbUploadHeaps[0]));
-            _cbUploadHeaps[0]->SetName(L"Constant Buffer Upload Resource Heap");
+                                                       IID_PPV_ARGS(&_cbUploadHeap));
 
-            ZeroMemory(&_cbData, sizeof(_cbData));
-
-            CD3DX12_RANGE readRange(0, 0);
-
-            hr = _cbUploadHeaps[0]->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddresses[0]));
-
-            memcpy(_cbGPUAddresses[0], &_cbData, sizeof(_cbData));
-            memcpy(_cbGPUAddresses[0] + _cBufferObjectAlignedSize, &_cbData, sizeof(_cbData));
-        }
-
-        if (instruction._rangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV)
-        {
             // Create Constant Buffer View
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
             cbvDesc.BufferLocation = _cbUploadHeap->GetGPUVirtualAddress();
             cbvDesc.SizeInBytes = (sizeof(ConstantBuffer_old) + 255) & ~255;
             sg_d3dDevice->CreateConstantBufferView(&cbvDesc, _cbvHeap->GetCPUDescriptorHandleForHeapStart());
 
-            for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
+            _cbUploadHeap->SetName(L"Constant Buffer Upload Resource Heap");
+
+            if (FAILED(hr))
             {
-                CD3DX12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-                CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(1024 * 64);
-
-                hr = sg_d3dDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
-                                                           D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                           IID_PPV_ARGS(&_cbUploadHeaps[i]));
-                _cbUploadHeaps[i]->SetName(L"Constant Buffer Upload Resource Heap");
-
-                if (FAILED(hr))
-                {
-                    assert(false);
-                    spdlog::error("Failed to create constant buffer upload resource heap");
-                    return;
-                }
-
-
-                ZeroMemory(&_cbData, sizeof(_cbData));
-                CD3DX12_RANGE readRange(0, 0);
-                hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
-                ::memcpy(_cbGPUAddress, &_cbData, sizeof(_cbData));
+                assert(false);
+                spdlog::error("Failed to create constant buffer upload resource heap");
+                return;
             }
+
+            CD3DX12_RANGE readRange(0, 0);
+            hr = _cbUploadHeap->Map(0, &readRange, reinterpret_cast<void**>(&_cbGPUAddress));
+            // ~여기까지가 Create
         }
 
         commandList->Close();

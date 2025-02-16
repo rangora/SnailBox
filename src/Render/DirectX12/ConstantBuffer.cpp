@@ -25,14 +25,20 @@ namespace sb
 
     void ConstantBuffer::Clear()
     {
+        _curIdx = 0;
     }
 
     void ConstantBuffer::PushData(void* buffer, uint32 size)
     {
+        ::memcpy(&_mappedBuffer[_curIdx * _elementSize], buffer, size);
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = GetCpuHandle(_curIdx);
+        //sg_d3dDriver->GetRootDescriptorHeap()- >SetCBV(cpuHandle, _reg);
     }
 
-    void ConstantBuffer::SetGlobalData(void* buffer, uint32 size)
+    void ConstantBuffer::SetGlobalData(ID3D12GraphicsCommandList* cmdList, void* buffer, uint32 size)
     {
+        ::memcpy(&_mappedBuffer[0], buffer, size);
+        cmdList->SetGraphicsRootConstantBufferView(0, GetGpuVirtualAddress(0));
     }
 
     D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGpuVirtualAddress(uint32 index)

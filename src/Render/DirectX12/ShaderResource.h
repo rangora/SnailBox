@@ -7,14 +7,14 @@
 #include "coreMinimal.h"
 #include "corepch.h"
 #include <vector>
+#include "boost/container/flat_map.hpp"
 
 namespace sb
 {
     // TEMP
     struct ConstantBuffer_old
     {
-        //XMFLOAT4 _colorMultiplier;
-        XMFLOAT4X4 _wvpMat;
+        SimpleMath::Matrix _wvpMat;
     };
 
     struct ShaderResourceFile
@@ -46,7 +46,8 @@ namespace sb
 
         ComPtr<ID3D12RootSignature> GetRootSignature() const { return _rootSignature; }
         ComPtr<ID3D12PipelineState> GetPipelineState() const { return _pipelineState; }
-        ComPtr<ID3D12DescriptorHeap> GetCbvHeap() const { return _cbvHeap; }
+
+        void BindPipelineState(ID3D12GraphicsCommandList* commandList);
 
         void UpdateShaderRegister(const Transform& transform, const XMMATRIX& vpMatrix);
         void Render(ComPtr<ID3D12GraphicsCommandList> commandList);
@@ -58,7 +59,8 @@ namespace sb
         ComPtr<ID3D12RootSignature> _rootSignature = nullptr;
         ComPtr<ID3D12PipelineState> _pipelineState = nullptr;
 
-        std::vector<UPtr<ConstantBuffer>> _cBuffer;
+        boost::container::flat_map<std::string, UPtr<ConstantBuffer>> _cBuffer;
+        std::vector<UPtr<ConstantBuffer>> _cBuffer2;
         VertexBuffer<DxVertex> _vertexBuffer;
         IndexBuffer _indexBuffer;
 

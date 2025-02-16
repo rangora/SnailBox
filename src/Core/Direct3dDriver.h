@@ -3,6 +3,7 @@
 #include "Driver.h"
 #include "Render/Camera.h"
 #include "Render/DirectX12/RenderInfo.h"
+#include "Render/DirectX12/RootDescriptorHeap.h"
 #include "Render/RenderResource.h"
 #include "boost/container/flat_map.hpp"
 #include "coreMinimal.h"
@@ -48,6 +49,7 @@ namespace sb
         ComPtr<ID3D12Fence> GetFence() const { return m_fence; }
         ComPtr<ID3D12GraphicsCommandList> GetCommandList() const { return _commandList; }
         ComPtr<ID3D12CommandQueue> GetCommandQueue() const { return _commandQueue; }
+        RootDescriptorHeap* GetRootDescriptorHeap() const { return _rootDescriptorHeap.get(); }
 
         HANDLE GetFenceEvent() const { return m_fenceEvent; }
         HANDLE GetSwapChainWaitableObject() const { return m_hSwapChainWaitableObject; }
@@ -96,6 +98,8 @@ namespace sb
         ComPtr<IDXGISwapChain3> _swapChain3 = nullptr;
 
         ComPtr<ID3D12DescriptorHeap> _mainRtvHeap = nullptr;
+        UPtr<RootDescriptorHeap> _rootDescriptorHeap = nullptr;
+
         D3D12_CPU_DESCRIPTOR_HANDLE _mainRtvCpuHandle[SWAP_CHAIN_BUFFER_COUNT] = {};
         ID3D12Resource* _mainRtvResource[SWAP_CHAIN_BUFFER_COUNT] = {};
 

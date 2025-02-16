@@ -172,19 +172,19 @@ namespace sb
             data._files._vsPath = resource._vsPath;
             data._files._fsPath = resource._psPath;
 
-            if (data._shaderKey._Equal("sample3"))
+            if (data._shaderKey._Equal("sample4"))
             {
                 instruction._bTable = true;
                 instruction._numDescriptors = 1;
                 instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
             }
-            else if (data._shaderKey._Equal("sample4"))
-            {
-                instruction._rootSignType = RootSignatureType::Descriptor;
-                /*        instruction._bTable = true;
-                        instruction._numDescriptors = 1;
-                        instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;*/
-            }
+            //else if (data._shaderKey._Equal("sample4"))
+            //{
+            //    instruction._rootSignType = RootSignatureType::Descriptor;
+            //    /*        instruction._bTable = true;
+            //            instruction._numDescriptors = 1;
+            //            instruction._rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;*/
+            //}
 
             _shaderData.emplace(data._shaderKey, CreateUPtr<ShaderResource>(data, instruction));
         }
@@ -275,6 +275,10 @@ namespace sb
                                         sg_d3dDriver->GetFrameContexts()[0].CommandAllocator, nullptr,
                                         IID_PPV_ARGS(_commandList.GetAddressOf()));
         }
+
+        // rootDescriptorHeap
+        _rootDescriptorHeap = CreateUPtr<RootDescriptorHeap>();
+        _rootDescriptorHeap->Initialize(256);
 
         // SRV
         {
